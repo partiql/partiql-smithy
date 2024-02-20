@@ -1,0 +1,332 @@
+= PartiQL Schema
+:toc:
+:toc-title: Page Contents
+:sectlinks:
+
+// include::parts.adoc[]
+
+[#types]
+== Types
+
+.Boolean Type
+[cols="1m,3,>2",grid=rows,frame=all]
+|===
+| Type | Description | Values
+
+| bool
+| Boolean value
+| `TRUE` or `FALSE`
+
+|===
+
+.Numeric Types
+[cols="1m,3,>2a",grid=rows,frame=all]
+|===
+| Type | Description | Range
+
+| int8
+| Signed integer that can be stored in one byte
+| -128 to +127
+
+| int16
+| Signed integer that can be stored in two bytes
+| -32768 to +32767
+
+| int32
+| Signed integer that can be stored in four bytes
+| -2147483648 to +2147483647
+
+| int64
+| Signed integer that can be stored in eight bytes
+| -9223372036854775808 to +9223372036854775807 
+
+| int
+| Signed integer of arbitrary size
+| ...
+
+| decimal
+| Exact numeric type with arbitrary precision
+| ...
+
+| decimal(p,s)
+| Exact numeric with fixed precision and scale
+| ...
+
+| float32
+| Single-precision, binary floating point (IEEE 754 32-bit)
+| ...
+
+| float64
+| Double-precision, binary floating point (IEEE 754 64-bit)
+| ...
+
+|===
+
+.Character String Types
+[cols="1m,5",grid=rows,frame=all]
+|===
+| Type | Description
+
+| char(n)
+| Unicode codepoint sequence of fixed length _n_
+
+| string
+| Unicode codepoint sequence of arbitrary length
+
+| string(n)
+| Unicode codepoint sequence of variable length up to _n_. This is equivalent to the SQL type `CHARACTER VARYING(n)`, `VARCHAR(n)`.
+
+| symbol
+| Unicode codepoint sequences of arbitrary length. The primary difference is the intended semantics: symbols represent case-sensitive identifiers as opposed to textual literal values.
+
+|===
+
+.Bit String Types
+[cols="1m,5",grid=rows,frame=all]
+|===
+| Type | Description
+
+| bit(n)
+| Bit string of fixed length _n_
+
+| binary
+| Bit string of arbitrary length
+
+| binary(n)
+| Bit string of variable length up to _n_ 
+
+|===
+
+.Byte String Types
+[cols="1m,5",grid=rows,frame=all]
+|===
+| Type | Description
+
+| byte(n)
+| Octet string of fixed length _n_
+
+| blob
+| Octet string of arbitrary length
+
+| blob(n)
+| Octet string of variable length up to _n_ 
+
+| clob
+| Unicode codepoint sequence of arbitrary length
+
+| clob(n)
+| Unicode codepoint sequence of variable length up to _n_
+
+|===
+
+.Date/Time Types
+[cols="1m,5",grid=rows,frame=all]
+|===
+| Type | Description
+
+| date
+| A date with no _time_
+
+| time
+| A _date_-less time with arbitrary precision and no time zone offset
+
+| time(p)
+| A _date_-less time with seconds precision _p_ and no time zone offset
+
+| time(p,z)
+| A _date_-less time with seconds precision _p_ and time zone offset _z_
+
+| timestamp
+| A _date_ and _time_ with arbitrary precision
+
+| timestamp(p)
+| A _date_ and _time_ with seconds precision _p_ and no time zone offset
+
+| timestamp(p,z)
+| A _date_ and _time_ with seconds precision _p_ and time zone offset _z_
+
+// Open Question: Should we model timestamp that only has UTF offsets which are a strict subset of timezones.
+
+// SQL-99 4.7.2
+| interval(p)
+| A time interval with seconds precision _p_
+
+2+a| NOTE: A time zone offset _z_ is an hour/minute pair of integers
+
+|===
+
+.Collection Types
+[cols="1m,5",grid=rows,frame=all]
+|===
+| Type | Description
+
+| bag
+| Unordered collection of values
+
+| list
+| Ordered collection of values
+
+|===
+
+.Struct Type
+[cols="1m,5",grid=rows,frame=all]
+|===
+| Type | Description
+
+| struct
+| Unordered collection of unconstrained fields
+
+2+a|  NOTE: Fields are name-value pairs where names are strings
+
+|===
+
+.Absent Types
+[cols="1m,3,>2m",grid=rows,frame=all]
+|===
+| Type | Description | Value
+
+| null
+| Type of the null value
+| NULL
+
+| missing
+| Type of the missing value
+| MISSING
+
+| unknown
+| The empty type
+|
+
+|===
+
+.Graph Type
+[grid=rows,frame=all]
+|===
+| Description
+
+| Placeholder — https://github.com/partiql/partiql-docs/blob/main/RFCs/0025-graph-data-model.md
+
+|===
+
+.Union Types
+[cols="1m,5",grid=rows,frame=all]
+|===
+
+2+a|
+NOTE: Let `(t~0~\|...\|t~n~)` represent the union of types t~0~,...,t~n~ 
+
+s| Type s| Description
+
+| any
+| The union of all types
+
+| lob
+| `(blob\|clob)`
+
+| number
+| `(exact\|approximate)`
+
+| exact
+| `(int8\|int16\|int32\|int64\|int\|decimal)`
+
+| approximate
+| `(float32\|float64)`
+
+| text
+| `(char\|string\|symbol)`
+
+|===
+
+
+== Data Definition Language (DDL)
+
+PLACEHOLDER.
+
+== Appendices
+
+=== Appendix A - Ion Encoding
+
+[source,ion]
+----
+bool
+
+int8
+int16
+int32
+int
+
+decimal
+decimal::{
+  precision: <int>,   // precision
+  scale: <int>        // scale
+}
+
+float32
+float64
+
+char::{
+  length: <int>       // fixed length
+}
+
+string
+string::{
+  length: <int>       // variable length extent
+}
+
+symbol
+
+bit::{
+  length: <int>       // fixed length
+}
+
+binary
+binary::{
+  length: <int>       // variable length extent
+}
+
+byte::{
+  length: <int>       // fixed length
+}
+blob
+blob::{
+  length: <int>       // variable length extent
+}
+
+clob
+clob::{
+  length: <int>       // variable length extent
+}
+
+date
+time
+time::{
+  precision: <int>,   // seconds precision
+  offset: <int>       // zone offset (unit?)
+}
+
+timestamp
+timestamp::{
+  precision: <int>,   // seconds precision
+  offset: <int>       // zone offset (unit?)
+}
+interval::{
+  precision: <int>    // seconds precision
+}
+
+bag::{
+  items: <type>
+}
+
+list::{
+  items: <type>
+}
+
+struct::{
+  <key_1>: <value_type_1>,
+  ...
+  <key_n>: <value_type_n>,
+  $constraints: {
+    ...
+  }
+}
+----
