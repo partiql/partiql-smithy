@@ -8,4 +8,4 @@ partiql-plan-kotlin/
 partiql-plan-rust/
 
 specification/**/*
-!specification/model.adoc
+!specification/types.adoc
