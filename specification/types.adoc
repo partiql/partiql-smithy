@@ -253,43 +253,6 @@ PLACEHOLDER.
 
 PartiQL shapes may be encoded as Ion. In particular, we use the JSON subset of Ion. In choosing the JSON subset, we enable customers to leverage the vast ecosystem of JSON-compatible tooling while (naturally) maintaining Ion compatibility. This encoding is informed by the  xref:https://avro.apache.org/docs/1.11.1/specification/[Avro Schema JSON encoding]. A PartiQL shape is represented by either a string naming a defined type or a struct (JSON object) with a `"type": <name>` field and constraints.
 
-[source,ion]
-----
-
-date
-time
-time::{
-  precision: <int>,   // seconds precision
-  offset: <int>       // zone offset (unit?)
-}
-
-timestamp
-timestamp::{
-  precision: <int>,   // seconds precision
-  offset: <int>       // zone offset (unit?)
-}
-interval::{
-  precision: <int>    // seconds precision
-}
-
-bag::{
-  items: <type>
-}
-
-list::{
-  items: <type>
-}
-
-struct::{
-  <key_1>: <value_type_1>,
-  ...
-  <key_n>: <value_type_n>,
-  $constraints: {
-    ...
-  }
-}
-----
-
 .Boolean Type
 [cols="1m,5a",grid=rows,frame=all]
 |===
