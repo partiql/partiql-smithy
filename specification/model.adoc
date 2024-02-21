@@ -49,7 +49,7 @@
 | ...
 
 | decimal(p,s)
-| Exact numeric with fixed precision and scale
+| Exact numeric with fixed precision _p_ and scale _s_
 | ...
 
 | float32
@@ -237,6 +237,11 @@ s| Type s| Description
 
 |===
 
+== Shapes
+
+PLACEHOLDER.
+
+The term _shape_ refers to the static constraints of data. It is akin to the common term _schema_, but in the context of database systems this term is overloaded, and we have opted for a less ambiguous term. Additionally, _shapes_ are more flexible than schemas from relational systems. We have seen this term in similar data systems such as xref:https://zed.brimdata.io/docs[Zed] from Brim Data. 
 
 == Data Definition Language (DDL)
 
@@ -244,58 +249,12 @@ PLACEHOLDER.
 
 == Appendices
 
-=== Appendix A - Ion Encoding
+=== Appendix A - PartiQL Shape Encoding
+
+PartiQL shapes may be encoded as Ion. In particular, we use the JSON subset of Ion. In choosing the JSON subset, we enable customers to leverage the vast ecosystem of JSON-compatible tooling while (naturally) maintaining Ion compatibility. This encoding is informed by the  xref:https://avro.apache.org/docs/1.11.1/specification/[Avro Schema JSON encoding]. A PartiQL shape is represented by either a string naming a defined type or a struct (JSON object) with a `"type": <name>` field and constraints.
 
 [source,ion]
 ----
-bool
-
-int8
-int16
-int32
-int
-
-decimal
-decimal::{
-  precision: <int>,   // precision
-  scale: <int>        // scale
-}
-
-float32
-float64
-
-char::{
-  length: <int>       // fixed length
-}
-
-string
-string::{
-  length: <int>       // variable length extent
-}
-
-symbol
-
-bit::{
-  length: <int>       // fixed length
-}
-
-binary
-binary::{
-  length: <int>       // variable length extent
-}
-
-byte::{
-  length: <int>       // fixed length
-}
-blob
-blob::{
-  length: <int>       // variable length extent
-}
-
-clob
-clob::{
-  length: <int>       // variable length extent
-}
 
 date
 time
@@ -330,3 +289,308 @@ struct::{
   }
 }
 ----
+
+.Boolean Type
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| bool
+| `"bool"`
+
+|===
+
+.Numeric Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| int8
+| `"int8"`
+
+| int16
+| `"int16"`
+
+| int32
+| `"int32"`
+
+| int64
+| `"int64"`
+
+| int
+| `"int"`
+
+| decimal
+| `"decimal"`
+
+| decimal(p,s)
+|
+[source,ion]
+----
+{
+  "type": "decimal"
+  "precision": <int>,
+  "scale": <int>
+}
+----
+
+| float32
+| `"float32"`
+
+| float64
+| `"float64"`
+
+|===
+
+.Character String Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| char(n)
+|
+[source,ion]
+----
+{
+  "type": "char",
+  "length": <int>
+}
+----
+
+| string
+| `"string"`
+
+| string(n)
+|
+[source,ion]
+----
+{
+  "type": "string",
+  "length": <int>
+}
+----
+
+| symbol
+| `"symbol"`
+
+|===
+
+.Bit String Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| bit(n)
+|
+[source,ion]
+----
+bit::{
+  length: <int>       // fixed length
+}
+----
+
+| binary
+| `"binary"`
+
+| binary(n)
+|
+[source,ion]
+----
+{
+  "type": "binary",
+  "length": <int>
+}
+----
+
+|===
+
+.Byte String Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| byte(n)
+|
+[source,ion]
+----
+{
+  "type": "byte",
+  "length": <int>
+}
+----
+
+| blob
+| `"blob"`
+
+| blob(n)
+|
+[source,ion]
+----
+{
+  "type": "blob",
+  "length": <int>
+}
+----
+
+| clob
+| `"clob"`
+
+| clob(n)
+|
+[source,ion]
+----
+{
+  "type": "clob",
+  "length": <int>
+}
+----
+
+|===
+
+.Date/Time Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| date
+| `"date"`
+
+| time
+| `"time"`
+
+| time(p)
+|
+[source,ion]
+----
+{
+  "type": "time",
+  "precision": <int>
+}
+----
+
+| time(p,z)
+|
+[source,ion]
+----
+{
+  "type": "time",
+  "precision": <int>,
+  "offset": <int>
+}
+----
+
+| timestamp
+| `"timestamp"`
+
+| timestamp(p)
+|
+[source,ion]
+----
+{
+  "type": "timestamp",
+  "precision": <int>
+}
+----
+
+| timestamp(p,z)
+|
+[source,ion]
+----
+{
+  "type": "timestamp",
+  "precision": <int>,
+  "offset": <int>
+}
+----
+
+// SQL-99 4.7.2
+| interval(p)
+|
+[source,ion]
+----
+{
+  "type": "interval",
+  "precision": <int>
+}
+----
+
+|===
+
+.Collection Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| bag
+|
+[source,ion]
+----
+{
+  "type": "bag",
+  "items": <type>
+}
+----
+
+| list
+|
+[source,ion]
+----
+{
+  "type": "list",
+  "items": <type>
+}
+----
+
+|===
+
+.Struct Type
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| struct
+|
+[source,ion]
+----
+{
+  "type": "struct",
+  "fields": [
+    { "name": <string>, "type": <type> }
+    ...
+  ],
+}
+----
+
+|===
+
+.Absent Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+| null
+| `"null"`
+
+| missing
+| `"missing"`
+
+| unknown
+| `"unknown"`
+
+|===
+
+.Union Types
+[cols="1m,5a",grid=rows,frame=all]
+|===
+| Type | Encoding
+
+2+a|
+Unions are represented by arrays. Let _s1_ and _s2_ be two shapes.
+
+| s1, s2
+| `[ s1, s2 ]`
+
+| any
+| `"any"`
+
+|===
