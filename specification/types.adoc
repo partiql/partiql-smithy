@@ -347,8 +347,9 @@ PartiQL shapes may be encoded as Ion. In particular, we use the JSON subset of I
 |
 [source,ion]
 ----
-bit::{
-  length: <int>       // fixed length
+{
+  "type": "bit",
+  "length": <int>       // fixed length
 }
 ----
 
@@ -521,6 +522,9 @@ bit::{
     { "name": <string>, "type": <type> }
     ...
   ],
+  "closed": <bool>,   // optional, default true
+  "ordered": <bool>,  // optional, default true
+  "multimap": <bool>  // optional, default false
 }
 ----
 
