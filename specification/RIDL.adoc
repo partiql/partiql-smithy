@@ -1,0 +1,235 @@
+= Tom's Reasonable Interface Definition Language
+:toc:
+:toc-title: Page Contents
+:sectlinks:
+
+Here we define a simple interface definition language from which can produce efficient Ion encodings. The interface definition language is itself a valid Ion document which takes inspiration (and lessons) from the following technologies:
+
+* xref:https://protobuf.com/docs/language-spec[Protobuf IDL]
+* xref:https://avro.apache.org/docs/1.11.1/specification/[Avro IDL]
+* xref:https://github.com/partiql/partiql-ir-generator/wiki/Domain-Modeling-Language[PIG Domain Modeling Language]
+* xref:https://github.com/partiql/partiql-lang-kotlin/blob/main/lib/sprout/README.md[Sprout IR Modeling]
+
+The ethos of this project is to evolve the Ion serde capabilities of PIG outside the context of graphical-IR modeling.
+
+== Notation
+
+This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/grammars.md[ANTLR grammar notation] to define the IDL. A complete grammar can be found at the end. The basic notation is as follows:
+
+== Document
+
+[source,antlr]
+----
+document : include* definition*;
+
+include: '(' include string ')';
+
+definition
+    : record
+    | union
+    | enum
+    | fixed
+    ;
+----
+
+== References and Identifiers
+
+[source,antlr]
+----
+type
+    : primitive
+    | container
+    | identifier
+    ;
+
+identifier
+    : symbol
+    | '\' '.'? symbol ('.' symbol)+ '
+    ;
+
+name: symbol;
+----
+
+== Primitive Types
+
+[source,antlr]
+----
+primitive
+    : 'bool'
+    | 'int32'
+    | 'int64'
+    | 'float32'
+    | 'float64'
+    | 'decimal'
+    | 'date'
+    | 'time'
+    | 'timestamp'
+    | 'bytes'
+    ;
+----
+
+== Container Types
+
+[source,antlr]
+----
+container
+    : list
+    | map
+    | set
+    ;
+----
+
+=== List
+
+[source,antlr]
+----
+list : '(' 'list' type ')';
+----
+
+=== Map
+
+[source,antlr]
+----
+map : '(' 'map' k=type v=type ')';
+----
+
+=== Set
+
+[source,antlr]
+----
+set : '(' 'set' type ')';
+----
+
+== User-Defined Types
+
+=== Record
+
+[source,antlr]
+----
+record : '(' 'record' name member ')';
+
+member
+    : field
+    | definition
+    ;
+
+field: '(' type name modifiers* ')'
+
+modifiers
+    : 'optional'
+    | 'default' '::' value
+    ;
+----
+
+.Example
+[source,ion]
+----
+(record person
+    (string first_name)
+    (string middle_name optional)
+    (string first_name default::'Doe')
+)
+----
+
+=== Union
+
+[source,ion]
+----
+union : '(' 'union' name definition+ ')'
+----
+
+.Example
+[source,ion]
+----
+(union my_union
+    (record variant_a
+        (int32 x)
+        (int32 y)
+    )
+    (record variant_b
+        (int32 u)
+        (int32 v)
+    )
+)
+----
+
+=== Enum
+
+[source,ion]
+----
+enum : '(' 'enum' name enumerators ')'
+
+enumerators : '(' enumerator+ ')'
+
+enumerator : [A-Z]+
+----
+
+.Example
+[source,ion]
+----
+(enum my_enum (A, B, C))
+----
+
+=== Fixed
+
+[source,antlr]
+----
+fixed : '(' 'fixed' name integer ')';
+----
+
+.Example
+[source,ion]
+----
+(fixed uuid 16)
+----
+
+== Reserved Words
+
+[source]
+----
+bool
+int32
+int64
+float32
+float64
+decimal
+date
+time
+timestamp
+bytes
+
+list
+map
+set
+
+record
+union
+enum
+fixed
+----
+
+== Ion Encoding
+
+=== Primitives
+
+PLACEHOLDER
+
+=== Collections
+
+PLACEHOLDER
+
+=== Algebraic
+
+PLACEHOLDER
+
+=== Summary
+
+PLACEHOLDER
+
+== Ion Schema Mapping
+
+PLACEHOLDER
+
+== ANTLR Grammar
+
+PLACEHOLDER

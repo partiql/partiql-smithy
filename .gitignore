@@ -9,3 +9,5 @@ partiql-plan-rust/
 
 specification/**/*
 !specification/types.adoc
+!specification/RIDL.adoc
+!specification/appendices/serialization.adoc
