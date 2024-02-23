@@ -14,7 +14,7 @@ The ethos of this project is to evolve the Ion serde capabilities of PIG outside
 
 == Notation
 
-This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/grammars.md[ANTLR grammar notation] to define the IDL. A complete grammar can be found at the end. The basic notation is as follows:
+This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/grammars.md[ANTLR grammar notation] to define the IDL. A complete grammar can be found at the end.
 
 == Document
 
@@ -25,10 +25,11 @@ document : include* definition*;
 include: '(' include string ')';
 
 definition
-    : record
+    : product
     | union
     | enum
     | fixed
+    | unit
     ;
 ----
 
@@ -43,11 +44,11 @@ type
     ;
 
 identifier
-    : symbol
-    | '\' '.'? symbol ('.' symbol)+ '
+    : name
+    | '\' '.'? name ('.' name)+ '
     ;
 
-name: symbol;
+name: [a-z_]+;
 ----
 
 == Primitive Types
@@ -102,20 +103,41 @@ set : '(' 'set' type ')';
 
 == User-Defined Types
 
+=== Product
+
+[source,antlr]
+----
+product : '(' 'product' name operand* ')';
+
+operand
+    : name '::' type
+    | definition
+    ;
+----
+
+.Example
+[source,ion]
+----
+(product coordinates
+    lat::decimal
+    lon::decimal
+)
+----
+
 === Record
 
 [source,antlr]
 ----
-record : '(' 'record' name member ')';
+record : '(' record name members ')'
+
+members: '{' member (',' member)* '}'
 
 member
-    : field
-    | definition
+    : name ':' type
+    | name ':' '(' type modifier* ')'
     ;
 
-field: '(' type name modifiers* ')'
-
-modifiers
+modifier
     : 'optional'
     | 'default' '::' value
     ;
@@ -124,31 +146,31 @@ modifiers
 .Example
 [source,ion]
 ----
-(record person
-    (string first_name)
-    (string middle_name optional)
-    (string first_name default::'Doe')
-)
+(record person {
+    'first': string,
+    'middle': (string optional),
+    'last': (string default::'Doe'),
+})
 ----
 
 === Union
 
-[source,ion]
+[source,antlr]
 ----
-union : '(' 'union' name definition+ ')'
+union : '(' 'union' name definition+ ')';
 ----
 
 .Example
 [source,ion]
 ----
 (union my_union
-    (record variant_a
-        (int32 x)
-        (int32 y)
+    (product variant_a
+        x::int32
+        y::int32
     )
-    (record variant_b
-        (int32 u)
-        (int32 v)
+    (product variant_b
+        u::int32
+        v::int32
     )
 )
 ----
@@ -183,6 +205,13 @@ fixed : '(' 'fixed' name integer ')';
 (fixed uuid 16)
 ----
 
+=== Unit
+
+[source,antlr]
+----
+unit : '(' unit name ')'
+----
+
 == Reserved Words
 
 [source]
@@ -202,10 +231,11 @@ list
 map
 set
 
-record
+product
 union
 enum
 fixed
+unit
 ----
 
 == Ion Encoding

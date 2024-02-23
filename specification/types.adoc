@@ -40,16 +40,12 @@
 | Signed integer that can be stored in eight bytes
 | -9223372036854775808 to +9223372036854775807 
 
-| int
-| Signed integer of arbitrary size
+| big_int
+| Signed integer of arbitrary size (Ion int)
 | ...
 
-| decimal
-| Exact numeric type with arbitrary precision
-| ...
-
-| decimal(p,s)
-| Exact numeric with fixed precision _p_ and scale _s_
+| big_decimal
+| Exact numeric type with arbitrary precision (Ion decimal)
 | ...
 
 | float32
@@ -60,6 +56,10 @@
 | Double-precision, binary floating point (IEEE 754 64-bit)
 | ...
 
+| decimal(p,s)
+| Exact numeric with fixed precision _p_ and scale _s_
+| ...
+
 |===
 
 .Character String Types
@@ -67,14 +67,14 @@
 |===
 | Type | Description
 
-| char(n)
+| char_fixed(n)
 | Unicode codepoint sequence of fixed length _n_
+
+| char_varying(n)
+| Unicode codepoint sequence of variable length up to _n_
 
 | string
 | Unicode codepoint sequence of arbitrary length
-
-| string(n)
-| Unicode codepoint sequence of variable length up to _n_. This is equivalent to the SQL type `CHARACTER VARYING(n)`, `VARCHAR(n)`.
 
 | symbol
 | Unicode codepoint sequences of arbitrary length. The primary difference is the intended semantics: symbols represent case-sensitive identifiers as opposed to textual literal values.
@@ -86,14 +86,14 @@
 |===
 | Type | Description
 
-| bit(n)
+| bit_fixed(n)
 | Bit string of fixed length _n_
+
+| bit_varying(n)
+| Bit string of variable length up to _n_ 
 
 | binary
 | Bit string of arbitrary length
-
-| binary(n)
-| Bit string of variable length up to _n_ 
 
 |===
 
@@ -102,20 +102,17 @@
 |===
 | Type | Description
 
-| byte(n)
+| byte_fixed(n)
 | Octet string of fixed length _n_
+
+| byte_variable(n)
+| Octet string of variable length up to _n_ 
 
 | blob
 | Octet string of arbitrary length
 
-| blob(n)
-| Octet string of variable length up to _n_ 
-
 | clob
 | Unicode codepoint sequence of arbitrary length
-
-| clob(n)
-| Unicode codepoint sequence of variable length up to _n_
 
 |===
 
@@ -127,23 +124,23 @@
 | date
 | A date with no _time_
 
-| time
-| A _date_-less time with arbitrary precision and no time zone offset
-
 | time(p)
 | A _date_-less time with seconds precision _p_ and no time zone offset
 
-| time(p,z)
+| time_tz(p,z)
 | A _date_-less time with seconds precision _p_ and time zone offset _z_
 
-| timestamp
-| A _date_ and _time_ with arbitrary precision
+| time_arbitrary
+| A _date_-less time with arbitrary precision and no time zone offset
 
 | timestamp(p)
 | A _date_ and _time_ with seconds precision _p_ and no time zone offset
 
-| timestamp(p,z)
+| timestamp_tz(p,z)
 | A _date_ and _time_ with seconds precision _p_ and time zone offset _z_
+
+| timestamp_arbitrary
+| A _date_ and _time_ with arbitrary precision
 
 // Open Question: Should we model timestamp that only has UTF offsets which are a strict subset of timezones.
 
@@ -165,6 +162,9 @@
 
 | list
 | Ordered collection of values
+
+| sexp
+| Ordered collection of values with user-defined semantics
 
 |===
 
@@ -194,8 +194,7 @@
 | MISSING
 
 | unknown
-| The empty type
-|
+2+| The empty type
 
 |===
 
