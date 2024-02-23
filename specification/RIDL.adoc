@@ -107,34 +107,11 @@ set : '(' 'set' type ')';
 
 [source,antlr]
 ----
-product : '(' 'product' name operand* ')';
+product : '(' 'product' name operand+ definition* ')';
 
 operand
     : name '::' type
-    | definition
-    ;
-----
-
-.Example
-[source,ion]
-----
-(product coordinates
-    lat::decimal
-    lon::decimal
-)
-----
-
-=== Record
-
-[source,antlr]
-----
-record : '(' record name members ')'
-
-members: '{' member (',' member)* '}'
-
-member
-    : name ':' type
-    | name ':' '(' type modifier* ')'
+    | name '::' '(' type modifier* ')'
     ;
 
 modifier
@@ -146,11 +123,11 @@ modifier
 .Example
 [source,ion]
 ----
-(record person {
-    'first': string,
-    'middle': (string optional),
-    'last': (string default::'Doe'),
-})
+(product coordinates
+    lat::decimal
+    lon::decimal
+    elevation::(int32 optional)
+)
 ----
 
 === Union
