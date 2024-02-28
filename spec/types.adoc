@@ -1,9 +1,7 @@
-= PartiQL Schema
+= PartiQL Types
 :toc:
 :toc-title: Page Contents
 :sectlinks:
-
-// include::parts.adoc[]
 
 [#types]
 == Types
@@ -241,11 +239,3 @@ s| Type s| Description
 PLACEHOLDER.
 
 The term _shape_ refers to the static constraints of data. It is akin to the common term _schema_, but in the context of database systems this term is overloaded, and we have opted for a less ambiguous term. Additionally, _shapes_ are more flexible than schemas from relational systems. We have seen this term in similar data systems such as xref:https://zed.brimdata.io/docs[Zed] from Brim Data. 
-
-== Data Definition Language (DDL)
-
-PLACEHOLDER.
-
-== Appendix
-
-include::appendices/serialization.adoc["PartiQL Type Serialization"]
