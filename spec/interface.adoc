@@ -6,7 +6,7 @@
 
 == About
 
-This document defines the V1 interface for PartiQL's https://en.wikipedia.org/wiki/Query_plan[Plan] representation. PartiQL's serialized plans are backwards-compatible — i.e. an older version of compiled PartiQL plans can be retargeted to a newer version without changing the query's semantics. Plans have a single major-version number which appears as the first operand of the top-level product type.
+This document defines the V1 interface for PartiQL's https://en.wikipedia.org/wiki/Query_plan[Plan] representation. PartiQL's serialized plans are backwards-compatible i.e. an older version of compiled PartiQL plans can be retargeted to a newer version without changing the query's semantics. Plans have a single major-version number which appears as the first operand of the top-level product type.
 
 include::navigation.adoc[]
 
@@ -37,6 +37,10 @@ Plans are encoded in a top-level object; for lack of a better name, we'll call t
 
 |===
 
+=== Version
+
+Version is a simple integer denoting the inteface version.
+
 === Catalogs
 
 Catalogs within plans represent entities of the database catalogs that this query was planned against. This includes base tables and functions along with any user-defined metadata. 
@@ -59,12 +63,17 @@ Catalogs within plans represent entities of the database catalogs that this quer
 .Item Variants
 [cols="1e,5a",grid=rows,frame=all]
 |===
+|
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+!===
 
 | value
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-s! Property  s! Type          s! Description
 ! path      ! list<string>  ! Path within the catalog
 ! type      ! type          ! The catalog value's type
 !===
@@ -73,7 +82,6 @@ s! Property  s! Type          s! Description
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-s! Property  s! Type          s! Description
 ! path      ! list<string>  ! Path within the catalog
 ! specific  ! string        ! Operator specific identifier
 !===
@@ -82,224 +90,17 @@ s! Property  s! Type          s! Description
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-s! Property  s! Type          s! Description
 ! path      ! list<string>  ! Path within the catalog
 ! specific  ! string        ! Operator specific identifier
 !===
 
 |===
 
-== Types
-
-.Type Variants
-[cols="1e,5a",grid=rows,frame=all]
-|===
-| bool
-| singleton
-
-| int8
-| singleton
-
-| int16
-| singleton
-
-| int32
-| singleton
-
-| int64
-| singleton
-
-| big_int
-| singleton
-
-| big_decimal
-| singleton
-
-| decimal
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! precision ! int   ! Decimal precision
-! scale     ! int   ! Decimal scale
-!===
-
-| float32
-| singleton
-
-| float64
-| singleton
-
-| char_fixed
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! length    ! int  ! Fixed length
-!===
-
-| char_varying
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! length    ! int  ! Max length
-!===
-
-| string
-| singleton
-
-| symbol
-| singleton
-
-| bit_fixed
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! length    ! int  ! Fixed length
-!===
-
-| bit_varying
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! length    ! int  ! Max length
-!===
-
-| binary
-| singleton
-
-| byte_fixed
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! length    ! int  ! Fixed length
-!===
-
-| byte_variable
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! length    ! int  ! Max length
-!===
-
-| blob
-| singleton
-
-| clob
-| singleton
-
-| date
-| singleton
-
-| time(p)
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! precision    ! int  ! Seconds precision
-!===
-
-| time_tz
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! precision    ! int  ! Seconds precision
-! offset       ! (int,int)  ! Zone offset
-!===
-
-| time_arbitrary
-| singleton
-
-| timestamp
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! precision    ! int  ! Seconds precision
-!===
-
-| timestamp_tz
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! precision    ! int  ! Seconds precision
-! offset       ! (int,int)  ! Zone offset
-!===
-
-| timestamp_arbitrary
-| singleton
-
-| interval
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! precision    ! int  ! Seconds precision
-!===
-
-| bag
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! items    ! type  ! Items type
-!===
-
-| list
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! items    ! type  ! Items type
-!===
-
-| sexp
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! items    ! type  ! Items type
-!===
-
-| struct
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! fields   ! list<(string,type)> ! Struct fields
-! open     ! bool  ! True if open content struct
-! ordered  ! bool  ! True if fields are ordered
-! unique   ! bool  ! True if field key are unique
-!===
-
-| null
-| singleton
-
-| missing
-| singleton
-
-| union
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-! types    ! list<type>  ! Types in the union
-!===
-
-|===
-
-== Statements
+=== Statement
 
 A plan contains a single _statement_ which has many variants.
 
-.Statement
+.Statement Variants
 [cols="1e,5a",grid=rows,frame=all]
 |===
 | Variant | Description
@@ -348,6 +149,203 @@ NOTE: This document's scope is limited to _query_ statements.
 
 |===
 
+== Types
+
+.Type Variants
+[cols="1e,5a",grid=rows,frame=all]
+|===
+|
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+!===
+
+| bool
+| 
+
+| int8
+| 
+
+| int16
+| 
+
+| int32
+| 
+
+| int64
+| 
+
+| big_int
+| 
+
+| big_decimal
+| 
+
+| decimal
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! precision ! int   ! Decimal precision
+! scale     ! int   ! Decimal scale
+!===
+
+| float32
+| 
+
+| float64
+| 
+
+| char_fixed
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! length    ! int  ! Fixed length
+!===
+
+| char_varying
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! length    ! int  ! Max length
+!===
+
+| string
+| 
+
+| symbol
+| 
+
+| bit_fixed
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! length    ! int  ! Fixed length
+!===
+
+| bit_varying
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! length    ! int  ! Max length
+!===
+
+| binary
+| 
+
+| byte_fixed
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! length    ! int  ! Fixed length
+!===
+
+| byte_variable
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! length    ! int  ! Max length
+!===
+
+| blob
+| 
+
+| clob
+| 
+
+| date
+| 
+
+| time
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! precision    ! int  ! Seconds precision
+!===
+
+| time_tz
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! precision    ! int  ! Seconds precision
+! offset       ! (int,int)  ! Zone offset
+!===
+
+| time_arbitrary
+| 
+
+| timestamp
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! precision    ! int  ! Seconds precision
+!===
+
+| timestamp_tz
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! precision    ! int  ! Seconds precision
+! offset       ! (int,int)  ! Zone offset
+!===
+
+| timestamp_arbitrary
+| 
+
+| interval
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! precision    ! int  ! Seconds precision
+!===
+
+| bag
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! items    ! type  ! Items type
+!===
+
+| list
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! items    ! type  ! Items type
+!===
+
+| sexp
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! items    ! type  ! Items type
+!===
+
+| struct
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! fields   ! list<(string,type)> ! Struct fields
+! open     ! bool  ! True if open content struct
+! ordered  ! bool  ! True if fields are ordered
+! unique   ! bool  ! True if field key are unique
+!===
+
+| null
+| 
+
+| missing
+| 
+
+| union
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! types    ! list<type>  ! Types in the union
+!===
+
+|===
+
+
 == Operators
 
 [#rex]
@@ -357,24 +355,82 @@ NOTE: This document's scope is limited to _query_ statements.
 .Rex Variants
 [cols="1e,5a",grid=rows,frame=all]
 |===
+|
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+!===
 
 | lit
-| ..
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! value  ! value          ! PartiQL value encoded as Ion
+!===
 
 | var
-| ..
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! ref   ! int ! 0-indexed offset in the variables binding tuple.
+! depth ! int ! 0-indexed offset to the scope.
+!===
 
 | global
-| ..
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! ref   ! ref ! Catalog reference
+!===
 
-| path
-| ..
+| path_index
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! root  ! rex ! Path root
+! key   ! rex ! Path key integer expression
+!===
+
+| path_key
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! root  ! rex ! Path root
+! key   ! rex ! Path key string expression
+!===
+
+| path_symbol
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! root  ! rex    ! Path root
+! key   ! string ! Path key symbol
+!===
 
 | cast
-| ..
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! type  ! type ! Cast output type
+! arg   ! rex  ! Cast argument
+!===
 
-| call
-| ..
+| call_static
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! fn    ! ref       ! Function catalog reference
+! args  ! list<rex> ! Function call arguments
+!===
+
+| call_dynamic
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! args       ! list<rex>        ! Function call arguments
+! candidates ! list<candidate>  ! Dynamic call candidates
+!===
 
 | switch
 | ..
@@ -439,10 +495,10 @@ Path expressions contain a root and one or more steps. See the xref:https://part
 !===
 
 | Wildcard Variant
-e| Singleton
+e| 
 
 | Unpivot Variant
-e| Singleton
+e| 
 
 |===
 
