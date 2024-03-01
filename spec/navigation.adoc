@@ -4,4 +4,4 @@
 * *xref:types.adoc[PartiQL Types]*
 * *xref:model.adoc[PartiQL Logical Plan Model]*
 * *xref:interface.adoc[PartiQL Logical Plan Interface]*
-* *(A-I) xref:IDL.adoc[Interface Definition Language]*
+* *xref:IDL.adoc[Interface Definition Language]*
