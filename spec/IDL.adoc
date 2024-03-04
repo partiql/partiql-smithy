@@ -3,49 +3,72 @@
 :toc-title: Page Contents
 :sectlinks:
 
-This document defines an interface definition language with an Ion serialization.
-
 include::navigation.adoc[]
 
-== Notation
+== About
+
+This document defines an interface definition language with an Ion serialization. It is intended to be a simple language for modeling interfaces from which it is easy to build code generators i.e. 'POJOs' and serializers/deserializers.
+
+This language is easily translated to Ion Schema; as that is the standard Ion interface definition language. So why not Ion Schema? Primarily for ease of manipulating and reasoning from highly constrained type definitions. Reducing the allowable type definitions greatly simplifies building the necessary tooling. You'll find the modeling capabilities are far less than that of Ion Schema, but are quite similar to the type modeling of OpenAPI / Swagger, Protobuf, Smithy, and Avro.
+
+
+=== Scope
+
+I am interested in the following topics, but I have left them out-of-scope for the initial review.
+
+.Out of Scope
+* Optional fields
+* Schema evolution and versioning
+* Open content
+* Type constraints
+
+=== Notation
 
 This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/grammars.md[ANTLR grammar notation] to define the IDL.
 
 == Interface Definition Language
 
+The syntax is an amalgamation of C typedef and Rust type aliases. Type constraints are out-of-scope, but I will show in the proposed extensions that this syntax lends itself to constraints.
+
+=== Basic Example
+
+This short example showcases the interface modeling capabilities.
+
+[source]
+----
+type lat_t decimal;
+type lon_t decimal;
+
+type coordinates struct {
+    lat: lat_t;
+    lon: lon_t;
+};
+----
+
 === Document
 
 [source,antlr]
 ----
-document : include* definition*;
+document
+    : include* definition*
+    ;
 
-include: '(' include string ')';
+include
+    : 'include' string ';'
+    ;
+
+identifier: [a-z][a-z_]*;
 
 definition
-    : product
-    | sum
-    | enum
-    | fixed
-    | unit
+    : 'type' identifier type ';'
     ;
-----
 
-=== References and Identifiers
-
-[source,antlr]
-----
 type
-    : primitive
+    : identifier
+    | primitive
     | container
-    | path
+    | udt
     ;
-
-path
-    : name
-    | '\' '.'? name ('.' name)+ '
-    ;
-
-name: [a-z_]+;
 ----
 
 === Primitive Types
@@ -54,14 +77,32 @@ name: [a-z_]+;
 ----
 primitive
     : 'bool'
-    | 'int32'   // 32-bit signed integer
-    | 'int64'   // 64-bit signed integer
-    | 'float32' // IEEE 754 (32 bit)
-    | 'float64' // IEEE 754 (64 bit)
+    | 'i32'     // 32-bit signed integer
+    | 'i64'     // 64-bit signed integer
+    | 'f32'     // IEEE 754 (32 bit)
+    | 'f64'     // IEEE 754 (64 bit)
     | 'decimal' // Decimal-encoded real numbers
-    | 'string'  // Unicode character sequence
-    | 'bytes'   // Array of unsigned bytes
-    | 'ion'     // Raw Ion value
+    | 'char'    // Unicode character
+    | 'string'  // Unicode character sequence of variable length
+    | 'byte'    // Byte
+    | 'bytes'   // Byte sequence of variable length
+    | ion       // Raw Ion value
+    ;
+
+ion
+    : 'ion'
+    | 'ion.bool'
+    | 'ion.int'
+    | 'ion.float'
+    | 'ion.decimal'
+    | 'ion.timestamp'
+    | 'ion.string'
+    | 'ion.symbol'
+    | 'ion.blob'
+    | 'ion.clob'
+    | 'ion.struct'
+    | 'ion.list'
+    | 'ion.sexp'
     ;
 ----
 
@@ -72,7 +113,8 @@ primitive
 container
     : list
     | map
-    | set
+    | tuple
+    | array
     ;
 ----
 
@@ -80,77 +122,123 @@ container
 
 [source,antlr]
 ----
-list : '(' 'list' type ')';
+list : 'list' '<' type '>';
+----
+
+.Example
+[source]
+----
+type my_list list<bool>;
 ----
 
 ==== Map
 
 [source,antlr]
 ----
-map : '(' 'map' k=type v=type ')';
+map : 'map' '<' primitive ',' type '>';
 ----
 
-==== Set
+.Example
+[source]
+----
+type my_map map<i32,string>;
+----
+
+==== Tuple
 
 [source,antlr]
 ----
-set : '(' 'set' type ')';
+tuple
+    : '(' type (',' type)* ')'
+    ;
+----
+
+.Example
+[source]
+----
+type point (i32, i32, i32);
+----
+
+==== Array
+
+Define an array of primitives with a fixed length.
+
+[source,antlr]
+----
+array
+    : primitive '[' integer ']'
+    ;
+----
+
+.Example
+[source,ion]
+----
+type uuid byte[16];
 ----
 
 === User-Defined Types
 
-==== Product
+[source,antlr]
+----
+definition
+    : struct
+    | union
+    | enum
+    | unit
+    ;
+----
+
+==== Struct
 
 [source,antlr]
 ----
-product : '(' 'product' name operand+ definition* ')';
+struct : 'struct' '{' field+ '}';
 
-operand: name '::' type;
+field: identitifer ':' type ';';
 ----
 
 .Example
 [source,ion]
 ----
-(product coordinates
-    lat::decimal
-    lon::decimal
-
-    (product nested
-        x::string
-        y::string
-    )
-)
+type coordinates struct {
+    lat: decimal;
+    lon: decimal;
+};
 ----
 
-==== Sum
+==== Union
 
 [source,antlr]
 ----
-sum : '(' 'sum' name definition+ ')';
+union
+    : 'union' '{' variant+ '}'
+    ;
+
+variant
+    : identifier type
+    ;
 ----
 
 .Example
 [source,ion]
 ----
-(sum my_sum
-    (product variant_a
-        x::int32
-        y::int32
-    )
-    (product variant_b
-        u::int32
-        v::int32
-    )
-)
+type my_union union {
+    variant_a struct {
+        x: int32;
+        y: int32;
+    };
+    variant_b stuct {
+        u: int32;
+        v: int32;
+    };
+};
 ----
 
 ==== Enum
 
 [source,ion]
 ----
-enum : '(' 'enum' name enumerators ')'
-
-enumerators : '(' enumerator+ ')'
+enum : 'enum' { enumerator (',' enumerator)* '}'
 
 enumerator : [A-Z]+
 ----
@@ -158,56 +246,51 @@ enumerator : [A-Z]+
 .Example
 [source,ion]
 ----
-(enum my_enum (A, B, C))
-----
-
-==== Fixed
-
-Define a type with a fixed size in bytes.
-
-[source,antlr]
-----
-fixed : '(' 'fixed' name integer ')';
-----
-
-.Example
-[source,ion]
-----
-(fixed uuid 16)
+enum my_enum { A, B, C }
 ----
 
 ==== Unit
 
-Define a type which is represented by only its name.
+Define a type which is represented by only its name. This is like an empty struct and is represented by an Ion symbol.
 
 [source,antlr]
 ----
-unit : '(' unit name ')'
+unit : 'unit'
+----
+
+.Example
+[source]
+----
+type my_singleton unit;
 ----
 
 == Amazon Ion
 
-
 This section defines how type definitions are mapped to Ion values as well as Ion schema. For details on Ion, see xref:https://amazon-ion.github.io/ion-docs/docs/spec.html[Ion Specification].
 
-=== Ion Encoding
+=== (END OF DOCUMENT) Ion Encoding
+
+IMPORTANT: The below sections have not been updated.
 
 ==== Primitives
 
-Primitive PIG types are encoded via the Ion types shown in the table.
+Primitive IDL types are encoded via the Ion types shown in the table.
 
 |===
-| PIG Type | Ion Type
+| IDL Type | Ion Type
 
 | bool | bool
-| int32 | int
-| int64 | int
-| float32 | float
-| float64 | float
+| i32 | int
+| i64 | int
+| f32 | float
+| f64 | float
 | decimal | decimal
+| char | string
 | string | string
+| byte | blob
 | bytes | blob
 | ion | any
+| ion._type_ | _type_
 
 |===
 
@@ -217,19 +300,15 @@ Primitive PIG types are encoded via the Ion types shown in the table.
 
 A list is encoded an Ion list.
 
-**Set**
-
-A set is encoded as an Ion list.
-
 **Map**
 
 A map is encoded as an Ion list whose values are key-value pair s-expressions. For example,
 
 [source,ion]
 ----
-(map int32 string)
+map<i32,string>
 
-// The map value { 0: 'a', 1: 'b' } is encoded as
+// The map value { 0: "a", 1: "b" } is encoded as
 
 [(0 "a"),(1 "b")]
 ----
@@ -309,37 +388,38 @@ A unit is serialized to Ion with its name as a symbol.
 'my_type'
 ----
 
-=== Ion Schema Mapping
+=== Ion Schema
 
 PLACEHOLDER
 
-== Code Generation
+== Appendix
+
+=== A1 — Constraints
 
 PLACEHOLDER
 
-== Complete Grammar
+=== A2 — Complete Grammar
 
 PLACEHOLDER
 
-=== Reserved Words
+==== Reserved Words
 
 [source]
 ----
 bool
-int32
-int64
-float32
-float64
+i32
+i64
+f32
+f64
 string
 bytes
 ion
 
 list
 map
-set
 
-product
-sum
+struct
+union
 enum
 fixed
 unit
