@@ -9,8 +9,11 @@ include::navigation.adoc[]
 
 This document defines an interface definition language with an Ion serialization. It is intended to be a simple language for modeling interfaces from which it is easy to build code generators i.e. 'POJOs' and serializers/deserializers.
 
-This language is easily translated to Ion Schema; as that is the standard Ion interface definition language. So why not Ion Schema? Primarily for ease of manipulating and reasoning from highly constrained type definitions. Reducing the allowable type definitions greatly simplifies building the necessary tooling. You'll find the modeling capabilities are far less than that of Ion Schema, but are quite similar to the type modeling of OpenAPI / Swagger, Protobuf, Smithy, and Avro.
+**Why not Ion Schema?**
 
+We are modeling interface definitions rather than the Ion encoding itself. The IDL library defines the Ion encoding which in turn has its own Ion Schema. For example, Smithy and OpenAPI define higher-level interface types whereas JSONSchema defines the actual JSON values themselves. Likewise, this IDL defines high-level types which have an Ion serialization; that which can be defined in Ion Schema.
+
+Additionally, reducing the allowable type definitions greatly simplifies building the necessary tooling. You'll find the modeling capabilities are far less than that of Ion Schema, but are quite similar to the type modeling of OpenAPI / Swagger, Protobuf, Smithy, and Avro.
 
 === Scope
 
@@ -264,13 +267,15 @@ unit : 'unit'
 type my_singleton unit;
 ----
 
-== Amazon Ion
+== Amazon Ion (END OF DOCUMENT)
+
+IMPORTANT: The below sections have not been updated.
 
 This section defines how type definitions are mapped to Ion values as well as Ion schema. For details on Ion, see xref:https://amazon-ion.github.io/ion-docs/docs/spec.html[Ion Specification].
 
-=== (END OF DOCUMENT) Ion Encoding
+=== Ion Encoding
 
-IMPORTANT: The below sections have not been updated.
+PLACEHOLDER
 
 ==== Primitives
 

@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package org.partiql.tool.ridl.generator
+package org.partiql.sprout.generator
 
-import org.partiql.tool.ridl.model.Document
+import org.partiql.sprout.model.Universe
 
 /**
  * Interface for a Sprout generator
  */
-public interface Generator<T> {
+interface Generator<T> {
 
-    public fun generate(universe: Document): T
+    fun generate(universe: Universe): T
 }

@@ -1,6 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 /*
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -19,7 +18,6 @@ import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 plugins {
     kotlin("jvm") version "1.6.20"
-    id("org.gradle.antlr")
     application
 }
 
@@ -31,11 +29,10 @@ object Versions {
     const val jvmTarget = "1.8"
 
     // Dependencies
-    const val antlr = "4.10.1"
+    const val dotlin = "1.0.2"
     const val ionElement = "1.0.0"
     const val kasechange = "1.3.0"
     const val kotlinPoet = "1.11.0"
-    const val mustache = "1.16"
     const val picoCli = "4.7.0"
 
     // Testing
@@ -45,15 +42,12 @@ object Versions {
 object Deps {
     // Language
     const val kotlin = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}"
-    const val kotlinReflect = "org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}"
 
     // Dependencies
-    const val antlr = "org.antlr:antlr4:${Versions.antlr}"
-    const val antlrRuntime = "org.antlr:antlr4-runtime:${Versions.antlr}"
+    const val dotlin = "io.github.rchowell:dotlin:${Versions.dotlin}"
     const val ionElement = "com.amazon.ion:ion-element:${Versions.ionElement}"
     const val kasechange = "net.pearx.kasechange:kasechange:${Versions.kasechange}"
     const val kotlinPoet = "com.squareup:kotlinpoet:${Versions.kotlinPoet}"
-    const val mustache = "com.samskivert:jmustache:${Versions.mustache}"
     const val picoCli = "info.picocli:picocli:${Versions.picoCli}"
 
     // Testing
@@ -68,16 +62,11 @@ repositories {
 }
 
 dependencies {
-    antlr(Deps.antlr)
-    implementation(Deps.antlrRuntime)
+    implementation(Deps.dotlin)
     implementation(Deps.ionElement)
     implementation(Deps.kasechange)
-    implementation(Deps.mustache)
+    implementation(Deps.kotlinPoet)
     implementation(Deps.picoCli)
-    // Test
-    testImplementation(Deps.kotlinTest)
-    testImplementation(Deps.kotlinTestJunit)
-    testImplementation(Deps.junitParams)
 }
 
 java {
@@ -86,22 +75,7 @@ java {
 }
 
 kotlin {
-    explicitApi = ExplicitApiMode.Strict
-}
-
-sourceSets {
-    main {
-        java.srcDir("$buildDir/generated-src")
-    }
-}
-
-kotlin.sourceSets {
-    all {
-        languageSettings.optIn("kotlin.RequiresOptIn")
-    }
-    main {
-        kotlin.srcDir("$buildDir/generated-src")
-    }
+    explicitApi = null
 }
 
 tasks.compileKotlin {
@@ -126,37 +100,17 @@ tasks.test {
     }
 }
 
-tasks.generateGrammarSource {
-    val antlrPackage = "org.partiql.tool.ridl.antlr"
-    val antlrSources = "$buildDir/generated-src/${antlrPackage.replace('.', '/')}"
-    maxHeapSize = "64m"
-    arguments = listOf("-visitor", "-long-messages", "-package", antlrPackage)
-    outputDirectory = File(antlrSources)
-}
-
-tasks.javadoc {
-    exclude("**/antlr/**")
-}
-
-tasks.compileKotlin {
-    dependsOn(tasks.generateGrammarSource)
-}
-
-tasks.findByName("sourcesJar")?.apply {
-    dependsOn(tasks.generateGrammarSource)
+application {
+    applicationName = "sprout"
+    mainClass.set("org.partiql.sprout.SproutKt")
 }
 
 distributions {
     main {
-        distributionBaseName.set("ridl")
+        distributionBaseName.set("sprout")
     }
 }
 
 tasks.register<GradleBuild>("install") {
     tasks = listOf("assembleDist", "distZip", "installDist")
-}
-
-application {
-    applicationName = "ridl"
-    mainClass.set("org.partiql.tool.ridl.MainKt")
 }

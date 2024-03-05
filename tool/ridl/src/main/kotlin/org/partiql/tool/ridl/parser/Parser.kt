@@ -10,6 +10,7 @@ import org.partiql.tool.ridl.antlr.RIDLBaseVisitor
 import org.partiql.tool.ridl.antlr.RIDLLexer
 import org.partiql.tool.ridl.antlr.RIDLParser
 import org.partiql.tool.ridl.model.Definition
+import org.partiql.tool.ridl.model.Document
 import org.partiql.tool.ridl.model.RType
 import org.partiql.tool.ridl.model.RTypeArray
 import org.partiql.tool.ridl.model.RTypeEnum
@@ -31,7 +32,7 @@ import java.nio.file.Path
 internal object Parser {
 
     @JvmStatic
-    fun load(input: String, include: Path?): List<Definition> {
+    fun load(input: String, include: Path?): Document {
         val source = ByteArrayInputStream(input.toByteArray(Charsets.UTF_8))
         val lexer = RIDLLexer(CharStreams.fromStream(source))
         lexer.removeErrorListeners()
@@ -47,7 +48,7 @@ internal object Parser {
         // 2nd pass, populate definitions using the symbol tree.
         val definitions = mutableListOf<Definition>()
         DefinitionVisitor(names, definitions).visit(tree)
-        return definitions
+        return Document(definitions)
     }
 
     /**

@@ -1,0 +1,5 @@
+type pet struct {
+  name: string;
+  age: i32; 
+};
+

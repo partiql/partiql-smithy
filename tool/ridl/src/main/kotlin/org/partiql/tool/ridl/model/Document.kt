@@ -7,7 +7,6 @@ import java.nio.file.Path
  * Top-level model of a grammar
  */
 public class Document(
-    public val namespace: String,
     public val definitions: List<Definition>,
 ) {
 
@@ -15,9 +14,6 @@ public class Document(
 
         @JvmStatic
         @JvmOverloads
-        public fun load(namespace: String, input: String, include: Path? = null): Document = Document(
-            namespace = namespace,
-            definitions = Parser.load(input, include),
-        )
+        public fun load(input: String, include: Path? = null): Document = Parser.load(input, include)
     }
 }

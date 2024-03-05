@@ -4,5 +4,4 @@ build/
 .idea/
 
 # IN-PROGRESS
-partiql-plan-kotlin/
 partiql-plan-rust/

@@ -13,23 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package org.partiql.tool.ridl
+package org.partiql.sprout
 
-import org.partiql.tool.ridl.codegen.language.kotlin.KotlinCommand
+import org.partiql.sprout.generator.target.kotlin.KotlinCommand
 import picocli.CommandLine
 import kotlin.system.exitProcess
 
-public fun main(args: Array<String>) {
-    val command = CommandLine(RIDL())
+fun main(args: Array<String>) {
+    val command = CommandLine(Sprout())
     exitProcess(command.execute(*args))
 }
 
 @CommandLine.Command(
-    name = "ridl",
+    name = "sprout",
     mixinStandardHelpOptions = true,
     subcommands = [Generate::class],
 )
-public class RIDL : Runnable {
+class Sprout : Runnable {
+
     override fun run() {}
 }
 
@@ -40,7 +41,7 @@ public class RIDL : Runnable {
         KotlinCommand::class,
     ],
 )
-public class Generate : Runnable {
+class Generate : Runnable {
 
     override fun run() {}
 }
