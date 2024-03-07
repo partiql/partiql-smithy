@@ -1,29 +1,45 @@
-= Interface Definition Language
+= RIDL — Interface Definition Language
 :toc:
 :toc-title: Page Contents
 :sectlinks:
+:table-caption!:
 
 include::navigation.adoc[]
 
 == About
 
-This document defines an interface definition language with an Ion serialization. It is intended to be a simple language for modeling interfaces from which it is easy to build code generators i.e. 'POJOs' and serializers/deserializers.
+This document defines an interface definition language for types whose values can be serialized as Ion. It is intended to be a simple and high-level modeling language whose definitions trivially map to link:https://survey.stackoverflow.co/2023/#most-popular-technologies-language-prof[key languages] in the link:https://en.wikipedia.org/wiki/List_of_C-family_programming_languages[C-family] such as C, C++, Go, Rust, and Java.
 
-**Why not Ion Schema?**
+=== FAQs
 
-We are modeling interface definitions rather than the Ion encoding itself. The IDL library defines the Ion encoding which in turn has its own Ion Schema. For example, Smithy and OpenAPI define higher-level interface types whereas JSONSchema defines the actual JSON values themselves. Likewise, this IDL defines high-level types which have an Ion serialization; that which can be defined in Ion Schema.
+. **Why not Ion Schema?** — RIDL is designed for modeling types definitions rather than the Ion encoding itself. The RIDL library defines _an_ Ion encoding which in turn has its own Ion Schema. For example, Smithy and OpenAPI define higher-level types whereas JSON Schema defines the actual JSON values themselves. Likewise, this IDL defines high-level types which have an Ion serialization; that which can be defined in Ion Schema.
+Additionally, reducing the allowable type definitions greatly simplifies building the necessary tooling. You'll find the modeling capabilities are far less than that of Ion Schema, but are quite similar to the type modeling of OpenAPI / Swagger, Protobuf, Smithy, and Avro. This is a difficult question to articulate, and I am interested in discussing more. I believe reading this full document and seeing the mapping of RIDL types to Ion values and schema help illustrate the benefits of a higher-level language.
+. **Why Ion over BSON?** — Ion is the initial wire format choice, but further testing of different wire formats will inform the backend. The JSON and 
 
-Additionally, reducing the allowable type definitions greatly simplifies building the necessary tooling. You'll find the modeling capabilities are far less than that of Ion Schema, but are quite similar to the type modeling of OpenAPI / Swagger, Protobuf, Smithy, and Avro.
+=== Prior Art
 
-=== Scope
+The syntax and primitive types are a distillation of the following languages and IDLs; please see the appendix for detailed comparisons.
 
-I am interested in the following topics, but I have left them out-of-scope for the initial review.
+.Syntax
+* link:https://en.wikipedia.org/wiki/Typedef[C typedef]
+* link:https://go.dev/ref/spec#Type_declarations[Go type declarations]
+* link:https://doc.rust-lang.org/reference/items/type-aliases.html[Rust type aliases]
 
-.Out of Scope
-* Optional fields
-* Schema evolution and versioning
-* Open content
-* Type constraints
+.Types
+* link:https://avro.apache.org/docs/1.11.1/specification/#primitive-types[Avro Primitives]
+* link:https://protobuf.com/docs/language-spec#field-types[Protobuf Scalars]
+* link:https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-4.2.1[JSON Scalars]
+* link:https://amazon-ion.github.io/ion-docs/docs/spec.html#primitive-types[Ion Primitives]
+* link:https://smithy.io/2.0/spec/simple-types.html[Smithy Primitives]
+* link:https://swagger.io/specification/#data-types[OpenAPI Types]
+
+.IDLs
+* link:https://avro.apache.org/docs/1.11.1/specification/[Avro]
+* link:https://protobuf.com/docs/language-spec[Protobuf]
+* link:https://swagger.io/specification/[OpenAPI/Swagger]
+* link:https://smithy.io/2.0/index.html[Smithy]
+* link:https://json-schema.org/draft/2020-12/json-schema-core[JSON Schema]
+* link:https://amazon-ion.github.io/ion-schema/docs/isl-2-0/spec[Ion Schema]
 
 === Notation
 
@@ -31,21 +47,13 @@ This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/gram
 
 == Interface Definition Language
 
-The syntax is an amalgamation of C typedef and Rust type aliases. Type constraints are out-of-scope, but I will show in the proposed extensions that this syntax lends itself to constraints.
-
-=== Basic Example
+=== Example
 
 This short example showcases the interface modeling capabilities.
 
 [source]
 ----
-type lat_t decimal;
-type lon_t decimal;
-
-type coordinates struct {
-    lat: lat_t;
-    lon: lon_t;
-};
+PLACEHOLDER
 ----
 
 === Document
@@ -53,163 +61,99 @@ type coordinates struct {
 [source,antlr]
 ----
 document
+    : body
+    ;
+
+body
     : include* definition*
     ;
 
 include
-    : 'include' string ';'
+    : 'include' string ('as' idenitifier)? ';'
     ;
-
-identifier: [a-z][a-z_]*;
 
 definition
     : 'type' identifier type ';'
+    | 'namespace' identifier '{' body '}'
     ;
+
+identifier: [a-z][a-z0-9_]*;
 
 type
-    : identifier
+    : reference
     | primitive
-    | container
-    | udt
-    ;
-----
-
-=== Primitive Types
-
-[source,antlr]
-----
-primitive
-    : 'bool'
-    | 'i32'     // 32-bit signed integer
-    | 'i64'     // 64-bit signed integer
-    | 'f32'     // IEEE 754 (32 bit)
-    | 'f64'     // IEEE 754 (64 bit)
-    | 'decimal' // Decimal-encoded real numbers
-    | 'char'    // Unicode character
-    | 'string'  // Unicode character sequence of variable length
-    | 'byte'    // Byte
-    | 'bytes'   // Byte sequence of variable length
-    | ion       // Raw Ion value
-    ;
-
-ion
-    : 'ion'
-    | 'ion.bool'
-    | 'ion.int'
-    | 'ion.float'
-    | 'ion.decimal'
-    | 'ion.timestamp'
-    | 'ion.string'
-    | 'ion.symbol'
-    | 'ion.blob'
-    | 'ion.clob'
-    | 'ion.struct'
-    | 'ion.list'
-    | 'ion.sexp'
-    ;
-----
-
-=== Container Types
-
-[source,antlr]
-----
-container
-    : list
-    | map
-    | tuple
     | array
-    ;
-----
-
-==== List
-
-[source,antlr]
-----
-list : 'list' '<' type '>';
-----
-
-.Example
-[source]
-----
-type my_list list<bool>;
-----
-
-==== Map
-
-[source,antlr]
-----
-map : 'map' '<' primitive ',' type '>';
-----
-
-.Example
-[source]
-----
-type my_map map<i32,string>;
-----
-
-==== Tuple
-
-[source,antlr]
-----
-tuple
-    : '(' type (',' type)* ')'
-    ;
-----
-
-.Example
-[source]
-----
-type point (i32, i32, i32);
-----
-
-==== Array
-
-Define an array of primitives with a fixed length.
-
-[source,antlr]
-----
-array
-    : primitive '[' integer ']'
-    ;
-----
-
-.Example
-[source,ion]
-----
-type uuid byte[16];
-----
-
-=== User-Defined Types
-
-[source,antlr]
-----
-definition
-    : struct
+    | struct
     | union
     | enum
     | unit
     ;
+
+reference
+    : '::'? (identifier '::')* identifier
+    ;
 ----
 
-==== Struct
+
+=== Primitive
 
 [source,antlr]
 ----
-struct : 'struct' '{' field+ '}';
+primitive
+    : 'void'
+    | 'bool'
+    | 'int32'   // 32-bit signed integer
+    | 'int64'   // 64-bit signed integer
+    | 'float32' // IEEE 754 (32 bit)
+    | 'float64' // IEEE 754 (64 bit)
+    | 'string'  // Character sequence of variable length
+    | 'byte'    // Byte
+    | 'bytes'   // Byte sequence of variable length
+    ;
+----
 
-field: identitifer ':' type ';';
+=== Array
+
+Arrays represent either fixed-length or variable-length sequences; an array type is variable-length if no size is given.
+
+[source,antlr]
+----
+array: type '[' size=int? ']';
+----
+
+.Examples
+[source,ridl]
+----
+type uuid byte[16]; // fixed-length array
+type sha1 byte[20]; // ''
+
+type nums int32[];  // variable-length array
+----
+
+=== Struct
+
+[source,antlr]
+----
+struct: 'struct' '{' field (',' field)* ','? '}';
+
+field: identitifer ':' type;
 ----
 
 .Example
-[source,ion]
+[source,ridl]
 ----
+type decimal struct {
+    coefficient: int64,
+    exponent: int32,
+};
+
 type coordinates struct {
-    lat: decimal;
-    lon: decimal;
+    lat: decimal,
+    lon: decimal,
 };
 ----
 
-==== Union
+=== Union
 
 [source,antlr]
 ----
@@ -218,26 +162,28 @@ union
     ;
 
 variant
-    : identifier type
+    : identifier type ';'
     ;
 ----
 
 .Example
-[source,ion]
+[source]
 ----
 type my_union union {
+
     variant_a struct {
-        x: int32;
-        y: int32;
+        x: int32,
+        y: int32,
     };
+
     variant_b stuct {
-        u: int32;
-        v: int32;
+        u: int32,
+        v: int32,
     };
 };
 ----
 
-==== Enum
+=== Enum
 
 [source,ion]
 ----
@@ -249,7 +195,7 @@ enumerator : [A-Z]+
 .Example
 [source,ion]
 ----
-enum my_enum { A, B, C }
+type my_enum enum { A, B, C };
 ----
 
 ==== Unit
@@ -258,7 +204,7 @@ Define a type which is represented by only its name. This is like an empty struc
 
 [source,antlr]
 ----
-unit : 'unit'
+unit : 'unit';
 ----
 
 .Example
@@ -267,139 +213,385 @@ unit : 'unit'
 type my_singleton unit;
 ----
 
-== Amazon Ion (END OF DOCUMENT)
+=== Include
 
-IMPORTANT: The below sections have not been updated.
+IMPORTANT: This section is out of scope for version 1, but was included for discussion.
 
-This section defines how type definitions are mapped to Ion values as well as Ion schema. For details on Ion, see xref:https://amazon-ion.github.io/ion-docs/docs/spec.html[Ion Specification].
+An include statement is used to bring all type definitions from another source into the current namespace. It is effectively a pre-processing copy-paste of the included source.
+
+.Include Example
+[source]
+----
+// file1.ridl
+type a int32[];
+
+// file2.ridl
+include file1.ridl;
+type b enum { X, Y };
+
+// > ridl -I . file2.ridl -o types.ridl
+// > cat types.ridl
+type a int32[];
+type b enum { X, Y };
+----
+
+=== Namespace
+
+IMPORTANT: This section is out of scope for version 1, but was included for discussion.
+
+Namespaces allow grouping of type names to preventing name conflicts. The syntax and behavior match typedef in C++ namespaces and the Type Namespace of Rust. In RIDL, there is only one _type_ of namespace i.e. the _names_ of namespaces and the _names_ types of occupy the same space.
+
+.Namespaces in C++ (Typedef Namespace)
+> Namespaces provide a method for preventing name conflicts in large projects.
+Entities declared inside a namespace block are placed in a namespace scope, which prevents them from being mistaken for identically-named entities in other scopes.
+>
+> Entities declared outside all namespace blocks belong to the global namespace. The global namespace belongs to the global scope, and can be referred to explicitly with a leading `::`. While it has no declaration, the global namespace is not an unnamed namespace. 
+>
+> -- link:https://en.cppreference.com/w/cpp/language/namespace[]
+
+.Namespaces in Rust (Type Namespace)
+> A namespace is a logical grouping of declared names. Names are segregated into separate namespaces based on the kind of entity the name refers to. Namespaces allow the occurrence of a name in one namespace to not conflict with the same name in another namespace.
+>
+> Within a namespace, names are organized in a hierarchy, where each level of the hierarchy has its own collection of named entities.
+> -- link:https://doc.rust-lang.org/reference/names/namespaces.html[]
+
+== Amazon Ion
+
+This section defines how type definitions are mapped to Ion values as well as Ion Schema 2.0. For details on Ion, see xref:https://amazon-ion.github.io/ion-docs/docs/spec.html[Ion Specification].
 
 === Ion Encoding
 
-PLACEHOLDER
+This section defines how concrete values of RIDL-defined types are encoded as Ion values.
+
+.Ion Reference
+[cols="1s,1s"]
+|===
+s| link:https://amazon-ion.github.io/ion-docs/docs/spec.html[Textual]
+s| link:https://amazon-ion.github.io/ion-docs/docs/binary.html[Binary]
+|===
 
 ==== Primitives
 
-Primitive IDL types are encoded via the Ion types shown in the table.
+Primitive values are encoded via the Ion types shown below.
 
 |===
-| IDL Type | Ion Type
+| RIDL Primitive | Ion Primitive
 
 | bool | bool
-| i32 | int
-| i64 | int
-| f32 | float
-| f64 | float
-| decimal | decimal
-| char | string
+| int32 | int
+| int64 | int
+| float32 | float
+| float64 | float
 | string | string
 | byte | blob
 | bytes | blob
-| ion | any
-| ion._type_ | _type_
 
 |===
 
-==== Collections
+==== Arrays
 
-**List**
+Array values are encoded as Ion lists.
 
-A list is encoded an Ion list.
+.Ion List Encodings
+[cols="1s,1s"]
+|===
+s| link:https://amazon-ion.github.io/ion-docs/docs/spec.html#list[Textual]
+s| link:https://amazon-ion.github.io/ion-docs/docs/binary.html#0xb-list[Binary]
+|===
 
-**Map**
+==== Struct
 
-A map is encoded as an Ion list whose values are key-value pair s-expressions. For example,
-
-[source,ion]
-----
-map<i32,string>
-
-// The map value { 0: "a", 1: "b" } is encoded as
-
-[(0 "a"),(1 "b")]
-----
-
-==== User-Defined Types
-
-All type names are serialized as quoted Ion symbols and are fully-qualified using "." as a delimiter.
+A struct is encoded as an Ion s-expression annotated with its qualified name. Note that a qualified name is delimited with '::' and is always quoted to form a single annotation.
 
 .Example
-[source,ion]
+[source]
 ----
-// Definition
-(record outer
-  x::bool
-  y::bool
+// Example type
+type my_struct {
+    a: int32,
+    b: int32,
+};
 
-  (record inner
-    a::int32
-    b::int32
-  )
-)
+// Example value for `my_struct`
+// { a: 1, b: 2 }
 
-// Names
-'outer'
-'outer.inner'
+// Ion Encoding
+'my_struct'::(1,2)
 ----
 
-**Product**
-
-A product type is serialized as an Ion s-expression where the name symbol is the head and the operands are the tail.
-
-[source,ion]
+.Namespaced Example
+[source]
 ----
-// Definition
-(product coordinates
-    lat::decimal
-    lon::decimal
-)
+// Example type (namespaced)
+namespace foo {
+    type bar struct {
+        x: bool,
+        y: bool,
+    }
+}
 
-// Example
-(coordinates 47.6205 122.3493)
+// Example value for `foo::bar`
+// { x: true, y: false }
+
+// Ion Encoding
+'foo::bar'::(true,false)
 ----
 
-**Sum**
+NOTE: Related topics which are illustrative here are link:https://ziglang.org/documentation/master/#packed-struct[Zig packed structs] and link:https://en.wikipedia.org/wiki/Product_type[product] types vs. link:https://en.wikipedia.org/wiki/Record_(computer_science)[record] types. The crux here is asking which algebraic type we _want_ struct to represent in RIDL, and will there be a tuple type? This proposal aligns with Zig's packed struct which is much like a product type where names are discarded and fields are accessed in the order they are declared. I'm eager to discuss this, but consider a definitive decision out of scope for version 1.
 
-A sum type takes on one of several variants. There is no serialization for a sum type, only one of its variants.
-As of now, only product types are allowed as variants of a sum type.
+==== Union
 
-**Enum**
-
-Enum types are serialized as Ion symbols, using the value as a name.
+An union type is encoded as the encoding of its conrete type.
 
 .Example
+[source]
 ----
-// Definition
-(enum example (A, B))
+type my_union union {
 
-// Example
-'example.A'
-'example.B'
+    foo int32;
+
+    bar struct { x: int32, y: int32 };
+};
+
+// Foo Value, 3
+// Bar Value,  { x: 1, y: 2 }
+
+// Foo Encoding
+'my_union::foo'::3
+
+// Bar Encoding
+'my_union::bar'::(1,2)
 ----
 
-**Fixed**
+==== Enum
 
-A fixed type is serialized as an Ion blob whose length is determined by the fixed type size.
-
-**Unit**
-
-A unit is serialized to Ion with its name as a symbol.
+An enum is serialized to Ion with its qualified name annotated on the enumerator value.
 
 .Example
-[source,ion]
+[source]
 ----
-(unit my_type)
+// Definition
+type my_enum enum { A, B, C };
 
-// ion encoding
-'my_type'
+// Value
+// B
+
+// Ion Encoding
+'my_enum'::B
+----
+
+==== Unit
+
+A unit is serialized to Ion with its qualified name annotated on the symbol `unit`.
+
+.Example
+[source]
+----
+// Types
+
+type my_unit unit;
+
+namespace foo {
+    type my_unit unit;
+}
+
+// Ion Encodings
+'my_unit'::unit
+'::foo::my_unit'::unit
 ----
 
 === Ion Schema
 
-PLACEHOLDER
+This section describes how RIDL type definitions are mapped to Ion Schema. I use `<PLACEHOLDER>` to represent a placeholder called `PLACEHOLDER`, and the special placeholder `<NAME>` and `'<..NAME>'` to be an unqualified and fully-qualified type name respectively. 
+
+// For example,
+
+// [source,ridl]
+// ----
+// namespace <NS1> {
+//     namespace <NS2> {
+//         type <NAME> foo;
+//     }
+// }
+// ----
+
+// The value of `'<..NAME>' is `<NS1>::<NS2>::<NAME>`.
+
+==== Primitives
+
+Primitives are effectively aliases for the Ion primitive types; only `int32`, `float32`, and `byte` require constraints.
+
+[source,ion]
+----
+type::{
+    name: void,
+    type: nothing,
+}
+
+type::{
+    name: '::int32',
+    type: int,
+    valid_values: range::[
+        -2_147_483_648, // -(2^31)
+        +2_147_483_647, // 2^31 - 1
+    ]
+}
+
+type::{
+    name: int64,
+    type: int,
+    valid_values: range::[
+        −9_223_372_036_854_775_808, // -(2^63)
+        +9_223_372_036_854_775_807, // 63^2 - 1
+    ],
+}
+
+type::{
+    name: float32,
+    type: float,
+    valid_values: range::[], // ?
+}
+
+type::{
+    name: float64,
+    type: float,
+}
+
+type::{
+    name: byte,
+    type: blob,
+    byte_length: 1,
+}
+
+type::{
+    name: bytes,
+    type: blob,
+}
+----
+
+==== Arrays
+
+
+**Fixed Length**
+
+[source,ridl]
+----
+type <NAME> <TYPE>[<SIZE>];
+----
+
+[source,ion]
+----
+type::{
+    name: '<..NAME>',
+    type: list,
+    container_length: <SIZE>,
+}
+----
+
+**Variable Length**
+[source,ion]
+----
+type::{
+    name: '<..NAME>',
+    type: list,
+}
+----
+
+==== Struct
+
+[source,ridl]
+----
+type <NAME> struct {
+    <F_1>: <T_1>,
+    ...
+    <F_N>: <T_N>,
+};
+----
+
+[source,ion]
+----
+type::{
+    name: '<..NAME>',
+    type: sexp,
+    container_length: <N>,
+    annotations: required::closed::[ '<..NAME>' ],
+    ordered_elements: [
+        <T_1>,
+        ...,
+        <T_N>,
+    ],
+}
+----
+
+NOTE: Each `<T_i>` which is an inline type definition is defined before the outer type with the inline type's name `'<..NAME>'::<F_i>`.
+
+==== Union
+
+[source,ridl]
+----
+type <NAME> union { 
+    <V_1> <T_1>;
+    ...
+    <V_N> <T_N>;
+}
+----
+
+[source,ion]
+----
+type::{
+    name: '<..V_1>',
+    type: <T_1>,
+}
+
+...
+
+type::{
+    name: '<..V_N>',
+    type: <T_N>,
+}
+
+type::{
+    name: '<..NAME>',
+    one_of: [ <T_1>, ..., <T_N> ],
+}
+----
+
+==== Enum
+
+[source,ridl]
+----
+type <NAME> enum { <E_1>, ..., <E_N> };
+----
+
+[source,ion]
+----
+type::{
+    name: '<..NAME>',
+    type: symbol,
+    valid_values: [ <E_1>, ..., <E_N> ],
+}
+----
+
+==== Unit
+
+[source,ridl]
+----
+type <NAME> unit;
+----
+
+[source,ion]
+----
+type::{
+    name: '<..NAME>',
+    type: symbol,
+    annotations: required::closed::[ '<..NAME>' ],
+    valid_values: [ unit ] 
+}
+----
 
 == Appendix
 
-=== A1 — Constraints
+=== A1 — Prior Art Comparisons
 
 PLACEHOLDER
 
@@ -411,22 +603,23 @@ PLACEHOLDER
 
 [source]
 ----
+type
+namespace
+include
+
 bool
-i32
-i64
-f32
-f64
+int32
+int64
+float32
+float64
 string
+byte
 bytes
-ion
 
-list
-map
-
+array
 struct
 union
 enum
-fixed
 unit
 ----
 
