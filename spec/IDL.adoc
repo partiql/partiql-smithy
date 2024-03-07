@@ -292,13 +292,6 @@ Primitive values are encoded via the Ion types shown below.
 
 Array values are encoded as Ion lists.
 
-.Ion List Encodings
-[cols="1s,1s"]
-|===
-s| link:https://amazon-ion.github.io/ion-docs/docs/spec.html#list[Textual]
-s| link:https://amazon-ion.github.io/ion-docs/docs/binary.html#0xb-list[Binary]
-|===
-
 ==== Struct
 
 A struct is encoded as an Ion s-expression annotated with its qualified name. Note that a qualified name is delimited with '::' and is always quoted to form a single annotation.
@@ -341,7 +334,7 @@ NOTE: Related topics which are illustrative here are link:https://ziglang.org/do
 
 ==== Union
 
-An union type is encoded as the encoding of its conrete type.
+A union type is encoded as the encoding of its conrete type.
 
 .Example
 [source]
