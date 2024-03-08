@@ -1,9 +1,7 @@
 = PartiQL Types
-:toc:
-:toc-title: Page Contents
-:sectlinks:
 
-[#types]
+include::navigation.adoc[]
+
 == Types
 
 .Boolean Type
@@ -38,12 +36,16 @@
 | Signed integer that can be stored in eight bytes
 | -9223372036854775808 to +9223372036854775807 
 
-| big_int
-| Signed integer of arbitrary size (Ion int)
+| int
+| Signed integer of arbitrary size
 | ...
 
-| big_decimal
-| Exact numeric type with arbitrary precision (Ion decimal)
+| numeric(p,s)
+| Exact numeric with fixed precision _p_ and scale _s_
+| ...
+
+| numeric
+| Exact numeric type with arbitrary precision
 | ...
 
 | float32
@@ -52,10 +54,6 @@
 
 | float64
 | Double-precision, binary floating point (IEEE 754 64-bit)
-| ...
-
-| decimal(p,s)
-| Exact numeric with fixed precision _p_ and scale _s_
 | ...
 
 |===
@@ -128,17 +126,11 @@
 | time_tz(p,z)
 | A _date_-less time with seconds precision _p_ and time zone offset _z_
 
-| time_arbitrary
-| A _date_-less time with arbitrary precision and no time zone offset
-
 | timestamp(p)
 | A _date_ and _time_ with seconds precision _p_ and no time zone offset
 
 | timestamp_tz(p,z)
 | A _date_ and _time_ with seconds precision _p_ and time zone offset _z_
-
-| timestamp_arbitrary
-| A _date_ and _time_ with arbitrary precision
 
 // Open Question: Should we model timestamp that only has UTF offsets which are a strict subset of timezones.
 
@@ -233,9 +225,3 @@ s| Type s| Description
 | `(char\|string\|symbol)`
 
 |===
-
-== Shapes
-
-PLACEHOLDER.
-
-The term _shape_ refers to the static constraints of data. It is akin to the common term _schema_, but in the context of database systems this term is overloaded, and we have opted for a less ambiguous term. Additionally, _shapes_ are more flexible than schemas from relational systems. We have seen this term in similar data systems such as xref:https://zed.brimdata.io/docs[Zed] from Brim Data. 

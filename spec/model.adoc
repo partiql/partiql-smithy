@@ -5,292 +5,32 @@
 
 include::navigation.adoc[]
 
+// == Objective and Scope
 
-== Types
+// The objective of this document is to formally define a canonical, algebraic representation of PartiQL queries — hereinafter PartiQL Plans.
 
-.Boolean Type
-[cols="1m,3,>2",grid=rows,frame=all]
-|===
-| Type | Description | Values
+// This representation enables:
 
-| bool
-| Boolean value
-| `TRUE` or `FALSE`
+// . Consistent PartiQL semantics across various database systems
+// . PartiQL integrations independent of query syntax
+// . Query optimization through rewrites of equivalent plans
+// . Query portability via a canonical serialization
 
-|===
+// To achieve these goals, we will transform a PartiQL Statement to a graph of relational operators (functions). It is required that these operators meet the following criteria:
 
-.Numeric Types
-[cols="1m,3,>2a",grid=rows,frame=all]
-|===
-| Type | Description | Range
+// * *Functional* — each operator represents a pure function; an operator's computational semantics are the same regardless of its inputs.
+// * *Logical* — each operator represents abstract computation; an operator does not express a computation's implementation.
 
-| int8
-| Signed integer that can be stored in one byte
-| -128 to +127
+// The scope of this document is limited to the following SQL features:
 
-| int16
-| Signed integer that can be stored in two bytes
-| -32768 to +32767
+// * Query Statements (`SELECT-FROM-WHERE`)
+// * DDL (`CREATE/ALTER TABLE/VIEW`) 
 
-| int32
-| Signed integer that can be stored in four bytes
-| -2147483648 to +2147483647
+// Topics that are currently out of scope include:
 
-| int64
-| Signed integer that can be stored in eight bytes
-| -9223372036854775808 to +9223372036854775807 
-
-| big_int
-| Signed integer of arbitrary size (Ion int)
-| ...
-
-| big_decimal
-| Exact numeric type with arbitrary precision (Ion decimal)
-| ...
-
-| float32
-| Single-precision, binary floating point (IEEE 754 32-bit)
-| ...
-
-| float64
-| Double-precision, binary floating point (IEEE 754 64-bit)
-| ...
-
-| decimal(p,s)
-| Exact numeric with fixed precision _p_ and scale _s_
-| ...
-
-|===
-
-.Character String Types
-[cols="1m,5",grid=rows,frame=all]
-|===
-| Type | Description
-
-| char_fixed(n)
-| Unicode codepoint sequence of fixed length _n_
-
-| char_varying(n)
-| Unicode codepoint sequence of variable length up to _n_
-
-| string
-| Unicode codepoint sequence of arbitrary length
-
-| symbol
-| Unicode codepoint sequences of arbitrary length. The primary difference is the intended semantics: symbols represent case-sensitive identifiers as opposed to textual literal values.
-
-|===
-
-.Bit String Types
-[cols="1m,5",grid=rows,frame=all]
-|===
-| Type | Description
-
-| bit_fixed(n)
-| Bit string of fixed length _n_
-
-| bit_varying(n)
-| Bit string of variable length up to _n_ 
-
-| binary
-| Bit string of arbitrary length
-
-|===
-
-.Byte String Types
-[cols="1m,5",grid=rows,frame=all]
-|===
-| Type | Description
-
-| byte_fixed(n)
-| Octet string of fixed length _n_
-
-| byte_variable(n)
-| Octet string of variable length up to _n_ 
-
-| blob
-| Octet string of arbitrary length
-
-| clob
-| Unicode codepoint sequence of arbitrary length
-
-|===
-
-.Date/Time Types
-[cols="1m,5",grid=rows,frame=all]
-|===
-| Type | Description
-
-| date
-| A date with no _time_
-
-| time(p)
-| A _date_-less time with seconds precision _p_ and no time zone offset
-
-| time_tz(p,z)
-| A _date_-less time with seconds precision _p_ and time zone offset _z_
-
-| time_arbitrary
-| A _date_-less time with arbitrary precision and no time zone offset
-
-| timestamp(p)
-| A _date_ and _time_ with seconds precision _p_ and no time zone offset
-
-| timestamp_tz(p,z)
-| A _date_ and _time_ with seconds precision _p_ and time zone offset _z_
-
-| timestamp_arbitrary
-| A _date_ and _time_ with arbitrary precision
-
-// Open Question: Should we model timestamp that only has UTF offsets which are a strict subset of timezones.
-
-// SQL-99 4.7.2
-| interval(p)
-| A time interval with seconds precision _p_
-
-2+a| NOTE: A time zone offset _z_ is an hour/minute pair of integers
-
-|===
-
-.Collection Types
-[cols="1m,5",grid=rows,frame=all]
-|===
-| Type | Description
-
-| bag
-| Unordered collection of values
-
-| list
-| Ordered collection of values
-
-| sexp
-| Ordered collection of values with user-defined semantics
-
-|===
-
-.Struct Type
-[cols="1m,5",grid=rows,frame=all]
-|===
-| Type | Description
-
-| struct
-| Unordered collection of unconstrained fields
-
-2+a|  NOTE: Fields are name-value pairs where names are strings
-
-|===
-
-.Absent Types
-[cols="1m,3,>2m",grid=rows,frame=all]
-|===
-| Type | Description | Value
-
-| null
-| Type of the null value
-| NULL
-
-| missing
-| Type of the missing value
-| MISSING
-
-| unknown
-2+| The empty type
-
-|===
-
-.Graph Type
-[grid=rows,frame=all]
-|===
-| Description
-
-| Placeholder — https://github.com/partiql/partiql-docs/blob/main/RFCs/0025-graph-data-model.md
-
-|===
-
-.Union Types
-[cols="1m,5",grid=rows,frame=all]
-|===
-
-2+a|
-NOTE: Let `(t~0~\|...\|t~n~)` represent the union of types t~0~,...,t~n~ 
-
-s| Type s| Description
-
-| any
-| The union of all types
-
-| lob
-| `(blob\|clob)`
-
-| number
-| `(exact\|approximate)`
-
-| exact
-| `(int8\|int16\|int32\|int64\|int\|decimal)`
-
-| approximate
-| `(float32\|float64)`
-
-| text
-| `(char\|string\|symbol)`
-
-|===
-
-== Operators
-
-Recall that a PartiQL query is either a SELECT-FROM-WHERE statement or a value expression; where SFW expressions are fully composable within other SFW expressions as well as value expressions. Composability is determined by both the position of the SFW expression as well as the SELECT clause's projection. In the PartiQL Plan representation, these expressions are transformed to a graph of value transformations and the composability rules can be understood by looking at the input and output domains of each transformation.
-
-Recall that _V_ is the set of all values, and let _R_ be the set of all relations (collections of binding tuples). PartiQL Plan transformations can be divided into four function spaces e.g. value expressions, relation operators, and two types of projection transformations. These distinctions are important for _compactly_ representing PartiQL queries as function composition. 
-
-[cols="1a,3",frame=all]
-
-|===
-| Type | Description
-
-| Rex~T~ : V^N^ → V~T~
-| Value Expressions — input values, output values of type _T_
-
-| Rel~T~ : R^N^ → R
-| Relation Operators — input and output relations (collections of variable tuples)
-
-| Π~V~ : R → V
-| Relation-Value Projection — a special _Rex_
-
-| Π~R~ : V → Rel
-| Value-Relation Projection — the _scan_ operator
-
-|===
-
-== END OF DOCUMENT
-
-Everything appearing after this has not been updated.
-
-== Objective and Scope
-
-The objective of this document is to formally define a canonical, algebraic representation of PartiQL queries — hereinafter PartiQL Plans.
-
-This representation enables:
-
-. Consistent PartiQL semantics across various database systems
-. PartiQL integrations independent of query syntax
-. Query optimization through rewrites of equivalent plans
-. Query portability via a canonical serialization
-
-To achieve these goals, we will transform a PartiQL Statement to a graph of relational operators (functions). It is required that these operators meet the following criteria:
-
-* *Functional* — each operator represents a pure function; an operator's computational semantics are the same regardless of its inputs.
-* *Logical* — each operator represents abstract computation; an operator does not express a computation's implementation.
-
-The scope of this document is limited to the following SQL features:
-
-* Query Statements (`SELECT-FROM-WHERE`)
-* DDL (`CREATE/ALTER TABLE/VIEW`) 
-
-Topics that are currently out of scope include:
-
-* Other SQL sublanguages such as DML and GPML
-* Plan versioning
-* ...
+// * Other SQL sublanguages such as DML and GPML
+// * Plan versioning
+// * ...
 
 [#partiql-semantics]
 == PartiQL Semantics
@@ -327,6 +67,31 @@ value-expression
 ----
 
 SELECT-FROM-WHERE and value expression composability is determined by both the position of the SFW expression as well as the SELECT clause projection. The composability rules can be understood by looking at the input and output domains of expressions. Let _V_ be the set of all values, and let _R_ be the set of all relations (collections of binding tuples). PartiQL expressions exist in four categories:
+
+== Operators
+
+Recall that a PartiQL query is either a SELECT-FROM-WHERE statement or a value expression; where SFW expressions are fully composable within other SFW expressions as well as value expressions. Composability is determined by both the position of the SFW expression as well as the SELECT clause's projection. In the PartiQL Plan representation, these expressions are transformed to a graph of value transformations and the composability rules can be understood by looking at the input and output domains of each transformation.
+
+Recall that _V_ is the set of all values, and let _R_ be the set of all relations (collections of binding tuples). PartiQL Plan transformations can be divided into four function spaces e.g. value expressions, relation operators, and two types of projection transformations. These distinctions are important for _compactly_ representing PartiQL queries as function composition. 
+
+[cols="1a,3",frame=all]
+
+|===
+| Type | Description
+
+| Rex~T~ : V^N^ → V~T~
+| Value Expressions — input values, output values of type _T_
+
+| Rel~T~ : R^N^ → R
+| Relation Operators — input and output relations (collections of variable tuples)
+
+| Π~V~ : R → V
+| Relation-Value Projection — a special _Rex_
+
+| Π~R~ : V → Rel
+| Value-Relation Projection — the _scan_ operator
+
+|===
 
 * _f~0~ : V^N^ → V_ — Value Expressions
 * _f~1~ : R^N^ → R_ — Relation Expressions

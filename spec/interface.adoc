@@ -6,7 +6,7 @@
 
 == About
 
-This document defines the V1 interface for PartiQL's https://en.wikipedia.org/wiki/Query_plan[Plan] representation. PartiQL's serialized plans are backwards-compatible i.e. an older version of compiled PartiQL plans can be retargeted to a newer version without changing the query's semantics. Plans have a single major-version number which appears as the first operand of the top-level product type.
+This document defines the V1 interface for PartiQL's https://en.wikipedia.org/wiki/Query_plan[Plan] representation. PartiQL's logical plans can be serialized as Ion; see xref:serialization.adoc[PartiQL Logical Plan Serialization (V1)] for details.
 
 include::navigation.adoc[]
 
@@ -16,7 +16,7 @@ This document began in March of 2023 with an initial model of PartiQL's relation
 
 == Document (Top-Level)
 
-Plans are encoded in a top-level object; for lack of a better name, we'll call this the "document".
+Plans are represented by a top-level object we'll call "document".
 
 .Document
 [cols="1,1e,3",grid=rows,frame=all]
@@ -151,201 +151,209 @@ NOTE: This document's scope is limited to _query_ statements.
 
 == Types
 
+See xref:types.adoc[PartiQL Types] for type semantics.
+
 .Type Variants
 [cols="1e,5a",grid=rows,frame=all]
 |===
-|
-|
-[cols="1,1e,3",grid=rows,frame=none]
-!===
-s! Property  s! Type          s! Description
-!===
+| Type | Definition
 
 | Bool
-| 
+e| Unit
 
 | Int8
-| 
+e| Unit
 
 | Int16
-| 
+e| Unit
 
 | Int32
-| 
+e| Unit
 
 | Int64
-| 
+e| Unit
 
-| Big_int
-| 
-
-| Big_decimal
-| 
+| Int
+e| Unit
 
 | Decimal
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! precision ! int   ! Decimal precision
-! scale     ! int   ! Decimal scale
+s! Property  s! Type          s! Description
+! Precision ! Int   ! Decimal precision
+! Scale     ! Int   ! Decimal scale
 !===
+
+| Numeric
+e| Unit
 
 | Float32
-| 
+e| Unit
 
 | Float64
-| 
+e| Unit
 
-| Char_fixed
+| Char Fixed
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! length    ! int  ! Fixed length
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Fixed length
 !===
 
-| Char_varying
+| Char Varying
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! length    ! int  ! Max length
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Max length
 !===
 
 | String
-| 
+e| Unit
 
 | Symbol
-| 
+e| Unit
 
-| Bit_fixed
+| Bit Fixed
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! length    ! int  ! Fixed length
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Fixed length
 !===
 
-| Bit_varying
+| Bit Varying
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! length    ! int  ! Max length
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Max length
 !===
 
 | Binary
-| 
+e| Unit
 
-| Byte_fixed
+| Byte Fixed
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! length    ! int  ! Fixed length
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Fixed length
 !===
 
-| Byte_variable
+| Byte Variable
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! length    ! int  ! Max length
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Max length
 !===
 
 | Blob
-| 
+e| Unit
 
 | Clob
-| 
+e| Unit
 
 | Date
-| 
+e| Unit
 
 | Time
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! precision    ! int  ! Seconds precision
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
 !===
 
-| Time_tz
+| Time TZ
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! precision    ! int  ! Seconds precision
-! offset       ! (int,int)  ! Zone offset
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+! Offset       ! (Int,Int)  ! Zone offset
 !===
-
-| Time_arbitrary
-| 
 
 | Timestamp
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! precision    ! int  ! Seconds precision
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
 !===
 
-| Timestamp_tz
+| Timestamp TZ
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! precision    ! int  ! Seconds precision
-! offset       ! (int,int)  ! Zone offset
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+! Offset       ! (Int,Int)  ! Zone offset
 !===
-
-| Timestamp_arbitrary
-| 
 
 | Interval
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! precision    ! int  ! Seconds precision
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
 !===
 
 | Bag
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! items    ! type  ! Items type
+s! Property  s! Type          s! Description
+! Items    ! Type  ! Items type
 !===
 
 | List
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! items    ! type  ! Items type
+s! Property  s! Type          s! Description
+! Items    ! Type  ! Items type
 !===
 
 | Sexp
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! items    ! type  ! Items type
+s! Property  s! Type          s! Description
+! Items    ! Type  ! Items type
 !===
 
 | Struct
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! fields   ! list<(string,type)> ! Struct fields
-! open     ! bool  ! True if open content struct
-! ordered  ! bool  ! True if fields are ordered
-! unique   ! bool  ! True if field key are unique
+s! Property  s! Type          s! Description
+! Fields   ! List<(String,Type)> ! Struct fields
+! Open     ! Bool  ! True if open content struct
+! Ordered  ! Bool  ! True if fields are ordered
+! Unique   ! Bool  ! True if field key are unique
 !===
 
 | Null
-| 
+e| Unit
 
 | Missing
-| 
+e| Unit
 
 | Union
 |
 [cols="1,1e,3",grid=rows,frame=none]
 !===
-! types    ! list<type>  ! Types in the union
+s! Property  s! Type          s! Description
+! Types    ! List<Type>  ! Types in the union
 !===
 
 |===
 
-=== Expressions
+== Expressions
 
 This section defines all expressions.
 
@@ -387,7 +395,7 @@ _∅ → V_
 |===
 
 [#Rex-variable]
-==== Variable
+=== Variable
 
 [NOTE,caption=signature]
 ====
@@ -886,7 +894,7 @@ _R → R_
 | A list of aggregate calls
 
 | Groups
-| List<Rex~text~>
+| List<Rex>
 | A list of group by keys; required if aggregations list is empty
 
 |===
