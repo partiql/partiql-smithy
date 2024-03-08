@@ -1,19 +1,15 @@
 package org.partiql.tool.ridl.model
 
 /**
- * Type representing a fixed-size collection of primitives.
- *
- * Examples
- *  - char[2]
- *  - byte[16]
+ * Type representing a fixed-length or variable-length collection
  *
  * @property type
  * @property size
  */
 public data class RTypeArray(
-    public val type: RTypePrimitive,
-    public val size: Int,
+    public val type: RType,
+    public val size: Int?,
 ) : RType {
 
-    override fun toString(): String = "$type[$size]"
+    override fun toString(): String = if (size == null) "$type[]" else "$type[$size]"
 }

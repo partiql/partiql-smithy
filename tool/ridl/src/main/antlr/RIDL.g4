@@ -1,24 +1,25 @@
 grammar RIDL;
 
 document
-  : include* definition+ EOF
+  : body EOF
+  ;
+
+body
+  : include* definition*
   ;
 
 include
-  : INCLUDE STRING
+  : INCLUDE STRING (AS? NAME)
   ;
 
 definition
-  : TYPE IDENTIFIER type EOL
+  : TYPE NAME type SEMICOLON              #definitionType
+  | NAMESPACE NAME L_BRACE body R_BRACE   #definitionNamespace
   ;
 
 type
   : typeNamed
   | typePrimitive
-  | typeIon
-  | typeList
-  | typeMap
-  | typeTuple
   | typeArray
   | typeStruct
   | typeUnion
@@ -27,60 +28,31 @@ type
   ;
 
 typeNamed
-  : IDENTIFIER
+  : NAME
   ;
 
 typePrimitive
   : T_BOOL
-  | T_I32
-  | T_I64
-  | T_F32
-  | T_F64
-  | T_DECIMAL
-  | T_CHAR
+  | T_INT32
+  | T_INT64
+  | T_FLOAT32
+  | T_FLOAT64
   | T_STRING
   | T_BYTE
   | T_BYTES
   ;
 
-typeIon
-  : ION
-  | ION_BOOL
-  | ION_INT
-  | ION_FLOAT
-  | ION_DECIMAL
-  | ION_TIMESTAMP
-  | ION_STRING
-  | ION_SYMBOL
-  | ION_BLOB
-  | ION_CLOB
-  | ION_STRUCT
-  | ION_LIST
-  | ION_SEXP
-  ;
-
-typeList
-  : LIST L_ANGLE type R_ANGLE
-  ;
-
-typeMap
-  : MAP L_ANGLE typePrimitive COMMA type R_ANGLE
-  ;
-
-typeTuple
-  : L_PAREN type (COMMA type)* R_PAREN
-  ;
-
 typeArray
-  : typePrimitive L_BRACKET INTEGER R_BRACKET
+  : typeNamed L_BRACKET size=INTEGER? R_BRACKET       #typeArrayNamed
+  | typePrimitive L_BRACKET size=INTEGER? R_BRACKET   #typeArrayPrimitive
   ;
 
 typeStruct
-  : STRUCT L_BRACE typeStructField+ R_BRACE
+  : STRUCT L_BRACE typeStructField (COMMA typeStructField)* COMMA? R_BRACE
   ;
 
 typeStructField
-  : IDENTIFIER COLON type EOL
+  : NAME COLON type
   ;
 
 typeUnion
@@ -88,7 +60,7 @@ typeUnion
   ;
 
 typeUnionVariant
-  : IDENTIFIER type EOL
+  : NAME type SEMICOLON
   ;
 
 typeEnum
@@ -99,37 +71,21 @@ typeUnit
   : UNIT
   ;
 
+AS: 'as';
 INCLUDE: 'include';
+NAMESPACE: 'namespace';
 TYPE: 'type';
 
 T_BOOL: 'bool';
-T_I32: 'i32';
-T_I64: 'i64';
-T_F32: 'f32';
-T_F64: 'f64';
-T_DECIMAL: 'decimal';
-T_CHAR: 'char';
+T_INT32: 'int32';
+T_INT64: 'int64';
+T_FLOAT32: 'float32';
+T_FLOAT64: 'float64';
 T_STRING: 'string';
 T_BYTE: 'byte';
 T_BYTES: 'bytes';
 
-ION: 'ion';
-ION_BOOL: 'ion.bool';
-ION_INT: 'ion.int';
-ION_FLOAT: 'ion.float';
-ION_DECIMAL: 'ion.decimal';
-ION_TIMESTAMP: 'ion.timestamp';
-ION_STRING: 'ion.string';
-ION_SYMBOL: 'ion.symbol';
-ION_BLOB: 'ion.blob';
-ION_CLOB: 'ion.clob';
-ION_STRUCT: 'ion.struct';
-ION_LIST: 'ion.list';
-ION_SEXP: 'ion.sexp';
-
-LIST: 'list';
-MAP: 'map';
-
+ARRAY: 'array';
 STRUCT: 'struct';
 UNION: 'union';
 ENUM: 'enum';
@@ -137,6 +93,7 @@ UNIT: 'unit';
 
 COMMA: ',';
 COLON: ':';
+SEMICOLON: ';';
 L_ANGLE: '<';
 R_ANGLE: '>';
 L_PAREN: '(';
@@ -145,10 +102,9 @@ L_BRACE: '{';
 R_BRACE: '}';
 L_BRACKET: '[';
 R_BRACKET: ']';
-EOL: ';';
 
-IDENTIFIER
-  : [a-z][a-z_]*
+NAME
+  : [a-z][a-z0-9_]*
   ;
 
 INTEGER
@@ -156,7 +112,7 @@ INTEGER
   ;
 
 ENUMERATOR
-  : [A-Z][A-Z_]+
+  : [A-Z][A-Z0-9_]+
   ;
 
 STRING

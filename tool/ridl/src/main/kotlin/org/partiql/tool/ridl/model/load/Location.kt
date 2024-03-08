@@ -1,10 +1,10 @@
-package org.partiql.tool.ridl.parser
+package org.partiql.tool.ridl.model.load
 
 import org.antlr.v4.runtime.ParserRuleContext
 
 internal data class Location(
-    val line: Int,
-    val offset: Int,
+    @JvmField val line: Int,
+    @JvmField val offset: Int,
 ) {
 
     override fun toString(): String = "line $line [$offset,]"

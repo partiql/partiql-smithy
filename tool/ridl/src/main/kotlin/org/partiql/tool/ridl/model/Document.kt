@@ -1,6 +1,6 @@
 package org.partiql.tool.ridl.model
 
-import org.partiql.tool.ridl.parser.Parser
+import org.partiql.tool.ridl.model.load.Loader
 import java.nio.file.Path
 
 /**
@@ -14,6 +14,6 @@ public class Document(
 
         @JvmStatic
         @JvmOverloads
-        public fun load(input: String, include: Path? = null): Document = Parser.load(input, include)
+        public fun load(input: String, include: Path? = null): Document = Loader.load(input, include)
     }
 }

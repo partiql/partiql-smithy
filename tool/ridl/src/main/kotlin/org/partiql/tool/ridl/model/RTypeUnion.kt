@@ -14,7 +14,7 @@ public data class RTypeUnion(
 ) : RType {
 
     public data class Variant(
-        val name: String,
+        val name: Name,
         val type: RType,
     ) {
 

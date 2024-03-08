@@ -1,13 +1,9 @@
 package org.partiql.tool.ridl.model
 
-/**
- * References a type by name.
- *
- * @property name   Type identifier.
- */
-public class RTypeNamed(
+public class Type(
     @JvmField public val name: Name,
-) : RType {
+    @JvmField public val definition: RType,
+) : Definition {
 
     override fun toString(): String = name.toString()
 }

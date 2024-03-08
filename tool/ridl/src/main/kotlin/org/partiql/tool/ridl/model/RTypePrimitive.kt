@@ -7,22 +7,18 @@ package org.partiql.tool.ridl.model
  *  - https://en.wikipedia.org/wiki/JSON#Data_types (scalars only)
  *  - https://amzn.github.io/ion-docs/docs/spec.html (scalars only)
  */
-public data class RTypePrimitive(
-    public val type: T,
-) : RType {
+public data class RTypePrimitive(@JvmField val kind: Kind) : RType {
 
-    public enum class T {
+    public enum class Kind {
         BOOL,
-        I32,
-        I64,
-        F32,
-        F64,
-        DECIMAL,
-        CHAR,
+        INT32,
+        INT64,
+        FLOAT32,
+        FLOAT64,
         STRING,
         BYTE,
         BYTES,
     }
 
-    override fun toString(): String = type.name.lowercase()
+    override fun toString(): String = kind.name.lowercase()
 }
