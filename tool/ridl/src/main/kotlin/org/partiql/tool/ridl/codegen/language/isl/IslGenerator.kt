@@ -23,6 +23,11 @@ internal class IslGenerator : Generator {
     private val templates = TemplateManager("isl")
 
     override fun generate(document: Document): List<File> {
+
+        // Add the header which contains our primitives
+        val header = templates.apply("header", Unit)
+        println(header)
+
         document.definitions.forEach {
             val body = when (it) {
                 is Namespace -> generate(it)

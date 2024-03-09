@@ -17,8 +17,6 @@ type my_struct struct {
 type my_other_struct struct {
     a: my_int32,
     c: my_struct,
-    // TODO punting on inlines
-    // d: struct { x: int32, y: int64 },
 };
 
 type my_union union {
