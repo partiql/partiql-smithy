@@ -581,8 +581,7 @@ type <NAME> unit;
 type::{
     name: '<..NAME>',
     type: symbol,
-    annotations: required::closed::[ '<..NAME>' ],
-    valid_values: [ unit ] 
+    valid_values: [ unit ],
 }
 ----
 

@@ -1,0 +1,11 @@
+type::{
+    name: '{{name}}',
+    type: sexp,
+    container_length: {{size}},
+    annotations: required::closed::[ '{{name}}' ],
+    ordered_elements: [
+        {{#operands}}
+        '{{.}}',
+        {{/operands}}
+    ],
+}

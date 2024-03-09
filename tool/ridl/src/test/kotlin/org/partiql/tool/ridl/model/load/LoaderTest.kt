@@ -1,9 +1,9 @@
-package org.partiql.tool.ridl.parser
+package org.partiql.tool.ridl.model.load
 
 import org.junit.jupiter.api.Test
 import org.partiql.tool.ridl.model.Document
 
-class ParserTest {
+class LoaderTest {
 
     @Test
     fun load() {

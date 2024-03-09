@@ -1,5 +1,5 @@
-class {{classname}} {
-
-    // Hello, world!
-
-}
+public data class {{classname}}(
+{{#fields}}
+    @JvmField val {{name}}: {{type}},
+{{/fields}}
+)

@@ -35,7 +35,7 @@ internal class Symbol(
             path.add(curr.name)
             curr = curr.parent
         }
-        return Name(name, path.reversed().toTypedArray())
+        return Name(name, path.reversed().subList(1, path.size).toTypedArray())
     }
 
     override fun toString(): String = name

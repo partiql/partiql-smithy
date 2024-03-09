@@ -15,6 +15,7 @@
 
 package org.partiql.tool.ridl
 
+import org.partiql.tool.ridl.codegen.language.isl.IslCommand
 import org.partiql.tool.ridl.codegen.language.kotlin.KotlinCommand
 import picocli.CommandLine
 import kotlin.system.exitProcess
@@ -37,6 +38,7 @@ public class RIDL : Runnable {
     name = "generate",
     mixinStandardHelpOptions = true,
     subcommands = [
+        IslCommand::class,
         KotlinCommand::class,
     ],
 )
