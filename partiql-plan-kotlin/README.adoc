@@ -1,0 +1,27 @@
+= PartiQL Plan (V1)
+
+== About
+
+This package contains an early implementation of the PartiQL Plan data structures. Specification work is ongoing, and
+this package should be considered experimental.
+
+== Building
+
+[source,shell]
+----
+// build the IDL tool, and alias to `idl`
+
+// test
+idl generate kotlin --help
+
+idl generate kotlin \
+    -o ./tmp \
+    -p "org.partiql.plan.v1" \
+    -u "Plan" \
+    --poems "factory" \
+    --poems "visitor" \
+    --poems "builder" \
+    --poems "util" \
+    --opt-in "org.partiql.value.PartiQLValueExperimental" \
+    ./src/main/resources/partiql_plan.ion
+----

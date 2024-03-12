@@ -1,0 +1,838 @@
+= The PartiQL Logical Model
+:toc:
+:toc-title: Page Contents
+:sectlinks:
+
+include::navigation.adoc[]
+
+// == Objective and Scope
+
+// The objective of this document is to formally define a canonical, algebraic representation of PartiQL queries — hereinafter PartiQL Plans.
+
+// This representation enables:
+
+// . Consistent PartiQL semantics across various database systems
+// . PartiQL integrations independent of query syntax
+// . Query optimization through rewrites of equivalent plans
+// . Query portability via a canonical serialization
+
+// To achieve these goals, we will transform a PartiQL Statement to a graph of relational operators (functions). It is required that these operators meet the following criteria:
+
+// * *Functional* — each operator represents a pure function; an operator's computational semantics are the same regardless of its inputs.
+// * *Logical* — each operator represents abstract computation; an operator does not express a computation's implementation.
+
+// The scope of this document is limited to the following SQL features:
+
+// * Query Statements (`SELECT-FROM-WHERE`)
+// * DDL (`CREATE/ALTER TABLE/VIEW`) 
+
+// Topics that are currently out of scope include:
+
+// * Other SQL sublanguages such as DML and GPML
+// * Plan versioning
+// * ...
+
+[#partiql-semantics]
+== PartiQL Semantics
+
+A PartiQL query is either a SELECT-FROM-WHERE (SFW) statement or a value expression. Unlike SQL expressions, which are restricted to outputting scalar and null values, PartiQL expressions output arbitrary PartiQL values, i.e. — scalars, absent, and complex values. As a result, PartiQL SFW expressions are fully composable within other SFW expressions as well as value expressions. Indeed, PartiQL allows the top-level query to also be a value expression, not just a SELECT-FROM-WHERE as in SQL.
+
+[#basic-syntax]
+.PartiQL Basic Syntax
+[source,ebnf]
+----
+query
+	::= select-from-where
+	  | expression
+
+expression
+	::= '(' select-from-where ')'
+	  | value-expression
+
+select-from-where
+	::= select-clause let-clause? from-clause	// SELECT ... FROM
+		where-clause?							// WHERE
+		group-by-clause?						// GROUP BY
+		having-clause?							// HAVING
+		set-op-clause?							// UNION|INTERSECT|EXCEPT
+		order-by-clause?						// ORDER BY
+		fetch-clause?							// LIMIT ... OFFSET
+
+value-expression
+	::= path-expression							// x.a[0] ...
+	  | call-expression							// uppercase(x) ...
+	  | sql-expression							// SQL expressions and special forms
+	  | value-constructor
+	  | value-literal
+----
+
+SELECT-FROM-WHERE and value expression composability is determined by both the position of the SFW expression as well as the SELECT clause projection. The composability rules can be understood by looking at the input and output domains of expressions. Let _V_ be the set of all values, and let _R_ be the set of all relations (collections of binding tuples). PartiQL expressions exist in four categories:
+
+== Operators
+
+Recall that a PartiQL query is either a SELECT-FROM-WHERE statement or a value expression; where SFW expressions are fully composable within other SFW expressions as well as value expressions. Composability is determined by both the position of the SFW expression as well as the SELECT clause's projection. In the PartiQL Plan representation, these expressions are transformed to a graph of value transformations and the composability rules can be understood by looking at the input and output domains of each transformation.
+
+Recall that _V_ is the set of all values, and let _R_ be the set of all relations (collections of binding tuples). PartiQL Plan transformations can be divided into four function spaces e.g. value expressions, relation operators, and two types of projection transformations. These distinctions are important for _compactly_ representing PartiQL queries as function composition. 
+
+[cols="1a,3",frame=all]
+
+|===
+| Type | Description
+
+| Rex~T~ : V^N^ → V~T~
+| Value Expressions — input values, output values of type _T_
+
+| Rel~T~ : R^N^ → R
+| Relation Operators — input and output relations (collections of variable tuples)
+
+| Π~V~ : R → V
+| Relation-Value Projection — a special _Rex_
+
+| Π~R~ : V → Rel
+| Value-Relation Projection — the _scan_ operator
+
+|===
+
+* _f~0~ : V^N^ → V_ — Value Expressions
+* _f~1~ : R^N^ → R_ — Relation Expressions
+* _f~2~ : R → V_ — Relation-Value Projection
+* _f~3~ : V → R_ — Value-Relation Projection
+
+In general, every expression is a value expression, but these distinctions are more precise and enable modeling queries as a data-flow graph of logical operators. The following sections describe each category and its related expressions.
+
+[#value-expression]
+=== Value Expressions — _V^N^ → V_
+
+Each expresion inputs arbitrary PartiQL values and outputs a single scalar, absent, or complex value. At the moment, we only give the syntax of the value expressions. Later revisions will contain detailed explanations of expression semantics.
+
+[#value-expression-syntax]
+.Value Expression Syntax
+[source,ebnf]
+----
+value-expression
+	::= path-expression
+	  | call-expression
+	  | sql-expression
+	  | value-constructor
+	  | value-literal
+
+expression-list ::= expression (',' expression)*
+
+path-expression ::= expression (path-step)*
+
+path-step
+	::= '.' symbol
+	  | '.' '*'
+	  | '[' expression ']'
+	  | '[' '*' ']'
+
+call-expression ::= symbol '(' expression-list ')'
+
+sql-expression
+	::= predicate-expression							// predicates
+	  | expression ('+'|'-'|'*'|'/'|'%') expression		// arithmetic
+	  | cast-expression									// CAST
+	  | substring-expression							// SUBSTRING(..)
+	  | extract-expression								// EXTRACT(.. FROM ..)
+	  | coalesce-expression								// COALESCE(..)
+	  | aggregate-expression							// SUM(x), COUNT(x), COUNT(*), ..
+	  | trim-expression									// TRIM(.. FROM ..)
+	  | null-if-expression								// NULLIF(..)
+	  | case-expressions								// CASE .. WHEN ..
+
+predicate-expression
+	::= expression ('OR'|'AND') expression							// logical
+	  | 'NOT' expression											// logical
+	  | expression ('<'|'<='|'='|'!='|'>'|'>=') expression			// comparisons
+	  | expression 'IS' 'NOT'? type									// type assertion
+	  | expression 'NOT'? 'IN' expression							// IN
+	  | expression 'NOT'? 'LIKE' expression ('ESCAPE' expression)	// LIKE
+	  | expression 'NOT'? 'BETWEEN' expression 'AND' expression		// BETWEEN ... AND ...
+
+value-constructor
+	::= '{'     field-list	  '}'	// tuple constructor
+	  | '['  expression-list  ']'	// array constructor
+	  | '<<' expression-list '>>'	// bag constructor
+
+field-list ::= field (',' field)*
+
+field ::= expression ':' expression
+----
+
+[#relation-expressions]
+=== Relation Expressions — _R^N^ → R_
+
+SFW queries are composed of several relation expressions derived from its clauses.
+
+[#sfw-syntax]
+.SELECT-FROM-WHERE Syntax
+[source,ebnf]
+----
+select-from-where
+	::= select-clause let-clause? from-clause	// SELECT ... FROM
+		where-clause?							// WHERE
+		group-by-clause?						// GROUP BY
+		having-clause?							// HAVING
+		set-op-clause?							// UNION|INTERSECT|EXCEPT
+		order-by-clause?						// ORDER BY
+		fetch-clause?							// LIMIT ... OFFSET
+----
+
+Each clause (except for SELECT VALUE and PIVOT) can be understood in isolation from the other clauses because a clause is simply a function (relation expression) that inputs and outputs collections of binding tuples (relations). In a PartiQL Plan, we call these relation expressions _operators_. Clauses are evaluated in the following order:
+
+[source,partiql,subs=quotes]
+----
+--  1. WITH
+--  2. FROM
+--  3. LET
+--  4. WHERE
+--  5. GROUP BY
+--  6. HAVING
+--  7. LETTING
+--  8. ORDER BY
+--  9. LIMIT ... OFFSET / FETCH
+-- 10. SELECT / SELECT VALUE^†^ / PIVOT^‡^
+----
+
+† SELECT VALUE outputs a collection of values, not necessarily a collection of binding tuples +
+‡ PIVOT outputs a single tuple
+
+These operators are not directly composoable with value expressions without a relation-value projection, where the projection is determined by the statement's SELECT clause as well as the position of the statement in the outer query if it is a subquery. The following sections describe the semantics of each clause.
+
+// ==== WITH Clause
+// TODO...
+
+[#from-clause]
+==== FROM Clause
+
+The FROM Clause is responsible for producing a collection of binding tuples from either a single collection or multiple collections via joins. The syntax is as follows:
+
+[source,ebnf]
+----
+from-clause ::= 'FROM' collection
+
+collection
+	::= collection ',' collection								// CROSS JOIN
+	  | collection join-type 'CROSS' 'JOIN'	collection			// CROSS JOIN
+	  | collection join-type 'JOIN' collection join-condition	// JOIN ... ON
+	  | collection-non-join
+	  | '(' collection ')'
+
+collection-non-join
+	::= expression symbol					// Foo f
+	  | collection-expression				// Foo AS x AT y
+	  | 'UNPIVOT' collection-expression		// UNPIVOT Foo as v AT k
+
+join-type ::= INNER | LEFT | RIGHT | FULL
+
+join-condition ::= 'ON' expression
+----
+
+[#single-item-from]
+**Single-Item FROM Clause**
+
+The single-item FROM clause simply ranges over a value _v_ in _V~collection~_ to produce a relation. This clause is covered in more detail in xref:single_item_from_clause[Value-Relation Projections].
+
+[#multi-item-from]
+**Multi-Item FROM Clause**
+
+The multi-item FROM clause is responsible for joining the tuples of multiple relations. The join type can be one of CROSS, LEFT, RIGHT, INNER, OR FULL. All joins except for CROSS JOIN can have a join condition.
+
+NOTE: All joins are left associative
+
+Unlike SQL, the expressions of the right-hand-side of a PartiQL CROSS JOIN may use fields of tuples in the left-hand-side. This enables descending into nested data structures and functions like nested loops.
+
+[source,subs=quotes]
+----
+for each binding tuple b~l~ in LHS
+  for each binding tuple b~r~ in RHS
+    add (b~l~ || b~r~) to the output bag
+----
+
+To be continued...
+
+// ==== LET Clause
+// TODO...
+
+[#where_clause]
+==== WHERE Clause
+
+[source,ebnf]
+----
+where-clause ::= 'WHERE' expression
+----
+
+The WHERE clause inputs the bindings that have been produced from the FROM clause and outputs the ones that satisfy its condition.
+
+The boolean predicates follow SQL's 3-valued logic. PartiQL's two absent values NULL and MISSING behave identically. For example, MISSING AND TRUE is equivalent to NULL AND TRUE: they both result into NULL.
+
+Alike SQL, when the expression of the WHERE clause expression evaluates to an absent value or a value that is not a Boolean, PartiQL eliminates the corresponding binding.
+
+The predicate IS MISSING allows distinguishing between NULL and MISSING: NULL IS MISSING results to false; MISSING IS MISSING results to true.
+
+[#group-by-clause]
+==== GROUP BY Clause
+
+[source,ebnf]
+----
+group-by-clause ::= 'GROUP BY' binding-list ('AS' symbol)?
+----
+
+The PartiQL GROUP BY clause expands SQL's grouping. Unlike SQL, the PartiQL GROUP BY can be thought of as a standalone operator that inputs a collection of binding tuples and outputs a collection of binding tuples. A GROUP BY Clause has a binding list which is list of aggregate expressions _e~i~_ and an associate binding name _n~i~_. Additionally, the GROUP BY Clause may contain a grouping variable _g_ known as the _group as alias_.
+
+The GROUP BY clause creates a group for each aggregate expression _e~i~_ and binds it to its associated name _n~i~_ in the output tuple.
+
+To be continued...
+
+[#having-clause]
+==== HAVING Clause
+
+[source,ebnf]
+----
+having-clause ::= 'HAVING' expression
+----
+
+The HAVING Clause is effectively the same as the xref:where_clause[WHERE Clause]; however, the HAVING Clause is applied to the aggregate values output by a GROUP BY Clauses. SQL allows for aggregate expressions in the HAVING Clause, but that behavior is currently not supported by PartiQL.
+
+[#set-op-clause]
+==== UNION / INTERSECT / EXCEPT
+
+[source,ebnf]
+----
+set-op-clause
+	::= 'UNION' 	'ALL'? select-from-where
+	  | 'INTERSECT' 'ALL'? select-from-where
+	  | 'EXCEPT' 	'ALL'? select-from-where
+----
+
+Each bag operator has the form `LHS Op~bag~ RHS` where _LHS_ and _RHS_ are SFW queries and _Op~bag~_ is the bag (or set) operator. Additionally, the operator may be suffixed with _ALL_ which indicates the output may have duplicate elements. In its absence, _DISTINCT_ is implicit and duplicates are eliminated from the final result.
+
+The standard SQL bag operators are defined as:
+[source,subs=quotes]
+----
+LHS UNION ALL RHS     = MULTISET_UNION(LHS, RHS)
+LHS INTERSECT ALL RHS = MULTISET_INTERSECT(LHS, RHS)
+LHS EXCEPT ALL RHS    = MULTISET_DIFFERENCE(LHS, RHS)
+
+LHS UNION DISTINCT RHS     = DISTINCT(MULTISET_UNION(LHS, RHS))
+LHS INTERSECT DISTINCT RHS = DISTINCT(MULTISET_INTERSECT(LHS, RHS))
+LHS EXCEPT DISTINCT RHS    = DISTINCT(MULTISET_DIFFERENCE(LHS, RHS))
+----
+
+Let _V~1~_ and _V~2~_ be arbitrary values, and let _C_ be a function which coerces a value to a bag. The _OUTER_ operators are defined as
+[source,subs=quotes]
+----
+V~1~ OUTER UNION ALL V~2~     = MULTISET_UNION(C(V~1~), C(V~2~))
+V~1~ OUTER INTERSECT ALL V~2~ = MULTISET_INTERSECT(C(V~1~), C(V~2~))
+V~1~ OUTER EXCEPT ALL V~2~    = MULTISET_DIFFERENCE(C(V~1~), C(V~2~))
+
+V~1~ OUTER UNION DISTINCT V~2~     = DISTINCT(MULTISET_UNION(C(V~1~), C(V~2~)))
+V~1~ OUTER INTERSECT DISTINCT V~2~ = DISTINCT(MULTISET_INTERSECT(C(V~1~), C(V~2~)))
+V~1~ OUTER EXCEPT DISTINCT V~2~    = DISTINCT(MULTISET_DIFFERENCE(C(V~1~), C(V~2~)))
+----
+
+The coercion function _C_ is defined for all PartiQL Values by:
+[source]
+----
+C(absent_value) -> << >>               
+C(scalar_value) -> << scalar_value >> # singleton bag
+C(tuple_value)  -> << tuple_value >>  # singleton bag, see future extensions
+C(array_value)  -> bag_value          # discard ordering
+C(bag_value)    -> bag_value          # identity
+----
+
+// [#letting_clause]
+// ==== LETTING Clause
+// TODO...
+
+[#order-by-clause]
+==== ORDER BY Clause
+
+[source,ebnf]
+----
+order-by-clause ::= 'ORDER' 'BY' sort-spec-list
+
+sort-spec-list ::= sort-spec (',' sort-spec)
+
+sort-spec ::= expression ('ASC'|'DESC')? ('NULLS' (FIRST|LAST))?
+----
+
+The ORDER BY Clause is responsible for turning its input bag into an array. In the following aspects, PartiQL extends the SQL semantics to resolve issues that are not relevant in SQL but emerge when working on Ion data.
+
+. SQL's ORDER BY clause orders its input using an expanded version of the less-than function, which we call the order-by less-than and denote by _<^o^_. The PartiQL _<^o^_ semantics (The PartiQL order-by less-than function) also specify an order among values of heterogeneous types, including complex values.
+. The interaction of ORDER BY with a UNION (or any other set operator) of SFW queries requires attention since, unlike SQL, in PartiQL there are no binding tuples (or any tuples at all for that matter) after a SELECT VALUE clause. Dependency of semantics on the Presence of Set Operators elaborates on this aspect of PartiQL.
+. Unlike SQL, the input of an PartiQL query may also have order, because it is an array. The user may want to preserve the order of the input into the output. In this case, the AT structure in the FROM clause (recall, xref:single-item-from-clause[Single-Item FROM Clause]) can capture the input order and the ORDER BY can recreate it. However, this order preservation mechanism is tedious for the user. Thus, ORDER BY also offers an order preservation directive.
+
+// SQL Compatibility ORDER BY clauses and use of SELECT variables in ORDER BY for SQL compatibility discuss SQL compatibility issues.
+
+The `ORDER BY` clause sorts its input using the _order-by less-than
+function_ _<^o^_, which is able to compare values of different
+types (unlike SQL). In particular:
+
+. `NULL` and `MISSING` are always first or last and compare equally
+ according to _<^o^_. In other words, _<^o^_ cannot
+ distinguish between `NULL` and `MISSING`.
+
+. The boolean values are coming first among the non-absent values
+(i.e., _b <^o^ x_ is always true if _b_ is boolean and
+_x_ is not a `NULL` or a `MISSING` or a boolean). `false` comes
+before `true`.
+
+. The numbers come next. The comparisons between number values do not
+depend on precision or specific type. Given two numbers _x_ and
+_y_, the PartiQL _x<^o^ y_ behaves identical to the SQL
+_order-by less-than_ function.  Namely, if _x_ and _y_ are
+not the special values `-inf`, `inf`, or `nan`, then _x <^o^ y_ is
+the same with _x < y_. The special value `nan` comes before
+`-inf`, which comes before all normal numeric values, which are
+followed by `+inf`.
+
+. Timestamp values follow and are compared by the absolute point of time
+irrespective of precision or local UTC offset.
+
+. The text types come next ordered by their lexicographical ordering by
+Unicode scalar irrespective of their specific type.
+
+. The LOB types follow and are ordered by their lexicographical ordering
+by octet.
+
+. Arrays come next, and their values compare lexicographically based
+on the comparison of their elements, recursively. Notice that given an
+array _[e~1~ , ... , e~m~ ]_ and a longer array _[ e~1~ , ... , e~m~, e~m+1~ , ... , e~n~ ]_ that has the same first _m_ values,
+the former array comes first.
+
+. Tuple values follow and compare lexicographically based on the sorted
+attributes (as defined recursively), first by the attribute name, and
+secondly by the attribute values themselves.
+
+. Bag values come last (except, of course, when `NULLS LAST` is
+specified) and their values compare by first reducing them to arrays
+by sorting their elements and then comparing the resulting arrays.
+
+[#fetch_clauses]
+==== FETCH Clauses
+
+
+[source,ebnf]
+----
+fetch-clause ::= 'LIMIT' expression ('OFFSET' expression)?
+----
+
+**LIMIT ... OFFSET**
+
+The LIMIT ... OFFSET Clause takes the form _LIMIT N OFFSET M_ and returns the first N binding tuples of its input collection, skipping the first _M_ if an OFFSET is specified.
+
+**FETCH**
+
+See SQL-99 14.3 for fetch. As of 2023, LIMIT is not in the SQL standard.
+
+[#select_clauses]
+==== SELECT Clauses
+
+Core PartiQL SFW queries have a SELECT VALUE clause (in lieu of SQL's SELECT clause) that can create outputs that are collections of anything — i.e. collections of tuples, collections of scalars, collections of arrays, collections of mixed type elements.
+
+[source,ebnf]
+----
+select-clause
+    ::= 'SELECT' set-quantifier? '*'                // SELECT *
+      | 'SELECT' set-quantifier? binding-list       // SELECT
+      | 'SELECT' set-quantifier? VALUE expression   // SELECT VALUE
+      | 'PIVOT' expression AT expression            // PIVOT
+
+binding-list ::= binding (',' binding)*
+
+binding ::= expression 'AS' symbol
+----
+
+[#sql_select_clause]
+**SELECT**
+
+SQL's well-known SELECT clause can be described as syntactic sugar over SELECT VALUE. When a SFW query is used as a subquery it is coerced into a scalar or a tuple, in the ways that SQL coerces the results of subqueries.
+
+[#select_value_clause]
+**SELECT VALUE**
+
+The SELECT VALUE clause inputs a bag of binding tuples or an array of binding tuples (from the other clauses of the SQL query) and outputs a bag or an array. For example, if the query only has SELECT VALUE, FROM, and WHERE clauses, then the bindings that are output by the WHERE clause are input by SELECT VALUE the clause. Unlike SQL, the output of a SELECT VALUE clause need not be a bag or array of tuples. It is a bag or array of any kind of PartiQL values. For example, it may be a bag of integers, or a bag of arrays, etc. Indeed, the values may be heterogeneous. For example, the output may even be a bag that has both integers and arrays.
+
+To be continued...
+
+[#pivot_clause]
+**PIVOT**
+
+The PIVOT Clause is a special PartiQL SELECT Clause which outputs a single tuple from a collection of bindings. It's semantics are covered by the xref:scalar_subquery_pivot[PIVOT Relation-Value Projection].
+
+=== Relation-Value Projection — _R → V_
+
+A relation-value projection is determined by a SFW statement's SELECT clause as well as the position of the statement in the outer query if it is a subquery. Below we describe the two types of relation-value projections, namely scalar coercion and collection (bag, array) construction.
+
+NOTE: Let _V~T~_ represent the subset of _V_ where each element has type _T_ — scalar, absent, collection, or tuple.
+
+For example,
+
+* _V~complex~_ would be the set of all array, bag, and tuple values
+* _V~int~_ would be the set of all integers
+* _V~ion.bool~ = { null.boo, true, false }_
+
+====  ▶ Scalar Query Expression
+
+In PartiQL, as well as SQL, an expression may contain subqueries (parenthesized SFW statements) in the place of scalar values. The following rules describe how the output of a relation expression (i.e. _R_ — collection of binding tuples) is projected as a scalar.
+
+[#scalar_subquery_coercion]
+**Scalar Subquery — _R → V~scalar~_**
+
+A SELECT-FROM-WHERE subquery coerces into a scalar in all cases expect when the subuquery appears in a context where a collection is expected — i.e.
+
+* The collection expression of a FROM clause
+* The right-hand-side of the IN predicate
+* Either side of a comparison operator (=, >, etc) where the other side is a collection.
+
+Otherwise, the relation-scalar projection is the function `COLL_TO_SCALAR`. If the input to `COLL_TO_SCALAR` is a collection consisting of a single tuple with a single field, the field's value is projected; otherwise a cardinality expection is thrown (MISSING in permissive mode).
+
+[#scalar_subquery_pivot]
+**PIVOT — _R → V~tuple~_**
+
+The PIVOT clause is a special type of relation-scalar projection; `PIVOT value AT key` outputs a single tuple T where each tuple of the input relation _R_ is evaluated to a field `< key : value >` in T.
+
+==== ▶ Collection Query Expression
+
+In some contexts, a subquery may be used where a collection is expected. In this case, no coercion is necessary because a relation expression outputs a collection value.
+
+[#collection_subquery_select_value]
+**SELECT VALUE — _R → V_**
+
+[source]
+----
+SELECT VALUE constructor
+----
+
+The SELECT VALUE clause is a relation-value projection where the projection is directly provided in the query. The projection is called a _constructor_ and it is an expression that is evaluated for each tuple in the input relation. Note that the SQL SELECT clause is a special case of SELECT VALUE where the constructor is a simple tuple constructor. The output values of a SELECT VALUE clause need not be tuples, which means that a subquery with SELECT VALUE is not always composable with relation expressions.
+
+[#single_item_from_clause]
+=== Value-Relation Projection — _V → R_
+
+PartiQL allows values in the place of table references; the following rules describe the output relations.
+
+**FROM — _V~collection~ → R_**
+
+The single-item FROM clause ranges over a value _v_ in _V~collection~_
+
+For example,
+
+[source,partiql,subs=quotes]
+----
+FROM << e~0~ , ... , e~n~ >> AS k
+
+<<
+  { k: e~0~ },
+  ...
+  { k: e~n~ },
+>>
+----
+
+If _v_ is an array, we can bind each element's index to some key _p_ with `AT p`.
+
+[source,partiql,subs=quotes]
+----
+FROM [ e~0~ , ... , e~n~ ] AS k AT p
+
+<<
+  { k: e~0~, p: 0 },
+  ...
+  { k: e~n~, p: n }
+>>
+----
+
+**UNPIVOT — _V~tuple~ → R_**
+
+The UNPIVOT clause produces a relation by ranging over the fields of a tuple. For example,
+
+[source,partiql,subs=quotes]
+----
+FROM UNPIVOT { k~0~: v~0~ , ... , k~n~: v~n~ } AS v AT k
+
+<<
+  { k: k~0~, v: v~0~ },
+  ...
+  { k: k~n~, v: v~n~ }
+>>
+----
+
+
+
+
+== Appendices
+
+=== I — Basic Syntax
+
+[source,ebnf]
+----
+select-from-where
+	::= select-clause let-clause? from-clause	// SELECT ... FROM
+		where-clause?							// WHERE
+		group-by-clause?						// GROUP BY
+		having-clause?							// HAVING
+		set-op-clause?							// UNION|INTERSECT|EXCEPT
+		order-by-clause?						// ORDER BY
+		fetch-clause?							// LIMIT ... OFFSET
+
+binding ::= expression 'AS' symbol
+
+binding-list ::= binding (',' binding)*
+
+select-clause
+    ::= 'SELECT' set-quantifier? '*'				// SELECT *
+	  | 'SELECT' set-quantifier? binding-list   	// SELECT
+      | 'SELECT' set-quantifier? VALUE expression   // SELECT VALUE
+      | 'PIVOT' expression AT expression            // PIVOT
+
+let-clause ::= 'LET' binding-list
+
+from-clause ::= collection
+
+collection
+	::= collection ',' collection								// CORRELATED JOIN
+	  | collection join-type 'CROSS' 'JOIN'	collection			// CROSS JOIN
+	  | collection join-type 'JOIN' collection join-condition	// JOIN ... ON
+	  | collection-non-join
+	  | '(' collection ')'
+
+collection-non-join
+	::= expression symbol					// Foo f
+	  | collection-expression				// Foo AS x AT y BY z
+	  | 'UNPIVOT' collection-expression		// UNPIVOT Foo as x AT y BY z
+
+collection-expression ::= expression ('AS' symbol)? ('AT' symbol)? ('BY' symbol)? 
+
+join-condition ::= 'ON' expression
+
+where-clause ::= 'WHERE' expression
+
+group-by-clause ::= 'GROUP BY' binding-list ('AS' symbol)?
+
+having-clause ::= 'HAVING' expression
+
+set-op-clause
+	::= 'UNION' 	'ALL'? select-from-where
+	  | 'INTERSECT' 'ALL'? select-from-where
+	  | 'EXCEPT' 	'ALL'? select-from-where
+
+order-by-clause ::= 'ORDER' 'BY' sort-spec-list
+
+sort-spec-list ::= sort-spec (',' sort-spec)
+
+sort-spec ::= expression ('ASC'|'DESC')? ('NULLS' (FIRST|LAST))?
+
+fetch-clause ::= 'LIMIT' expression ('OFFSET' expression)?
+----
+
+=== II — EBNF Dialect
+
+Extended BNF as defined by ISO/IEC 14977
+
+==== Overview
+
+The EBNF meta-language is used to describe the syntax PartiQL precisely. The syntax is composed of one or more syntax rules which takes the form
+
+----
+meta-identifer = definition-list
+----
+
+A meta-identifier is the name of the non-terminal symbol being defined and is written as one or more words joined together by hyphens and enclosed in < and >. If a terminal symbol is being defined, its meta-identifier should end with "-symbol".
+
+A definition-list consists of an ordered list of one or more definitions separated by the definition-separator-symbol.
+
+A definition consists of an ordered list of syntactic-terms separated by the concatenate-symbol.
+
+A syntactic term is one of
+
+* Integer
+* optional-sequence
+* repeated-sequence
+* grouped-sequence
+* meta-identifier
+* terminal-string
+* special-sequence
+* empty-sequence
+
+==== Symbols
+
+*Operators*
+
+____
+The operators are ordered by precedence.
+____
+
+|===
+| Character | Operation
+
+| *
+| repetition-symbol
+
+| -
+| except-symbol
+
+| ,
+| concatenate-symbol
+
+| \|
+
+| =
+| defining-symbol
+
+| ;
+| terminator-symbol
+|===
+
+*Grouping*
+
+____
+Normal precedence can be overridden by grouping.
+____
+
+|===
+| Characters | Group Type
+
+| `" "`
+| Quote
+
+| `(* *)`
+| Comment
+
+| `( )`
+| Group
+
+| `[ ]`
+| Optional
+
+| `{ }`
+| Repeat
+
+| `? ?`
+| Special
+|===
+
+*Terms*
+
+* Rules -- non-terminal symbols
+* Terminal Symbol -- A symbol that cannot be split into smaller language components
+
+*Reference*
+
+* https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form
+* https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf
+
+// === Keyword Fields
+
+// *Datetime*
+
+// |===
+// | Keyword | Values
+
+// | YEAR
+// | 0001 to 9999
+
+// | MONTH
+// | 01 to 12
+
+// | DAY
+// | 1 to 31 -- constrained to Gregorian calendar
+
+// | HOUR
+// | 00 to 23
+
+// | MINUTE
+// | 00 to 59
+
+// | SECOND
+// | 00 to 61.9(N) -- N = time fractional seconds part
+
+// | TIMEZONE_HOUR
+// | -12 to 13
+
+// | TIMEZONE_MINUTE
+// | -59 to 59
+// |===
+
+// *Interval*
+
+// |===
+// | Keyword | Valid Values
+
+// | MONTH
+// | 0 to 11
+
+// | HOUR
+// | 00 to 23
+
+// | MINUTE
+// | 00 to 59
+
+// | SECOND
+// | 00 to 59.9(N) -- N = time fractional seconds part
+// |===
+
+=== III — Bindings, Tuples, Relations
+
+[#bindings]
+==== Bindings
+
+In PartiQL, the term _binding_ refers to an attribute name/value pair (fields) in a binding tuple. Binding tuples are unordered, and we use the term _binding_ rather than attribute to emphasize that values are explicitly bound to names.
+
+[grid=rows,frame=all]
+|===
+|Relational Model |SQL |PartiQL
+
+|Attribute
+|Attribute
+|Binding
+
+|===
+
+[#tuples]
+==== Tuples
+
+In math, the term _tuple_ refers to a finite list of ordered elements, but the relational model defines a tuple as an unordered collection of attributes. In SQL databases, the term _row_ is commonly used to refer to such a tuple of a table. Values in a tuple are accessed by name (attribute name) — that is, a value of a row is referenced by its column name rather than ordinal position.
+
+[grid=rows,frame=all]
+|===
+|Math |Relation Model |SQL |PartiQL 
+
+|Tuple
+|Tuple
+|Row
+|Binding Tuple
+
+|===
+
+In PartiQL, a _binding tuple_ is an unordered collection of bindings — which is semantically equivalent to a row except that a binding tuple may contain duplicate binding names. Binding tuples are represented in PartiQL documents with the following syntax:
+
+[source,ebnf]
+----
+binding-tuple ::= '<' binding (',' <binding>)* '>'
+
+binding ::= binding-name ':' value
+----
+
+For example, `< x~0~: v~0~, ..., x~n~: v~n~ >` where each x~i~ is a _binding name_ that binds to the PartiQL value v~i~. If you think of the binding names as attribute names, then a PartiQL _variable binding tuple_ is structurally the same as a tuple of the relational model; however, PartiQL provides additional access patterns via path expressions.
+
+NOTE: Somewhere there needs to be a note that bindings tuples are not structs/tuples in V~tuple~
+
+[#relations]
+==== Relations
+
+In the context of the relation model, a _relation_ R is defined as a subset of the Cartesian product S~1~ x S~2~ x ... x S~n~ — each S being some domain. Elements of a relation are tuples (as described above), and a relation is unordered. SQL generally uses the term _table_ to describe structures which are defined relations of the database environment; however a table is more than just an unordered set of tuples and there exist relations (in the SQL model) which are not defined in the database environment (ex, table value constructor). As of Feb 2023, the PartiQL specification does not define tables and the term _binding collection_ has been used to describe an (un)ordered bag of PartiQL binding tuples.
+
+[grid=rows,frame=all]
+|===
+| Math | Relational Model | SQL | PartiQL
+
+| Set of Tuples
+| Relation
+| Table
+| Binding Collection
+
+|===
+
+In the case of homogenous binding collections, it is my understanding that a PartiQL binding collection is synonymous^*^ with a relation, and the remainder of this document will simply use the term _relation_ to refer to a homogenous collection of binding tuples; therefore the sentence "the relation R is a bag of tuples" can be interpreted as "the PartiQL binding collection R is an unordered, homogenous collection of PartiQL binding tuples that may contain duplicates".
+
+*{sp}There is a distinction to be made about the ordering of tuples given the presence of an `ORDER BY` clause or `CAST(x AS LIST)`, but that will be covered later. Also, binding tuples need not be unique in a relation which is a point of contention between the relational model and the SQL data model - the former specifically defining relations as sets and not bags.

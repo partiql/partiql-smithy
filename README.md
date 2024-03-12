@@ -1,11 +1,14 @@
-## My Project
+## PartiQL Plan
 
-TODO: Fill this README out!
+> Version 1
 
-Be sure to:
+The PartiQL Plan is an intermediate representation of PartiQL logical query plans with an Ion serialization.
 
-* Change the title in this README
-* Edit your repository description on GitHub
+### Subprojects
+
+* docs/
+* partiql-plan-kotlin
+* partiql-plan-rust
 
 ## Security
 
@@ -14,4 +17,3 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This project is licensed under the Apache-2.0 License.
-
