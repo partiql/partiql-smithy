@@ -7,7 +7,7 @@ package org.partiql.tool.ridl.model
  */
 public class RTypeNamed(
     @JvmField public val name: Name,
-) : RType {
+) : RTypeRef {
 
     override fun toString(): String = name.toString()
 }

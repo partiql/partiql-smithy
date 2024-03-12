@@ -20,8 +20,7 @@ type my_other_struct struct {
 };
 
 type my_union union {
-     var_a int32;
-     var_b int64;
-     var_c struct { x: int32, y: int32 };
+    var_a int32;
+    var_b int64;
+    var_c struct { x: int32, y: int32 };
 };
-

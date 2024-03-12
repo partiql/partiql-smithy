@@ -1,10 +1,11 @@
 package org.partiql.tool.ridl.codegen.language.isl
 
 import org.partiql.tool.ridl.codegen.Generator
-import org.partiql.tool.ridl.codegen.templating.TemplateManager
+import org.partiql.tool.ridl.codegen.Templates
 import org.partiql.tool.ridl.model.Document
 import org.partiql.tool.ridl.model.Name
 import org.partiql.tool.ridl.model.Namespace
+import org.partiql.tool.ridl.model.Primitive
 import org.partiql.tool.ridl.model.RTypeArray
 import org.partiql.tool.ridl.model.RTypeEnum
 import org.partiql.tool.ridl.model.RTypeNamed
@@ -20,7 +21,7 @@ import java.io.File
  */
 internal class IslGenerator : Generator {
 
-    private val templates = TemplateManager("isl")
+    private val templates = Templates("isl")
 
     override fun generate(document: Document): List<File> {
 
@@ -54,7 +55,7 @@ internal class IslGenerator : Generator {
 
     private fun generate(name: Name, type: RTypeArray): String {
         val e = type.type
-        if (e is RTypePrimitive && e.kind == RTypePrimitive.Kind.BYTE) {
+        if (e is RTypePrimitive && e.kind == Primitive.BYTE) {
             val ctx = IslBlob(
                 name = name.tag(),
                 size = type.size,
@@ -63,8 +64,7 @@ internal class IslGenerator : Generator {
         }
         val element = when (e) {
             is RTypeNamed -> e.name.tag()
-            is RTypePrimitive -> e.kind.name.lowercase()
-            else -> error("Expected array of either a primitive or named type")
+            is RTypePrimitive -> e.name
         }
         val ctx = IslArray(
             name = name.tag(),
@@ -93,18 +93,16 @@ internal class IslGenerator : Generator {
     private fun generate(name: Name, type: RTypePrimitive): String {
         val ctx = IslAlias(
             name = name.tag(),
-            type = type.kind.name.lowercase(),
+            type = type.name,
         )
         return templates.apply("type_alias", ctx)
     }
 
-    // TODO merged named and primitive as "reference" types.
     private fun generate(name: Name, type: RTypeStruct): String {
         val operands = type.fields.map {
             when (it.type) {
                 is RTypeNamed -> it.type.name.tag()
-                is RTypePrimitive -> it.type.kind.name.lowercase()
-                else -> error("Currently do not support inline definitions in structs")
+                is RTypePrimitive -> it.type.name
             }
         }
         val ctx = IslSexp(

@@ -7,7 +7,7 @@ package org.partiql.tool.ridl.model
  * @property size
  */
 public data class RTypeArray(
-    public val type: RType,
+    public val type: RTypeRef,
     public val size: Int?,
 ) : RType {
 

@@ -1,5 +1,29 @@
-public data class {{classname}}(
+public data class {{simplename}}(
 {{#fields}}
     @JvmField val {{name}}: {{type}},
 {{/fields}}
-)
+{{#parent}}
+) : {{.}} {
+{{/parent}}
+{{^parent}}
+) {
+{{/parent}}
+
+    {{#ir}}
+    public override val children: List<{{base}}> by lazy {
+        val kids = mutableListOf<{{base}}?>()
+        // TODO
+        kids.filterNotNull()
+    }
+
+    public override fun <R, C> accept(visitor: {{base}}Visitor<R, C>, ctx: C): R = visitor.visit{{fullname}}(this, ctx)
+    {{/ir}}
+
+    {{#builder}}
+    public companion object {
+
+        @JvmStatic
+        public fun builder(): {{fullname}}Builder = {{fullname}}Builder()
+    }
+    {{/builder}}
+}

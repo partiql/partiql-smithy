@@ -1,17 +1,18 @@
 package org.partiql.tool.ridl.model.load
 
 import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.tree.TerminalNode
 import org.partiql.tool.ridl.antlr.RIDLBaseVisitor
 import org.partiql.tool.ridl.antlr.RIDLParser
 import org.partiql.tool.ridl.model.Definition
 import org.partiql.tool.ridl.model.Name
 import org.partiql.tool.ridl.model.Namespace
+import org.partiql.tool.ridl.model.Primitive
 import org.partiql.tool.ridl.model.RType
 import org.partiql.tool.ridl.model.RTypeArray
 import org.partiql.tool.ridl.model.RTypeEnum
 import org.partiql.tool.ridl.model.RTypeNamed
 import org.partiql.tool.ridl.model.RTypePrimitive
+import org.partiql.tool.ridl.model.RTypeRef
 import org.partiql.tool.ridl.model.RTypeStruct
 import org.partiql.tool.ridl.model.RTypeUnion
 import org.partiql.tool.ridl.model.RTypeUnit
@@ -74,7 +75,7 @@ internal object Definitions {
 
         override fun visitTypePrimitive(ctx: RIDLParser.TypePrimitiveContext): RTypePrimitive {
             val kind = try {
-                RTypePrimitive.Kind.valueOf(ctx.text.uppercase())
+                Primitive.valueOf(ctx.text.uppercase())
             } catch (ex: IllegalArgumentException) {
                 error("Unknown primitive type `${ctx.text}` at ${Location.of(ctx)}")
             }
@@ -97,6 +98,9 @@ internal object Definitions {
             val fields = ctx.typeStructField().map {
                 val name = it.NAME().text
                 val type = visitType(it.type())
+                if (type !is RTypeRef) {
+                    error("Inline definitions are currently not supported: ${Location.of(ctx)}")
+                }
                 RTypeStruct.Field(name, type)
             }
             return RTypeStruct(fields)

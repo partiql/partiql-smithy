@@ -27,8 +27,7 @@ internal class KotlinCommand : Callable<Int> {
     override fun call(): Int {
         val input = file.readText()
         val document = Document.load(input)
-        val options = KotlinOptions(packageRoot)
-        val generator = KotlinGenerator(options)
+        val generator = KotlinGenerator(packageRoot)
         generator.generate(document)
         return 0
     }
