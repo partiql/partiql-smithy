@@ -1,24 +1,42 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
-internal class KTypes(
-    @JvmField val packageName: String,
-    @JvmField val imports: List<String>,
+internal class KModel(
     @JvmField val types: List<KType>,
+)
+
+internal class KFile(
+    @JvmField val `package`: String,
 )
 
 internal class KType(
     @JvmField val alias: KAlias? = null,
+    @JvmField val array: KArray? = null,
     @JvmField val struct: KStruct? = null,
     @JvmField val union: KUnion? = null,
     @JvmField val unit: KUnit? = null,
     @JvmField val enum: KEnum? = null,
 )
 
+internal class KArray(
+    @JvmField val path: String,
+    @JvmField val name: String,
+    @JvmField val item: String,
+    @JvmField val size: Int?,
+)
+
+internal class KEnum(
+    @JvmField val path: String,
+    @JvmField val name: String,
+    @JvmField val values: List<String>,
+)
+
 internal class KStruct(
-    @JvmField val classname: String,
-    @JvmField val simplename: String,
+    @JvmField val path: String,
+    @JvmField val name: String,
     @JvmField val fields: List<KField>,
     @JvmField val parent: String? = null,
+    @JvmField val builder: String? = null,
+    @JvmField val visit: String? = null,
 )
 
 internal class KField(
@@ -27,32 +45,23 @@ internal class KField(
 )
 
 internal class KUnion(
-    @JvmField val classname: String,
-    @JvmField val simplename: String,
-    @JvmField val variants: List<KVariant>,
+    @JvmField val path: String,
+    @JvmField val name: String,
+    @JvmField val variants: List<KType>,
     @JvmField val parent: String? = null,
-)
-
-internal class KVariant(
-    @JvmField val simplename: String,
-    @JvmField val struct: KStruct? = null,
-    @JvmField val union: KUnion? = null,
-    @JvmField val unit: KUnit? = null,
-)
-
-internal class KEnum(
-    @JvmField val classname: String,
-    @JvmField val simplename: String,
-    @JvmField val enumerators: List<String>,
+    @JvmField val builder: String? = null,
+    @JvmField val visit: String? = null,
 )
 
 internal class KUnit(
-    @JvmField val classname: String,
-    @JvmField val simplename: String,
+    @JvmField val path: String,
+    @JvmField val name: String,
     @JvmField val parent: String? = null,
+    @JvmField val builder: String? = null,
+    @JvmField val visit: String? = null,
 )
 
 internal class KAlias(
-    @JvmField val simplename: String,
+    @JvmField val name: String,
     @JvmField val type: String,
 )

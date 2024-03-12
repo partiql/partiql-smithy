@@ -6,12 +6,14 @@ import java.io.File
  * Builder class for a kotlin package.
  */
 internal class KotlinPackage(
-    private val name: String,
-    private val files: MutableList<KotlinFile>,
-    private val packages: MutableList<KotlinPackage>,
+    @JvmField val path: Array<String>,
+    @JvmField val files: MutableList<KotlinFile>,
+    @JvmField val packages: MutableList<KotlinPackage>,
 ) {
 
-    fun write(): File {
+
+
+    fun write(): List<File> {
         TODO()
     }
 }

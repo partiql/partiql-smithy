@@ -54,7 +54,7 @@ internal class IslGenerator : Generator {
     }
 
     private fun generate(name: Name, type: RTypeArray): String {
-        val e = type.type
+        val e = type.item
         if (e is RTypePrimitive && e.kind == Primitive.BYTE) {
             val ctx = IslBlob(
                 name = name.tag(),

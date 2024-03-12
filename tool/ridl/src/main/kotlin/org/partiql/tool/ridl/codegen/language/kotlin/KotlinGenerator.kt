@@ -5,7 +5,6 @@ import org.partiql.tool.ridl.codegen.Generator
 import org.partiql.tool.ridl.codegen.Templates
 import org.partiql.tool.ridl.model.Document
 import org.partiql.tool.ridl.model.Name
-import org.partiql.tool.ridl.model.Namespace
 import org.partiql.tool.ridl.model.Primitive
 import org.partiql.tool.ridl.model.RTypeArray
 import org.partiql.tool.ridl.model.RTypeEnum
@@ -19,139 +18,129 @@ import org.partiql.tool.ridl.model.Type
 import java.io.File
 
 internal class KotlinGenerator(
-    private val packageName: String,
+    private val `package`: Array<String>,
 ) : Generator {
 
     private val templates = Templates("kotlin")
 
     override fun generate(document: Document): List<File> {
+        val model = document.toKModel()
         val root = KotlinPackage(
-            name = packageName,
+            `package` = `package`,
             files = mutableListOf(),
             packages = mutableListOf(),
         )
-        generateModel(document)
-        generateVisitors(document)
-        generateBuilders(document)
+        addModel(root, model)
+        addVisitors(root, model)
+        addBuilders(root, model)
         return emptyList()
     }
 
-    private fun generateModel(document: Document) {
-        val file = KotlinFile(
-            `package` = packageName,
-            name = "Model",
-            imports = mutableSetOf()
+    private fun addModel(parent: KotlinPackage, model: KModel) {
+        val modelKt = KotlinFile("Model", "file_model", model)
+        parent.files.add(modelKt)
+    }
+
+    private fun addBuilders(parent: KotlinPackage, model: KModel) {
+        val factoryKt = KotlinFile("Factory", "builder/file_factory", model)
+        val builderKt = KotlinFile("Builder", "builder/file_builder", model)
+        val buildersKt = KotlinFile("Builders", "builder/file_builders", model)
+        parent.files.add(factoryKt)
+        parent.files.add(builderKt)
+        parent.files.add(buildersKt)
+    }
+
+    private fun addVisitors(parent: KotlinPackage, model: KModel) {
+        val factoryKt = KotlinFile("Rewriter", "visitor/file_factory", model)
+        val builderKt = KotlinFile("Visitor", "visitor/file_builder", model)
+        val buildersKt = KotlinFile("VisitorBase", "visitor/file_builders", model)
+        parent.files.add(factoryKt)
+        parent.files.add(builderKt)
+        parent.files.add(buildersKt)
+    }
+
+    // TODO namespaces
+    private fun Document.toKModel() = KModel(
+        types = definitions
+            .filterIsInstance<Type>()
+            .map { it.toKType() }
+    )
+
+    private fun Type.toKType(parent: String? = null): KType = when (type) {
+        is RTypeArray -> type.toKType(name, parent)
+        is RTypeEnum -> type.toKType(name, parent)
+        is RTypeNamed -> type.toKType(name, parent)
+        is RTypePrimitive -> type.toKType(name, parent)
+        is RTypeStruct -> type.toKType(name, parent)
+        is RTypeUnion -> TODO()
+        is RTypeUnit -> type.toKType(name, parent)
+    }
+
+    private fun RTypeArray.toKType(name: Name, parent: String?) = KType(
+        array = KArray(
+            path = name.path(),
+            name = name.name(),
+            item = item.reference(),
+            size = size,
         )
-        
-    }
+    )
 
-    private fun generate(namespace: Namespace): KotlinPackage {
-        TODO()
-    }
-
-    // private fun generate(file: KotlinFile, type: Type): String = when (type.type) {
-    //     is RTypeArray -> generate(type.name, type.type)
-    //     is RTypeEnum -> generate(type.name, type.type)
-    //     is RTypeNamed -> generate(type.name, type.type)
-    //     is RTypePrimitive -> generate(type.name, type.type)
-    //     is RTypeStruct -> generate(type.name, type.type)
-    //     is RTypeUnion -> generate(type.name, type.type)
-    //     is RTypeUnit -> generate(type.name, type.type)
-    // }
-
-    /**
-     * TODO
-     *  - add reference to namespace imports
-     *  - serde
-     */
-    private fun generate(name: Name, type: RTypeArray): String {
-        val ctx = KAlias(
-            simplename = name.simplename(),
-            type = "Array<${type.type.reference()}>",
+    private fun RTypeEnum.toKType(name: Name, parent: String?) = KType(
+        enum = KEnum(
+            path = name.path(),
+            name = name.name(),
+            values = values,
         )
-        return templates.apply("type_alias", ctx)
-    }
+    )
 
-    /**
-     * TODO
-     *  - serde
-     */
-    private fun generate(name: Name, type: RTypeEnum): String {
-        val ctx = KEnum(
-            classname = name.classname(),
-            simplename = name.simplename(),
-            enumerators = type.values,
+    private fun RTypeNamed.toKType(name: Name, parent: String?) = KType(
+        alias = KAlias(
+            name = name.name(),
+            type = reference(),
         )
-        return templates.apply("type_enum", ctx)
-    }
+    )
 
-    private fun generate(name: Name, type: RTypeNamed): String {
-        val ctx = KAlias(
-            simplename = name.simplename(),
-            type = type.reference(),
+    private fun RTypePrimitive.toKType(name: Name, parent: String?) = KType(
+        alias = KAlias(
+            name = name.name(),
+            type = reference(),
         )
-        return templates.apply("type_alias", ctx)
-    }
+    )
 
-    private fun generate(name: Name, type: RTypePrimitive): String {
-        val ctx = KAlias(
-            simplename = name.simplename(),
-            type = type.reference(),
+    private fun RTypeStruct.toKType(name: Name, parent: String?) = KType(
+        struct = KStruct(
+            path = name.path(),
+            name = name.name(),
+            fields = emptyList(),
+            parent = parent,
+            builder = name.builder(),
+            visit = name.visit(),
         )
-        return templates.apply("type_alias", ctx)
-    }
+    )
 
-    private fun generate(name: Name, type: RTypeStruct): String {
-        val fields = type.fields.map {
-            val fName = it.name
-            val fType = it.type.reference()
-            KField(fName, fType)
-        }
-        val ctx = KStruct(
-            classname = name.classname(),
-            simplename = name.simplename(),
-            fields = fields,
+    private fun RTypeUnion.toKType(name: Name, parent: String?) = KType(
+        union = KUnion(
+            path = name.path(),
+            name = name.name(),
+            variants = emptyList(),
+            parent = parent,
+            builder = name.builder(),
+            visit = name.visit(),
         )
-        return templates.apply("type_struct", ctx)
-    }
+    )
 
-    /**
-     * TODO
-     *  - parent classes (if any)
-     */
-    private fun generate(name: Name, type: RTypeUnion): String {
-        val variants = type.variants.map {
-            KVariant(
-                simplename = it.name.simplename(),
-            )
-        }
-        val ctx = KUnion(
-            classname = name.classname(),
-            simplename = name.simplename(),
-            variants = variants,
-            parent = "Example",
+    private fun RTypeUnit.toKType(name: Name, parent: String?) = KType(
+        unit = KUnit(
+            path = name.path(),
+            name = name.name(),
+            parent = parent,
+            builder = name.builder(),
+            visit = name.visit(),
         )
-        return templates.apply("type_union", ctx)
-    }
-
-    /**
-     * TODO
-     *  - parent classes (if any)
-     */
-    private fun generate(name: Name, type: RTypeUnit): String {
-        val ctx = KUnit(
-            classname = name.classname(),
-            simplename = name.simplename(),
-        )
-        return templates.apply("type_unit", ctx)
-    }
-
-    private fun Name.classname(): String = path.joinToString(".") { it.toPascalCase() }
-
-    private fun Name.simplename(): String = name.toPascalCase()
+    )
 
     private fun RTypeRef.reference(): String = when (this) {
-        is RTypeNamed -> name.classname()
+        is RTypeNamed -> name.path()
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "Boolean"
             Primitive.INT32 -> "Int"
@@ -163,4 +152,15 @@ internal class KotlinGenerator(
             Primitive.BYTES -> "ByteArray"
         }
     }
+
+    private fun Name.path(): String = path.joinToString(".") { it.toPascalCase() }
+
+    private fun Name.name(): String = name.toPascalCase()
+
+    private fun Name.pascal(): String = path.joinToString("") { it.toPascalCase() }
+
+    private fun Name.builder(): String = "${pascal()}Builder"
+
+    private fun Name.visit(): String = "visit${pascal()}"
 }
+
