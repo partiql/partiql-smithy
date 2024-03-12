@@ -16,7 +16,11 @@
 
 plugins {
     kotlin("jvm") version "1.6.20"
+    `maven-publish`
 }
+
+val group: String by project
+val version: String by project
 
 object Versions {
     // Language
@@ -56,4 +60,48 @@ tasks.compileKotlin {
 
 kotlin {
     explicitApi = null
+}
+
+publishing {
+
+    publications {
+        create<MavenPublication>("main") {
+            artifactId = "partiql-plan"
+            from(components["java"])
+            pom {
+                name.set("PartiQL Plan")
+                description.set("PartiQL Plan experimental data structures")
+                url.set("https://partiql.org")
+                packaging = "jar"
+                groupId = group
+                version = version
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        name.set("PartiQL Team")
+                        email.set("partiql-dev@amazon.com")
+                        organization.set("PartiQL")
+                        organizationUrl.set("https://github.com/partiql")
+                    }
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url = uri("https://aws.oss.sonatype.org/service/local/staging/deploy/maven2")
+            credentials {
+                val ossrhUsername: String by project
+                val ossrhPassword: String by project
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
 }
