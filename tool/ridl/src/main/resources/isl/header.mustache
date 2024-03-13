@@ -1,0 +1,46 @@
+$ion_schema_2_0
+
+type::{
+    name: void,
+    type: nothing,
+}
+
+type::{
+    name: int32,
+    type: int,
+    valid_values: range::[
+        -2_147_483_648, // -(2^31)
+        +2_147_483_647, // 2^31 - 1
+    ],
+}
+
+type::{
+    name: int64,
+    type: int,
+    valid_values: range::[
+        −9_223_372_036_854_775_808, // -(2^63)
+        +9_223_372_036_854_775_807, // 63^2 - 1
+    ],
+}
+
+type::{
+    name: float32,
+    type: float,
+    valid_values: range::[], // ?
+}
+
+type::{
+    name: float64,
+    type: float,
+}
+
+type::{
+    name: byte,
+    type: blob,
+    byte_length: 1,
+}
+
+type::{
+    name: bytes,
+    type: blob,
+}

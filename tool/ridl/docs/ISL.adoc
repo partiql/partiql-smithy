@@ -1,0 +1,170 @@
+= ISL Example
+
+== Input
+
+[source,ridl]
+----
+type my_enum enum { ABC, XYZ };
+
+type ints int32[];
+type uuid byte[16];
+
+type my_int32 int32;
+
+type my_singleton unit;
+
+// struct basic
+type my_struct struct {
+    x: int32,
+    y: int64,
+};
+
+// struct referencing named types with inlines
+type my_other_struct struct {
+    a: my_int32,
+    c: my_struct,
+};
+
+type my_union union {
+    var_a int32;
+    var_b int64;
+    var_c struct { x: int32, y: int32 };
+};
+----
+
+== Output
+
+[source,ion]
+----
+$ion_schema_2_0
+
+type::{
+    name: void,
+    type: nothing,
+}
+
+type::{
+    name: int32,
+    type: int,
+    valid_values: range::[
+        -2_147_483_648, // -(2^31)
+        +2_147_483_647, // 2^31 - 1
+    ]
+}
+
+type::{
+    name: int64,
+    type: int,
+    valid_values: range::[
+        −9_223_372_036_854_775_808, // -(2^63)
+        +9_223_372_036_854_775_807, // 63^2 - 1
+    ],
+}
+
+type::{
+    name: float32,
+    type: float,
+    valid_values: range::[], // ?
+}
+
+type::{
+    name: float64,
+    type: float,
+}
+
+type::{
+    name: byte,
+    type: blob,
+    byte_length: 1,
+}
+
+type::{
+    name: bytes,
+    type: blob,
+}
+
+type::{
+    name: 'my_enum',
+    type: symbol,
+    valid_values: [
+        ABC,
+        XYZ,
+    ],
+}
+
+type::{
+    name: 'ints',
+    type: list,
+    element: 'int32',
+}
+
+type::{
+    name: 'uuid',
+    type: blob,
+    byte_length: 16,
+}
+
+type::{
+    name: 'my_int32',
+    type: 'int32',
+}
+
+type::{
+    name: 'my_singleton',
+    type: symbol,
+    valid_values: [ unit ],
+}
+
+type::{
+    name: 'my_struct',
+    type: sexp,
+    container_length: 2,
+    annotations: required::closed::[ 'my_struct' ],
+    ordered_elements: [
+        'int32',
+        'int64',
+    ],
+}
+
+type::{
+    name: 'my_other_struct',
+    type: sexp,
+    container_length: 2,
+    annotations: required::closed::[ 'my_other_struct' ],
+    ordered_elements: [
+        'my_int32',
+        'my_struct',
+    ],
+}
+
+type::{
+    name: 'my_union::var_a',
+    type: 'int32',
+}
+
+type::{
+    name: 'my_union::var_b',
+    type: 'int64',
+}
+
+type::{
+    name: 'my_union::var_c',
+    type: sexp,
+    container_length: 2,
+    annotations: required::closed::[ 'my_union::var_c' ],
+    ordered_elements: [
+        'int32',
+        'int32',
+    ],
+}
+
+
+type::{
+    name: 'my_union',
+    one_of: [
+        'my_union::var_a',
+        'my_union::var_b',
+        'my_union::var_c',
+    ],
+}
+----

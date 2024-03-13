@@ -1,0 +1,8 @@
+// [.hidden]
+== Navigation
+
+* *xref:types.adoc[PartiQL Types]*
+* *xref:model.adoc[PartiQL Algebra]*
+* *xref:interface.adoc[PartiQL Logical Plan Interface (V1)]*
+* *xref:serialization.adoc[PartiQL Logical Plan Serialization (V1)]*
+* *xref:IDL.adoc[Interface Definition Language]*

@@ -1,0 +1,11 @@
+{{#parent}}
+public sealed interface {{simplename}} : {{.}} {
+{{/parent}}
+{{^parent}}
+public sealed interface {{simplename}} {
+{{/parent}}
+
+    {{#variants}}
+    {{>type}}
+    {{/variants}}
+}

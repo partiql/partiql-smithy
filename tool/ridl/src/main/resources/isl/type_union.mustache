@@ -1,0 +1,12 @@
+{{#variants}}
+{{{type}}}
+{{/variants}}
+
+type::{
+    name: '{{name}}',
+    one_of: [
+        {{#variants}}
+        '{{name}}',
+        {{/variants}}
+    ],
+}

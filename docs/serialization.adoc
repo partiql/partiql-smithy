@@ -1,0 +1,455 @@
+= PartiQL Logical Plan Serialization: Version (1)
+:toc:
+:toc-title: Page Contents
+:sectlinks:
+:table-caption!:
+
+include::navigation.adoc[]
+
+== About
+
+This document defines the Ion serialization of xref:model.adoc[PartiQL's V1 Logical Plan] representation. PartiQL's serialized logical plans are backwards-compatible i.e. an older version of compiled plans can be retargeted to a newer version without changing the query's semantics. 
+This means that an a PartiQL implementation is expected to support all previous versions.
+
+=== Notation
+
+This document defines the Ion serialization of PartiQL Logical Plans using link:https://amazon-ion.github.io/ion-schema/docs/isl-2-0/spec[Ion Schema]. Additionally, this document defines the types using a simple xref:IDL.adoc[Interface Definition Language] which are trivially mapped to type definitions in C, C++, Go, Rust, and Java.
+
+== Document (Top-Level)
+
+.Document
+[source,ridl]
+----
+type document struct {
+    version: int32,
+    catalogs: catalog[],
+    statement: statement, 
+};
+----
+
+=== Catalog
+
+.Catalog
+[source,ridl]
+----
+type catalog struct {
+    name: string,
+    items: catalog_item,
+};
+----
+
+.Catalog Item
+[source,ridl]
+----
+type catalog_item union {
+
+    type value struct {
+        path: string[],
+        type: ptype,
+    };
+
+    type fn struct {
+        path: string[],
+        specific: string,
+    };
+
+    type agg struct {
+        path: string[],
+        specific: string,
+    };
+};
+----
+
+.Catalog Reference
+[source,ridl]
+----
+type catalog_ref {
+    catalog: int32,
+    symbol: int32,
+};
+----
+
+=== Statement
+
+.Statement
+[source,ridl]
+----
+type statement union {
+
+    statement_query struct {
+        root: rex,
+    };
+
+    // others statements are out of scope
+}
+----
+
+
+== Types
+
+IMPORTANT: Below is one way to define **PartiQL Types**, but this specification does not exist at the moment. If the PartiQL Types are defined in IonSchema, then we can include the names.
+
+.Type
+[source,ridl]
+----
+type p_type union {
+
+    // Bool type
+    t_bool unit;
+
+    // Integral types
+    t_int8 unit;
+    t_int16 unit;
+    t_int32 unit;
+    t_int64 unit;
+    t_int unit;
+
+    // Exact-numeric types
+    t_numeric unit;
+    t_numeric_fixed struct {
+        precision: int32,
+        scale: int32,
+    }
+
+    // Approximate-numeric types
+    t_float32 unit;
+    t_float64 unit;
+
+    // Character String Types
+    t_char_fixed::{
+        length: int32,
+    };
+    t_char_varying::{
+        length: int32,
+    };
+    t_string unit;
+    t_symbol unit;
+    t_clob unit;
+
+    // Bit String Types
+    t_bit_fixed struct {
+        length: int32,
+    };
+    t_bit_varying struct {
+        length: int32,
+    };
+
+    // Byte String Types
+    t_binary unit;
+    t_byte_fixed struct {
+        length: int32,
+    };
+    t_byte_varying struct {
+        length: int32,
+    };
+    t_blob unit;
+
+    // Date/Time Types
+    t_date unit;
+    t_time struct {
+        precision: int,
+    };
+    t_time_tz struct {
+        precision: int,
+        offset_hour: int,
+        offset_minute: int,
+    };
+    t_timestamp struct {
+        precision: int,
+    };
+    t_timestamp_tz struct {
+        precision: int,
+        offset_hour: int,
+        offset_minute: int,
+    };
+
+    // Collection Types
+    t_bag struct {
+        items: p_type,
+    };
+    t_list struct {
+        items: p_type,
+    };
+    t_sexp struct {
+        items: p_type,
+    };
+
+    // Struct Type
+    t_struct struct {
+        fields: struct {
+            k: string,
+            v: p_type,
+        }[],
+        constraints: enum { 
+            OPEN,
+            ORDERED_KEY,
+            UNIQUE_KEYS,
+        }[],
+    };
+
+    // Absent Types
+    t_null unit;
+    t_missing unit;
+
+    // Union Type
+    t_union struct {
+        types: p_type[],
+    };
+}
+----
+
+=== Values
+
+IMPORTANT: Below is one way to define **PartiQL Values**, but this specification does not exist at the moment. If the PartiQL Values are defined in IonSchema, then we can include the names. This is based on partiql-lang-kotlin link:https://github.com/partiql/partiql-lang-kotlin/blob/main/partiql-types/src/main/kotlin/org/partiql/value/PartiQLValue.kt[PartiQLValue] classes.
+
+Tagged union over raw byte body; the actual encoding is yet to be defined. 
+
+.Value
+[source,ridl]
+----
+type p_value struct {
+    type: p_type,
+    data: bytes,
+};
+----
+
+=== Expressions
+
+.Rex
+[source,ridl]
+----
+type rex union {
+
+    literal struct {
+        value: p_value,
+    };
+
+    variable struct {
+        ref: int,
+        depth: int,
+    };
+
+    global struct {
+        ref: catalog_ref,
+    };
+
+    path_index struct {
+        root: rex,
+        key: rex,
+    };
+
+    path_key struct {
+        root: rex,
+        key: rex,
+    };
+
+    path_symbol struct {
+        root: rex,
+        key: string,
+    };
+
+    cast struct {
+        type: p_type,
+        arg: rex,
+    };
+
+    call_static struct {
+        fn: catalog_ref,
+        args: rex[],
+    };
+
+    call_dynamic struct {
+        args: rex[],
+        candidates: struct {
+            fn: catalog_ref,
+            coercions: p_type[],
+        }[],
+    };
+
+    switch struct {
+        branches: struct {
+            condition: rex,
+            value: rex,
+        }[],
+        default: rex,
+    };
+
+    collection struct {
+        values: rex[],
+    };
+
+    tuple struct {
+        fields: struct {
+            k: rex,
+            v: rex,
+        }[],
+    };
+
+    pivot struct {
+        input: rel,
+        key: rex,
+        value: rex,
+    };
+
+    subquery struct {
+        input: rel,
+        constructor: rex,
+        coercion: enum { ROW, SCALAR },
+    };
+
+    select struct {
+        input: rel,
+        constructor: rex,
+    };
+
+    tuple_union struct {
+        args: rex[],
+    };
+}
+----
+
+== Relations
+
+.Relation Variants
+* <<rel-scan,Scan>>
+* <<rel-scan-indexed,Scan Indexed>>
+* <<rel-unpivot,Unpivot>>
+* <<rel-filter,Filter>>
+* <<rel-project,Project>>
+* <<rel-join,Join>>
+* <<rel-aggregate,Aggregate>>
+* <<rel-sort,Sort>>
+* <<rel-union,Union>>
+* <<rel-intersect,Intersect>>
+* <<rel-except,Except>>
+* <<rel-limit,Limit>>
+* <<rel-offset,Offset>>
+* <<rel-distinct,Distinct>>
+* <<rel-exclude,Exclude>>
+
+.Rel
+[source,ridl]
+----
+type rel union {
+
+    scan struct {
+        input: rex,
+    };
+
+    scan_indexed struct {
+        input: rex,
+    };
+
+    unpivot struct {
+        input: rex,
+    };
+
+    filter struct {
+        input: rel,
+        condition: rex,
+    };
+
+    project struct {
+        input: rel,
+        projections: rex[],
+    };
+
+    join struct {
+        lhs: rel,
+        rhs: rel,
+        condition: rex,
+        type: enum { INNER, LEFT, RIGHT, FULL },
+    };
+    
+    aggregate struct {
+        input: rel,
+        strategy: enum { FULL, PARTIAL },
+        calls: call_agg[],
+        groups: rex[],
+    };
+
+    sort struct {
+        input: rel,
+        specs: struct {
+            rex: rex,
+            order: enum {
+                ASC_NULLS_LAST,
+                ASC_NULLS_FIRST,
+                DESC_NULLS_LAST,
+                DESC_NULLS_FIRST,
+            }
+        }[]
+    };
+
+    union struct {
+        lhs: rel,
+        rhs: rel,
+        quantifier: enum { ALL, DISTINCT },
+    };
+
+    intersect struct {
+        lhs: rel,
+        rhs: rel,
+        quantifier: enum { ALL, DISTINCT },
+    };
+
+    except struct {
+        lhs: rel,
+        rhs: rel,
+        quantifier: enum { ALL, DISTINCT },
+    };
+
+    limit struct {
+        input: rel,
+        limit: int64,
+    };
+
+    offset struct {
+        input: rel,
+        offset: int64,
+    };
+
+    distinct struct {
+        input: rel,
+    };
+
+    exclude struct {
+        input: rel,
+        paths: exclusion_path[],
+    };
+};
+
+type call_agg struct {
+    fn: ref,
+    quantifier: enum { ALL, DISTINCT },
+};
+
+type exclusion_path struct {
+    root: rex::variable,
+    steps: exclusion_step[],
+};
+
+type exclusion_step struct {
+    exclusion: exclusion,
+    steps: exclusion_step[],
+};
+
+type exclusion union {
+
+    symbol struct {
+        symbol: string,
+    };
+
+    key struct {
+        key: string,
+    };
+
+    index struct {
+        index: int,
+    };
+
+    struct_wildcard unit;
+
+    sequence_wildcard unit;
+}
+----

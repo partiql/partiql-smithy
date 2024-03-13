@@ -1,0 +1,1210 @@
+= PartiQL Logical Plan Definition: Version (1)
+:toc:
+:toc-title: Page Contents
+:sectlinks:
+:table-caption!:
+
+== About
+
+This document defines the V1 interface for PartiQL's https://en.wikipedia.org/wiki/Query_plan[Plan] representation. PartiQL's logical plans can be serialized as Ion; see xref:serialization.adoc[PartiQL Logical Plan Serialization (V1)] for details.
+
+include::navigation.adoc[]
+
+== Background
+
+This document began in March of 2023 with an initial model of PartiQL's relational algebra. Based upon this model, the PartiQL Team implemented a compiler and evaluator. This document relfects the current relational algebra model in the xref:https://github.com/partiql/partiql-lang-kotlin/blob/partiql-eval/partiql-plan/src/main/resources/partiql_plan.ion[partiql-lang-kotlin 1.0] implementation.  
+
+== Document (Top-Level)
+
+Plans are represented by a top-level object we'll call "document".
+
+.Document
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Version
+| Int
+| Plan version
+
+| Catalogs
+| List<Catalog>
+| Catalog metadata
+
+| Statement
+| Statement
+| Compiled PartiQL statement
+
+|===
+
+=== Version
+
+Version is a simple integer denoting the inteface version.
+
+=== Catalogs
+
+Catalogs within plans represent entities of the database catalogs that this query was planned against. This includes base tables and functions along with any user-defined metadata. 
+
+.Catalog
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Name
+| String
+| The catalogs name
+
+| Items
+| List<Item>
+| Resolved catalog entities during query planning
+
+|===
+
+.Item Variants
+[cols="1e,5a",grid=rows,frame=all]
+|===
+|
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+!===
+
+| Value
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! Path      ! List<String>  ! Path within the catalog
+! Type      ! Type          ! The catalog value's type
+!===
+
+| Fn
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! Path      ! List<String>  ! Path within the catalog
+! Specific  ! String        ! Operator specific identifier
+!===
+
+| Agg
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! Path      ! List<String>  ! Path within the catalog
+! Specific  ! String        ! Operator specific identifier
+!===
+
+|===
+
+=== Statement
+
+A plan contains a single _statement_ which has many variants.
+
+.Statement Variants
+[cols="1e,5a",grid=rows,frame=all]
+|===
+| Variant | Description
+
+| Query
+| Query expression i.e. SELECT-FROM-WHERE
+
+| Insert | DML INSERT
+
+| Insert Value | DML INSERT VALUE
+
+| Upsert | DML UPSERT
+
+| Replace | DML REPLACE
+
+| Update | DML UPDATE
+
+| Remove | DML REMOVE
+
+| Delete | DML DELETE
+
+| Create Table | DDL CREATE TABLE
+
+| Create Index | DDL CREATE INDEX
+
+| Create View
+| DDL CREATE VIEW
+
+| Drop Table | DDL DROP TABLE
+
+| Drop Index | DLL DROP INDEX
+
+2+a|
+
+NOTE: This document's scope is limited to _query_ statements.
+
+|===
+
+==== Query
+
+.Query
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+
+|===
+
+== Types
+
+See xref:types.adoc[PartiQL Types] for type semantics.
+
+.Type Variants
+[cols="1e,5a",grid=rows,frame=all]
+|===
+| Type | Definition
+
+| Bool
+e| Unit
+
+| Int8
+e| Unit
+
+| Int16
+e| Unit
+
+| Int32
+e| Unit
+
+| Int64
+e| Unit
+
+| Int
+e| Unit
+
+| Decimal
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Precision ! Int   ! Decimal precision
+! Scale     ! Int   ! Decimal scale
+!===
+
+| Numeric
+e| Unit
+
+| Float32
+e| Unit
+
+| Float64
+e| Unit
+
+| Char Fixed
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Fixed length
+!===
+
+| Char Varying
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Max length
+!===
+
+| String
+e| Unit
+
+| Symbol
+e| Unit
+
+| Bit Fixed
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Fixed length
+!===
+
+| Bit Varying
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Max length
+!===
+
+| Binary
+e| Unit
+
+| Byte Fixed
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Fixed length
+!===
+
+| Byte Variable
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Length    ! Int  ! Max length
+!===
+
+| Blob
+e| Unit
+
+| Clob
+e| Unit
+
+| Date
+e| Unit
+
+| Time
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+!===
+
+| Time TZ
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+! Offset       ! (Int,Int)  ! Zone offset
+!===
+
+| Timestamp
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+!===
+
+| Timestamp TZ
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+! Offset       ! (Int,Int)  ! Zone offset
+!===
+
+| Interval
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Precision    ! Int  ! Seconds precision
+!===
+
+| Bag
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Items    ! Type  ! Items type
+!===
+
+| List
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Items    ! Type  ! Items type
+!===
+
+| Sexp
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Items    ! Type  ! Items type
+!===
+
+| Struct
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Fields   ! List<(String,Type)> ! Struct fields
+! Open     ! Bool  ! True if open content struct
+! Ordered  ! Bool  ! True if fields are ordered
+! Unique   ! Bool  ! True if field key are unique
+!===
+
+| Null
+e| Unit
+
+| Missing
+e| Unit
+
+| Union
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+! Types    ! List<Type>  ! Types in the union
+!===
+
+|===
+
+== Expressions
+
+This section defines all expressions.
+
+[#rex-summary]
+.Expression Variants
+* <<Rex-literal>>
+* <<Rex-variable>>
+* <<Rex-global>>
+* <<Rex-path-index>>
+* <<Rex-path-key>>
+* <<Rex-path-symbol>>
+* <<Rex-cast>>
+* <<Rex-call-static>>
+* <<Rex-call-dynamic>>
+* <<Rex-switch>>
+* <<Rex-collection>>
+* <<Rex-struct>>
+* <<Rex-pivot>>
+* <<Rex-subquery>>
+* <<Rex-select>>
+* <<Rex-tuple-union>>
+
+[#Rex-literal]
+=== Literal
+
+Literal expressions are simply xref:model.adoc#values[PartiQL Values].
+
+[NOTE,caption=signature]
+====
+_∅ → V_
+====
+
+.Literal Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Value | Value | PartiQL value encoded as Ion
+|===
+
+[#Rex-variable]
+=== Variable
+
+[NOTE,caption=signature]
+====
+_Env~var~ → V_
+====
+
+.Variable Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Ref   | Int | 0-indexed offset in the variables binding tuple.
+| Depth | Int | 0-indexed offset to the scope.
+|===
+
+[#Rex-global]
+=== Global
+
+[NOTE,caption=signature]
+====
+_Env~db~ → V_
+====
+
+.Global Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Ref   | Ref | Catalog reference
+|===
+
+[#Rex-path-index]
+=== Path Index
+
+[NOTE,caption=signature]
+====
+_V~sequence~ → V_
+====
+
+.Path Index Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Root  | Rex | Path root
+| Key   | Rex | Path key integer expression
+|===
+
+[#Rex-path-key]
+=== Path Key
+
+[NOTE,caption=signature]
+====
+_V~struct~ → V_
+====
+
+.Path Key Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Root  | Rex | Path root
+| Key   | Rex | Path key string expression
+|===
+
+[#Rex-path-symbol]
+=== Path Symbol
+
+[NOTE,caption=signature]
+====
+_V~struct~ → V_
+====
+
+.Path Symbol Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Root  | Rex    | Path root
+| Key   | String | Path key symbol
+|===
+
+[#Rex-cast]
+=== Cast
+
+[NOTE,caption=signature]
+====
+_V → V_
+====
+
+.Cast Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Type  | Type | Cast output type
+| Arg   | Rex  | Cast argument
+|===
+
+[#Rex-call-static]
+=== Call Static
+
+[NOTE,caption=signature]
+====
+_V^N^ → V_
+====
+
+.Call Static Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Fn    | Ref       | Function catalog reference
+| Args  | List<Rex> | Function call arguments
+|===
+
+[#Rex-call-dynamic]
+=== Call Dynamic
+
+[NOTE,caption=signature]
+====
+_V^N^ → V_
+====
+
+.Call Dynamic Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Args       | List<Rex>        | Function call arguments
+| Candidates | List<candidate>  | Dynamic call candidates
+|===
+
+.Candidate
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Fn        | Ref        | Function catalog reference
+| Coercions | List<type> | Argument coercions
+
+|===
+
+[#Rex-switch]
+=== Switch
+
+[NOTE,caption=signature]
+====
+_V → V_
+====
+
+.Switch Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Branches  | List<branch>  | Switch branches
+| Default   | Rex           | Default value expression
+|===
+
+.Switch Branch
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Condition
+| Rex
+| Branch match condition
+
+| Value
+| Rex
+| Branch return expression
+
+|===
+
+[#Rex-collection]
+=== Collection
+
+A collection expression represents a bag, array, or sexp with expression elements.
+
+[NOTE,caption=signature]
+====
+_V^N^ → V~collection~_
+====
+
+.Collection Definition
+[cols="1,5a",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Values | List<Rex>  | Collection value expressions
+|===
+
+[#Rex-struct]
+=== Struct
+
+A struct expression represents a tuple whose key-value pairs are expression pairs.
+
+[NOTE,caption=signature]
+====
+_V^N^ → V~struct~_
+====
+
+.Struct Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Fields
+| List<Field>
+| Tuple field expressions
+
+|===
+
+.Field
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Name
+| Rex~string~
+| Field name (string-valued) expression
+
+| Value
+| Rex
+| Field value
+
+|===
+
+[#Rex-pivot]
+=== Pivot
+
+The pivot expression returns a single tuple whose fields are constructed from the input relation; see xref:pivot_clause[PIVOT] for details.
+
+[NOTE,caption=signature]
+====
+_R → V~struct~_
+====
+
+.Pivot Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input | Rex |
+| Key   | Rex |
+| Value | Rex |
+|===
+
+[#Rex-subquery]
+=== Subquery
+
+A scalar subquery expression is a simple expression that wraps a relation expression. The coercion rules are specified by the xref:scalar_subquery[scalar subquery] section of PartiQL Query semantics. In short, this projection is the function `COLL_TO_SCALAR`. If the input to `COLL_TO_SCALAR` is a collection consisting of a single tuple with a single field, the field's value is projected; otherwise a cardinality expection is thrown (MISSING in permissive mode).
+
+[NOTE,caption=signature]
+====
+_R → V~_
+====
+
+.Subquery Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input | Rel | Input relation expression
+| Constructor | Rex | Constructor expression
+| Coercion | Enum | One of ROW or SCALAR enum
+|===
+
+[#Rex-select]
+=== Select
+
+A collection query expression is an expression which wraps a relation expression to produce a collection _V~collection~_. There are no constraints on the number of tuples or fields. A collection subquery expression can be used as the right-hand-side argument of the `IN` predicate; or as the left (or right) side of a collection comparison function. Note that _R ⊊ V~collection~_ 
+
+.Select Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input | Rel | Input relation expression
+| Constructor | Rex | Constructor expression
+
+|===
+
+[#Rex-tuple-union]
+=== Tuple Union
+
+When all of t1, t2, . . . , tn are tuples TUPLEUNION(t1, t2, . . . , tn) outputs a tuple t such that for each attribute
+name/value pair n : v of any ti, the tuple t has a respective n : v. Notice the possibility that the output t has duplicate
+attribute names because either (i) two different inputs ti and tj had the same attribute name, or (ii) because an input
+ti already had a duplicate attribute name.
+
+[NOTE,caption=signature]
+====
+_V~struct~^N^ → V~struct~_
+====
+
+.Tuple Union Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Args | List<Rex> | Struct arguments to union
+|===
+
+== Relations
+
+.Relation Variants
+* <<rel-scan,Scan>>
+* <<rel-scan-indexed,Scan Indexed>>
+* <<rel-unpivot,Unpivot>>
+* <<rel-filter,Filter>>
+* <<rel-project,Project>>
+* <<rel-join,Join>>
+* <<rel-aggregate,Aggregate>>
+* <<rel-sort,Sort>>
+* <<rel-union,Union>>
+* <<rel-intersect,Intersect>>
+* <<rel-except,Except>>
+* <<rel-limit,Limit>>
+* <<rel-offset,Offset>>
+* <<rel-distinct,Distinct>>
+* <<rel-exclude,Exclude>>
+
+[#rel-scan]
+=== Scan
+
+The scan relation operator produces a relation of 1-tuple bindings by scanning over each item of the input and assigning each value to element 0 of the output tuple.
+
+[NOTE,caption=signature]
+====
+_Rex → Rel~1~_
+====
+
+.Scan Definition
+[cols="1,1e,",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rex~collection~
+| A global or literal expression
+
+|===
+
+[#rel-scan-indexed]
+=== Scan Indexed
+
+The scan indexed relation operator produces a relation of 2-tuple bindings by scanning over each item of the input and assigning each value and its indices to element 0 and element 1 of the output tuple respectively.
+
+[NOTE,caption=signature]
+====
+_Rex → Rel~2~_
+====
+
+.Scan Indexed Definition
+[cols="1,1e,",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rex~collection~
+| A global or literal expression
+
+|===
+
+[#rel-scan-unpivot]
+=== Unpivot
+
+The unpivot relation operator produces a collection of 2-tuple bindings by iterating over a struct's fields and assigning each field's key and value to element 0 and element 1 of the output tuple respectively.
+
+[NOTE,caption=signature]
+====
+_Rex~struct~ → Rel~2~_
+====
+
+.Unpivot Definition
+[cols="1,1e,",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rex~struct~
+| A global or literal struct expression
+
+|===
+
+[#rel-filter]
+=== Filter
+
+The filter relation operator produces a new relation by selecting all tuples of its input relation where the _condition_ is TRUE. The filter operator maintains the orderdness of the input relation.
+
+[NOTE,caption=signature]
+====
+_R~n~ → R~n~_
+====
+
+.Filter Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Relation expression to filter
+
+| Condition
+| Rex~bool~
+| A boolean value expression
+
+|===
+
+[#rel-project]
+=== Project
+
+The Relation Projection Operator corresponds to the xref:sql_select_clause[SQL SELECT Clause]. It produces a new relation by applying each projection expression to the input relation's tuples. That is, the Relation Projection Operator creates tuples by evaluating all binding expressions values on the input tuple and adding the results to the corresponding binding expression names in the output tuple.
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Project Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Input relation expression
+
+| Projections
+| List<Rex>
+| A collection of binding expressions
+
+|===
+
+[#rel-join]
+=== Join
+
+The join operator represents xref:https://en.wikipedia.org/wiki/Relational_algebra#Joins_and_join-like_operators[Relational Algebra joins] and corresponds to the join variants of the xref:multi_item_from_clause[multi-item FROM clause]. To be continued.
+
+[NOTE,caption=signature]
+====
+_R x R → R_
+====
+
+.Join Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| LHS
+| Rel
+| The left-hand-side input relation expression
+
+| RHS
+| Rel
+| The right-hand-side input relation expression
+
+| Condition
+| Rex~bool~
+| Join condition
+
+| Type
+| Join Type
+| INNER, LEFT, RIGHT, FULL
+
+|===
+
+[#rel-aggregate]
+=== Aggregate
+
+The aggregate relation operator produces a new relation by aggregating the input relation into groups based upon the operator's aggregation functions and grouping expressions. Additionally, an aggregation operator can project all values of each group into a specified AS key — for details see the xref:group_by_clause[GROUP BY Clause]. This operator does not maintain orderedness.
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Aggregate Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Relation Expression to aggregate
+
+| Strategy
+| Strategy
+| FULL or PARTIAL
+
+| Calls
+| List<Agg>
+| A list of aggregate calls
+
+| Groups
+| List<Rex>
+| A list of group by keys; required if aggregations list is empty
+
+|===
+
+.Agg
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Fn
+| Ref
+| Catalog reference to the aggregation function
+
+| Quantifier
+| Set Quantifier
+| ALL or DISTINCT
+
+| Args
+| List<Rex>
+| Aggregation call arguments
+
+|===
+
+
+
+[#rel-sort]
+=== Sort
+
+The sort relation operator will sort the input relation expression by the given sort specifications.
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Sort Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Relation expression to sort
+
+| Specs
+| List<Sort Spec>
+| A list of specifications to sort on
+|===
+
+.Sort Spec
+[cols="1,1e,5a",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Rex
+| Rex
+| Sort expression
+
+| Order
+| Order
+|
+* ASC NULLS LAST
+* ASC NULLS FIRST
+* DESC NULLS LAST
+* DESC NULLS FIRST
+|===
+
+[#rel-union]
+=== Union
+
+Multiset or set union of two relations.
+
+[NOTE,caption=signature]
+====
+_R x R → R_
+====
+
+.Union Definition
+[cols="1,1e,5a",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| LHS
+| Rel
+| The left-hand-side input relation expression
+
+| RHS
+| Rel
+| The right-hand-side input relation expression
+
+| Quantifier
+| Set Quantifier
+| ALL or DISTINCT
+
+|===
+
+[#rel-intersect]
+=== Intersect
+
+Multiset or set intersection of two relations.
+
+[NOTE,caption=signature]
+====
+_R x R → R_
+====
+
+.Intersect Definition
+[cols="1,1e,5a",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| LHS
+| Rel
+| The left-hand-side input relation expression
+
+| RHS
+| Rel
+| The right-hand-side input relation expression
+
+| Quantifier
+| Set Quantifier
+| ALL or DISTINCT
+
+|===
+
+[#rel-except]
+=== Except
+
+Multiset or set difference of two relations.
+
+[NOTE,caption=signature]
+====
+_R x R → R_
+====
+
+.Except Definition
+[cols="1,1e,5a",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| LHS
+| Rel
+| The left-hand-side input relation expression
+
+| RHS
+| Rel
+| The right-hand-side input relation expression
+
+| Quantifier
+| Set Quantifier
+| ALL or DISTINCT
+
+|===
+
+
+[#rel-limit]
+==== Limit
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Limit Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Input relation expression to limit
+
+| Limit
+| Rex~numeric~
+| Number of tuples to return in the output
+
+|===
+
+[#rel-offset]
+==== Offset
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Offset Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Input relation expression to limit
+
+| Offset
+| Rex~numeric~
+| Number of tuples to skip
+
+|===
+
+[#rel-distinct]
+==== Distinct
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Distinct Definition
+[cols="1,1e,5",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Input relation expression to limit
+
+|===
+
+[#rel-exclude]
+==== Exclude
+
+See RFC-0051: EXCLUDE.
+
+[NOTE,caption=signature]
+====
+_R → R_
+====
+
+.Exclude Definition
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Input
+| Rel
+| Input relation expression to limit
+
+| Exclusions
+| List<Exclusion Path>
+| Exclusion paths
+
+|===
+
+.Exclusion Path
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Root
+| Variable
+| Variable expression to apply exclusion to
+
+| Steps
+| List<Exclusion Step>
+| Exclusion steps
+
+|===
+
+.Exclusion Step
+[cols="1,1e,3",grid=rows,frame=all]
+|===
+| Property | Type | Description
+
+| Exclusion
+| Exclusion
+| The exclusion to apply
+
+| Steps
+| List<Exclusion Step>
+| Exclusion substeps
+
+|===
+
+.Exclusion Variants
+[cols="1e,5a",grid=rows,frame=all]
+|===
+|
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+s! Property  s! Type          s! Description
+!===
+
+| Symbol
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! Symbol      ! String  ! Struct field exclusion (case-insensitive)
+!===
+
+| Key
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! Key      ! String  ! Struct field exclusion (case-sensitive)
+!===
+
+| Index
+|
+[cols="1,1e,3",grid=rows,frame=none]
+!===
+! Index     ! Int  ! Sequence index exclusion
+!===
+
+| Struct Wildcard
+|
+
+| Sequence Wildcard
+|
+
+|===

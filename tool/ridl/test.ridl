@@ -1,0 +1,26 @@
+type my_enum enum { ABC, XYZ };
+
+type ints int32[];
+type uuid byte[16];
+
+type my_int32 int32;
+
+type my_singleton unit;
+
+// struct basic
+type my_struct struct {
+    x: int32,
+    y: int64,
+};
+
+// struct referencing named types with inlines
+type my_other_struct struct {
+    a: my_int32,
+    c: my_struct,
+};
+
+type my_union union {
+    var_a int32;
+    var_b int64;
+    var_c struct { x: int32, y: int32 };
+};
