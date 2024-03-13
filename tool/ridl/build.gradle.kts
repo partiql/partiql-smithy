@@ -21,7 +21,12 @@ plugins {
     kotlin("jvm") version "1.6.20"
     id("org.gradle.antlr")
     application
+
+    // TODO SANDBOX
+    id("com.google.protobuf") version "0.9.4"
 }
+
+val platform = "osx-x86_64"
 
 object Versions {
     // Language
@@ -78,6 +83,9 @@ dependencies {
     testImplementation(Deps.kotlinTest)
     testImplementation(Deps.kotlinTestJunit)
     testImplementation(Deps.junitParams)
+
+    // TODO SANDBOX
+    implementation("com.google.protobuf:protobuf-java:3.6.1")
 }
 
 java {
@@ -159,4 +167,10 @@ tasks.register<GradleBuild>("install") {
 application {
     applicationName = "ridl"
     mainClass.set("org.partiql.tool.ridl.MainKt")
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.2.0:$platform"
+    }
 }

@@ -1,11 +1,12 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
 internal class KModel(
-    @JvmField val types: List<KType>,
+    @JvmField val `package`: String,
+    @JvmField val namespace: KNamespace,
 )
 
-internal class KFile(
-    @JvmField val `package`: String,
+internal class KNamespace(
+    @JvmField val types: List<KType>,
 )
 
 internal class KType(

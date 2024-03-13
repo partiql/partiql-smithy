@@ -5,7 +5,7 @@ import java.io.File
 /**
  * Builder class for a kotlin package.
  */
-internal class KotlinPackage(@JvmField val path: Array<String>) {
+internal class KotlinPackage(@JvmField val path: List<String>) {
 
     private val files: MutableList<KotlinFile> = mutableListOf()
     private val packages: MutableList<KotlinPackage> = mutableListOf()

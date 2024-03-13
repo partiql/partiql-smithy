@@ -9,21 +9,29 @@ public data class {{simplename}}(
 ) {
 {{/parent}}
 
-    {{#ir}}
-    public override val children: List<{{base}}> by lazy {
-        val kids = mutableListOf<{{base}}?>()
-        // TODO
-        kids.filterNotNull()
+    public fun write(writer: IonWriter) {
+        writer.addTypeAnnotation(tag)
+        writer.stepIn(IonType.SEXP)
+        {{#fields}}
+        writer.writeInt(1L) // TODO
+        {{/fields}}
+        writer.stepOut()
     }
 
-    public override fun <R, C> accept(visitor: {{base}}Visitor<R, C>, ctx: C): R = visitor.visit{{fullname}}(this, ctx)
-    {{/ir}}
-
-    {{#builder}}
     public companion object {
 
         @JvmStatic
-        public fun builder(): {{fullname}}Builder = {{fullname}}Builder()
+        private val tag: String = "{{tag}}"
+
+        @JvmStatic
+        public fun read(reader: IonReader): {{simplename}} {
+            val tags = reader.typeAnnotations
+            assert(tags.size == 1) { "Expected a single annotation `$tag`" }
+            assert(tags[0] == tag) { "Expected tag `$tag`, found `${tags[0]}`" }
+            reader.stepIn()
+            // TODO
+            reader.stepOut()
+            return {{simplename}}()
+        }
     }
-    {{/builder}}
 }

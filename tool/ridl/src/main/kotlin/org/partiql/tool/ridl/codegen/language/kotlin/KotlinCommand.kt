@@ -23,7 +23,7 @@ internal class KotlinCommand : Callable<Int> {
         names = ["-p", "--package"],
         description = ["Package root"]
     )
-    lateinit var `package`: String
+    lateinit var pkg: String
 
     @CommandLine.Option(
         names = ["-I"],
@@ -32,13 +32,16 @@ internal class KotlinCommand : Callable<Int> {
     var include: Path? = null
 
     override fun call(): Int {
+        // Configure
+        val options = KotlinOptions(
+            namespace = file.nameWithoutExtension,
+            pkg = pkg.split("."),
+        )
+        // Parse
         val input = file.readText()
         val document = Document.load(input, include)
-
-        val generator = KotlinGenerator(
-            `package` = `package`.split(".").toTypedArray(),
-        )
-        generator.generate(document)
+        // Generate
+        val files = KotlinGenerator.generate(options, document)
         return 0
     }
 }

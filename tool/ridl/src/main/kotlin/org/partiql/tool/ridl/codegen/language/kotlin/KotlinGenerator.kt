@@ -1,7 +1,6 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
 import net.pearx.kasechange.toPascalCase
-import org.partiql.tool.ridl.codegen.Generator
 import org.partiql.tool.ridl.codegen.Templates
 import org.partiql.tool.ridl.model.Document
 import org.partiql.tool.ridl.model.Name
@@ -17,41 +16,30 @@ import org.partiql.tool.ridl.model.RTypeUnit
 import org.partiql.tool.ridl.model.Type
 import java.io.File
 
-internal class KotlinGenerator(
-    private val `package`: Array<String>,
-) : Generator {
+internal object KotlinGenerator {
 
     private val templates = Templates("kotlin")
 
-    override fun generate(document: Document): List<File> {
+    fun generate(options: KotlinOptions, document: Document): List<File> {
+
+        // Convert RIDL document to a Kotlin model
         val model = document.toKModel()
 
         //-------------------------------------------------------------------------
-        // START: Kotlin Package Structure
+        // BEGIN: package
         //-------------------------------------------------------------------------
         // ./
-        val root = KotlinPackage(`package`)
-        // ./Model.kt
-        root.mkfile("Model.kt", "file_model", model)
-        // ./visitors/
-        val visitors = root.mkdir("visitor")
-        visitors.mkfile("Rewriter", "visitor/file_factory", model)
-        visitors.mkfile("Visitor", "visitor/file_builder", model)
-        visitors.mkfile("VisitorBase", "visitor/file_builders", model)
-        // ./builders/
-        val builders = root.mkdir("builder")
-        builders.mkfile("Factory.kt", "builder/file_factory", model)
-        builders.mkfile("Builder.kt", "builder/file_builder", model)
-        builders.mkfile("Builders.kt", "builder/file_builders", model)
+        val root = KotlinPackage(options.pkg)
+        // ./$namespace.kt
+        root.mkfile("${options.namespace}.kt", "file_types", model)
         //-------------------------------------------------------------------------
-        // END
+        // END: package
         //-------------------------------------------------------------------------
 
         root.write()
         return emptyList()
     }
 
-    // TODO namespaces
     private fun Document.toKModel() = KModel(
         types = definitions
             .filterIsInstance<Type>()
