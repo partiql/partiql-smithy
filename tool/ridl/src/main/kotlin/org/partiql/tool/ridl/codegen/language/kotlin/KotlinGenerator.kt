@@ -25,38 +25,30 @@ internal class KotlinGenerator(
 
     override fun generate(document: Document): List<File> {
         val model = document.toKModel()
-        val root = KotlinPackage(
-            `package` = `package`,
-            files = mutableListOf(),
-            packages = mutableListOf(),
-        )
-        addModel(root, model)
-        addVisitors(root, model)
-        addBuilders(root, model)
+
+        //-------------------------------------------------------------------------
+        // START: Kotlin Package Structure
+        //-------------------------------------------------------------------------
+        // ./
+        val root = KotlinPackage(`package`)
+        // ./Model.kt
+        root.mkfile("Model.kt", "file_model", model)
+        // ./visitors/
+        val visitors = root.mkdir("visitor")
+        visitors.mkfile("Rewriter", "visitor/file_factory", model)
+        visitors.mkfile("Visitor", "visitor/file_builder", model)
+        visitors.mkfile("VisitorBase", "visitor/file_builders", model)
+        // ./builders/
+        val builders = root.mkdir("builder")
+        builders.mkfile("Factory.kt", "builder/file_factory", model)
+        builders.mkfile("Builder.kt", "builder/file_builder", model)
+        builders.mkfile("Builders.kt", "builder/file_builders", model)
+        //-------------------------------------------------------------------------
+        // END
+        //-------------------------------------------------------------------------
+
+        root.write()
         return emptyList()
-    }
-
-    private fun addModel(parent: KotlinPackage, model: KModel) {
-        val modelKt = KotlinFile("Model", "file_model", model)
-        parent.files.add(modelKt)
-    }
-
-    private fun addBuilders(parent: KotlinPackage, model: KModel) {
-        val factoryKt = KotlinFile("Factory", "builder/file_factory", model)
-        val builderKt = KotlinFile("Builder", "builder/file_builder", model)
-        val buildersKt = KotlinFile("Builders", "builder/file_builders", model)
-        parent.files.add(factoryKt)
-        parent.files.add(builderKt)
-        parent.files.add(buildersKt)
-    }
-
-    private fun addVisitors(parent: KotlinPackage, model: KModel) {
-        val factoryKt = KotlinFile("Rewriter", "visitor/file_factory", model)
-        val builderKt = KotlinFile("Visitor", "visitor/file_builder", model)
-        val buildersKt = KotlinFile("VisitorBase", "visitor/file_builders", model)
-        parent.files.add(factoryKt)
-        parent.files.add(builderKt)
-        parent.files.add(buildersKt)
     }
 
     // TODO namespaces

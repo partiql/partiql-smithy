@@ -5,7 +5,7 @@ import java.io.File
 internal class KotlinFile(
     private val name: String,
     private val template: String,
-    private val model: KModel,
+    private val ctx: Any? = null,
 ) {
 
     private fun write(): File {
