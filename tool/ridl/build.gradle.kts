@@ -23,7 +23,7 @@ plugins {
     application
 
     // TODO SANDBOX
-    id("com.google.protobuf") version "0.9.4"
+    // id("com.google.protobuf") version "0.9.4"
 }
 
 val platform = "osx-x86_64"
@@ -85,7 +85,7 @@ dependencies {
     testImplementation(Deps.junitParams)
 
     // TODO SANDBOX
-    implementation("com.google.protobuf:protobuf-java:3.6.1")
+    // implementation("com.google.protobuf:protobuf-java:3.6.1")
 }
 
 java {
@@ -125,13 +125,13 @@ tasks.compileTestKotlin {
 }
 
 tasks.test {
-    useJUnitPlatform() // Enable JUnit5
-    jvmArgs!!.addAll(listOf("-Duser.language=en", "-Duser.country=US"))
-    maxHeapSize = "4g"
-    testLogging {
-        events.add(TestLogEvent.FAILED)
-        exceptionFormat = TestExceptionFormat.FULL
-    }
+//    useJUnitPlatform() // Enable JUnit5
+//    jvmArgs!!.addAll(listOf("-Duser.language=en", "-Duser.country=US"))
+//    maxHeapSize = "4g"
+//    testLogging {
+//        events.add(TestLogEvent.FAILED)
+//        exceptionFormat = TestExceptionFormat.FULL
+//    }
 }
 
 tasks.generateGrammarSource {
@@ -169,8 +169,8 @@ application {
     mainClass.set("org.partiql.tool.ridl.MainKt")
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.2.0:$platform"
-    }
-}
+//protobuf {
+//    protoc {
+//        artifact = "com.google.protobuf:protoc:3.2.0:$platform"
+//    }
+//}

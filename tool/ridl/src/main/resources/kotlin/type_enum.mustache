@@ -1,5 +1,21 @@
-public enum class {{simplename}} {
-    {{#enumerators}}
+public enum class {{name}} {
+    {{#values}}
     {{.}},
-    {{/enumerators}}
+    {{/values}}
+    ;
+
+    public fun write(writer: IonWriter) {
+        writer.writeSymbol(name)
+    }
+
+    public companion object {
+
+        @JvmStatic
+        public fun read(reader: IonReader): Order = try {
+            {{name}}.valueOf(reader.symbolValue().text)
+        } catch (ex: IllegalArgumentException) {
+            // TODO error messaging
+            throw ex
+        }
+    }
 }

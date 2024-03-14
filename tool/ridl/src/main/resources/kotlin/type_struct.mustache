@@ -1,4 +1,4 @@
-public data class {{simplename}}(
+public data class {{name}}(
 {{#fields}}
     @JvmField val {{name}}: {{type}},
 {{/fields}}
@@ -10,28 +10,34 @@ public data class {{simplename}}(
 {{/parent}}
 
     public fun write(writer: IonWriter) {
-        writer.addTypeAnnotation(tag)
+        // writer.addTypeAnnotation(TAG)
         writer.stepIn(IonType.SEXP)
         {{#fields}}
-        writer.writeInt(1L) // TODO
+        {{#write}}
+        writer.{{write}}
+        {{/write}}
+        {{^write}}
+        {{name}}.write(writer)
+        {{/write}}
         {{/fields}}
         writer.stepOut()
     }
 
     public companion object {
 
-        @JvmStatic
-        private val tag: String = "{{tag}}"
+        // private const val TAG: String = "{{tag}}"
 
         @JvmStatic
-        public fun read(reader: IonReader): {{simplename}} {
-            val tags = reader.typeAnnotations
-            assert(tags.size == 1) { "Expected a single annotation `$tag`" }
-            assert(tags[0] == tag) { "Expected tag `$tag`, found `${tags[0]}`" }
+        public fun read(reader: IonReader): {{name}} {
+            // val tags = reader.typeAnnotations
+            // assert(tags.size == 1) { "Expected a single annotation `$TAG`" }
+            // assert(tags[0] == TAG) { "Expected tag `$TAG`, found `${tags[0]}`" }
             reader.stepIn()
-            // TODO
+            {{#fields}}
+            val {{name}}: {{type}} = reader.{{read}}
+            {{/fields}}
             reader.stepOut()
-            return {{simplename}}()
+            return {{name}}({{#fields}}{{name}},{{/fields}})
         }
     }
 }

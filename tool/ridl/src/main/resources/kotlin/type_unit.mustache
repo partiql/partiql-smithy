@@ -1,6 +1,13 @@
 {{#parent}}
-public object {{simplename}} : {{.}}
+public object {{name}} : {{.}} {
 {{/parent}}
 {{^parent}}
-public object {{simplename}}
+public object {{name}} {
 {{/parent}}
+
+    private const val TAG: String = "{{tag}}"
+
+    public fun write(writer: IonWriter) {
+        writer.writeSymbol(TAG)
+    }
+}

@@ -1,0 +1,74 @@
+= RIDL — Kotlin
+
+Notes to self
+* No semicolon.
+* Make union and struct syntax the same.
+
+== Support
+
+=== Primitives
+
+|===
+| RIDL Primitive | Kotlin Type
+
+| bool | Bool
+| int32 | Int
+| int64 | Long
+| float32 | Float
+| float64 | Double
+| string | String
+| byte | Byte
+| bytes | ByteArray
+|===
+
+=== Array
+
+* Fixed length arrays wrap the builtin Array type.
+* Variable length arrays wrap the builtin ArrayList type.
+
+.Serde
+|===
+| Read  | Write
+|       | x
+|===
+
+=== Struct
+
+A struct is represented as a Kotlin data class.
+
+.Serde
+|===
+| Read  | Write
+|       | x
+|===
+
+=== Union
+
+A union is represented as a Kotlin sealed class.
+
+.Serde
+|===
+| Read  | Write
+|       |
+|===
+
+=== Enum
+
+An enum is represented as a Kotlin enum.
+
+.Serde
+|===
+| Read  | Write
+|       | x
+|===
+
+
+=== Unit
+
+A unit is represented by a Kotlin object.
+
+.Serde
+|===
+| Read  | Write
+|       | x
+|===

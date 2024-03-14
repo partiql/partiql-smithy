@@ -21,8 +21,7 @@ internal class IslCommand : Callable<Int> {
     override fun call(): Int {
         val input = file.readText()
         val document = Document.load(input)
-        val generator = IslGenerator()
-        generator.generate(document)
+        IslGenerator.generate(document)
         return 0
     }
 }

@@ -1,26 +1,38 @@
-type my_enum enum { ABC, XYZ };
-
-type ints int32[];
-type uuid byte[16];
-
-type my_int32 int32;
-
-type my_singleton unit;
-
-// struct basic
-type my_struct struct {
+type position struct {
     x: int32,
-    y: int64,
+    y: int32,
+    z: int32,
 };
 
-// struct referencing named types with inlines
-type my_other_struct struct {
-    a: my_int32,
-    c: my_struct,
+type decimal struct {
+    coefficient: int32,
+    exponent: int32,
 };
 
-type my_union union {
-    var_a int32;
-    var_b int64;
-    var_c struct { x: int32, y: int32 };
+type coordinates struct {
+    lat: decimal,
+    lon: decimal,
+};
+
+type array_fixed int32[20];
+type array_variable int32[];
+
+type order enum { ASC, DESC };
+
+type singleton unit;
+
+// type tree union {
+//    dir struct {
+//        name: string,
+//        contents: tree[],
+//    };
+//    file struct {
+//        name: string,
+//        contents: string,
+//    };
+// };
+
+type either union {
+    v_int int32;
+    v_float float32;
 };

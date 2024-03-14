@@ -1,6 +1,5 @@
 package org.partiql.tool.ridl.codegen.language.isl
 
-import org.partiql.tool.ridl.codegen.Generator
 import org.partiql.tool.ridl.codegen.Templates
 import org.partiql.tool.ridl.model.Document
 import org.partiql.tool.ridl.model.Name
@@ -19,11 +18,11 @@ import java.io.File
 /**
  * Direct conversion of RIDL types to ISL definitions; consider just building IonValues and pretty-print.
  */
-internal class IslGenerator : Generator {
+internal object IslGenerator {
 
     private val templates = Templates("isl")
 
-    override fun generate(document: Document): List<File> {
+    fun generate(document: Document): List<File> {
 
         // Add the header which contains our primitives
         val header = templates.apply("header", Unit)
@@ -57,8 +56,8 @@ internal class IslGenerator : Generator {
         val e = type.item
         if (e is RTypePrimitive && e.kind == Primitive.BYTE) {
             val ctx = IslBlob(
-                name = name.tag(),
-                size = type.size,
+                    name = name.tag(),
+                    size = type.size,
             )
             return templates.apply("type_blob", ctx)
         }
@@ -67,33 +66,33 @@ internal class IslGenerator : Generator {
             is RTypePrimitive -> e.name
         }
         val ctx = IslArray(
-            name = name.tag(),
-            element = element,
-            size = type.size,
+                name = name.tag(),
+                element = element,
+                size = type.size,
         )
         return templates.apply("type_array", ctx)
     }
 
     private fun generate(name: Name, type: RTypeEnum): String {
         val ctx = IslEnum(
-            name = name.tag(),
-            values = type.values,
+                name = name.tag(),
+                values = type.values,
         )
         return templates.apply("type_enum", ctx)
     }
 
     private fun generate(name: Name, type: RTypeNamed): String {
         val ctx = IslAlias(
-            name = name.tag(),
-            type = type.name.tag(),
+                name = name.tag(),
+                type = type.name.tag(),
         )
         return templates.apply("type_alias", ctx)
     }
 
     private fun generate(name: Name, type: RTypePrimitive): String {
         val ctx = IslAlias(
-            name = name.tag(),
-            type = type.name,
+                name = name.tag(),
+                type = type.name,
         )
         return templates.apply("type_alias", ctx)
     }
@@ -106,9 +105,9 @@ internal class IslGenerator : Generator {
             }
         }
         val ctx = IslSexp(
-            name = name.tag(),
-            size = type.fields.size,
-            operands = operands,
+                name = name.tag(),
+                size = type.fields.size,
+                operands = operands,
         )
         return templates.apply("type_struct", ctx)
     }
@@ -120,15 +119,15 @@ internal class IslGenerator : Generator {
             IslVariant(vName, vType)
         }
         val ctx = IslOneOf(
-            name = name.tag(),
-            variants = variants,
+                name = name.tag(),
+                variants = variants,
         )
         return templates.apply("type_union", ctx)
     }
 
     private fun generate(name: Name, type: RTypeUnit): String {
         val ctx = IslUnit(
-            name = name.tag(),
+                name = name.tag(),
         )
         return templates.apply("type_unit", ctx)
     }

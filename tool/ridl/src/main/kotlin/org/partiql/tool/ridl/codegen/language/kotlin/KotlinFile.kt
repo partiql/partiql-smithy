@@ -1,14 +1,21 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
-import java.io.File
+import org.partiql.tool.ridl.codegen.Templates
 
 internal class KotlinFile(
     private val name: String,
     private val template: String,
-    private val ctx: Any? = null,
+    private val ctx: Any,
 ) {
 
-    private fun write(): File {
-        TODO()
+    fun write(templates: Templates) {
+        try {
+            val output = templates.apply(template, ctx)
+            println(output)
+        } catch (ex: Exception) {
+            val message = "Error in file $name for template $template"
+            val cause = ex
+            throw RuntimeException(message, cause)
+        }
     }
 }

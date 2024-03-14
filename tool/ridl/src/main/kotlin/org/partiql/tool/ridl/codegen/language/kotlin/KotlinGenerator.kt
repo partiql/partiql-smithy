@@ -36,14 +36,19 @@ internal object KotlinGenerator {
         // END: package
         //-------------------------------------------------------------------------
 
-        root.write()
+        // For now just println
+        root.write(templates)
+
         return emptyList()
     }
 
+    // TODO namespaces
     private fun Document.toKModel() = KModel(
-        types = definitions
-            .filterIsInstance<Type>()
-            .map { it.toKType() }
+        `package` = "com.example",
+        namespace = KNamespace(
+            name = "Example",
+            types = definitions.filterIsInstance<Type>().map { it.toKType() }
+        )
     )
 
     private fun Type.toKType(parent: String? = null): KType = when (type) {
@@ -62,6 +67,7 @@ internal object KotlinGenerator {
             name = name.name(),
             item = item.reference(),
             size = size,
+            write = item.write("item"),
         )
     )
 
@@ -91,7 +97,14 @@ internal object KotlinGenerator {
         struct = KStruct(
             path = name.path(),
             name = name.name(),
-            fields = emptyList(),
+            tag = name.tag(),
+            fields = fields.map {
+                val fName = it.name
+                val fType = it.type.reference()
+                val fWrite = it.type.write(fName)
+                val fRead = it.type.read()
+                KField(fName, fType, fWrite, fRead)
+            },
             parent = parent,
             builder = name.builder(),
             visit = name.visit(),
@@ -113,6 +126,7 @@ internal object KotlinGenerator {
         unit = KUnit(
             path = name.path(),
             name = name.name(),
+            tag = name.tag(),
             parent = parent,
             builder = name.builder(),
             visit = name.visit(),
@@ -133,9 +147,39 @@ internal object KotlinGenerator {
         }
     }
 
+    private fun RTypeRef.write(arg: String): String? = when (this) {
+        is RTypeNamed -> null
+        is RTypePrimitive -> when (kind) {
+            Primitive.BOOL -> "writeBool($arg)"
+            Primitive.INT32 -> "writeInt($arg.toLong())"
+            Primitive.INT64 -> "writeInt($arg)"
+            Primitive.FLOAT32 -> "writeFloat($arg.toDouble())"
+            Primitive.FLOAT64 -> "writeFloat($arg)"
+            Primitive.STRING -> "writeString($arg)"
+            Primitive.BYTE -> "writeBlob($arg)"
+            Primitive.BYTES -> "writeBlob($arg)\""
+        }
+    }
+
+    private fun RTypeRef.read(): String = when (this) {
+        is RTypeNamed -> "TODO()"
+        is RTypePrimitive -> when (kind) {
+            Primitive.BOOL -> "boolValue()"
+            Primitive.INT32 -> "intValue()"
+            Primitive.INT64 -> "longValue()"
+            Primitive.FLOAT32 -> "floatValue()"
+            Primitive.FLOAT64 -> "doubleValue()"
+            Primitive.STRING -> "stringValue()"
+            Primitive.BYTE -> TODO()
+            Primitive.BYTES -> TODO()
+        }
+    }
+
     private fun Name.path(): String = path.joinToString(".") { it.toPascalCase() }
 
     private fun Name.name(): String = name.toPascalCase()
+
+    private fun Name.tag(): String = path.joinToString("::")
 
     private fun Name.pascal(): String = path.joinToString("") { it.toPascalCase() }
 

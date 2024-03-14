@@ -1,1 +1,16 @@
-public typealias {{simplename}} = Array<{{{item}}}>
+{{#size}}
+public class {{name}}(items: Array<{{item}}>) : _Array<{{item}}>(items) {
+{{/size}}
+{{^size}}
+public class {{name}}(items: ArrayList<{{item}}>) : _ArrayList<{{item}}>(items) {
+{{/size}}
+
+    override fun write(writer: IonWriter, item: {{item}}) {
+        {{#write}}
+        writer.{{write}}
+        {{/write}}
+        {{^write}}
+        item.write(writer)
+        {{/write}}
+    }
+}

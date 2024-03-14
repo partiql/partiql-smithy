@@ -1,6 +1,6 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
-import java.io.File
+import org.partiql.tool.ridl.codegen.Templates
 
 /**
  * Builder class for a kotlin package.
@@ -10,7 +10,7 @@ internal class KotlinPackage(@JvmField val path: List<String>) {
     private val files: MutableList<KotlinFile> = mutableListOf()
     private val packages: MutableList<KotlinPackage> = mutableListOf()
 
-    fun mkfile(name: String, template: String, ctx: Any? = null): KotlinFile {
+    fun mkfile(name: String, template: String, ctx: Any): KotlinFile {
         val child = KotlinFile(name, template, ctx)
         files.add(child)
         return child
@@ -22,7 +22,8 @@ internal class KotlinPackage(@JvmField val path: List<String>) {
         return child
     }
 
-    fun write(): List<File> {
-        TODO()
+    fun write(templates: Templates) {
+        files.forEach { it.write(templates) }
+        packages.forEach { it.write(templates) }
     }
 }

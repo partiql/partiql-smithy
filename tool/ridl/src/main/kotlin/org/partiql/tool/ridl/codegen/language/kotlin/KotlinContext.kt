@@ -6,6 +6,7 @@ internal class KModel(
 )
 
 internal class KNamespace(
+    @JvmField val name: String,
     @JvmField val types: List<KType>,
 )
 
@@ -23,6 +24,7 @@ internal class KArray(
     @JvmField val name: String,
     @JvmField val item: String,
     @JvmField val size: Int?,
+    @JvmField val write: String?,
 )
 
 internal class KEnum(
@@ -34,6 +36,7 @@ internal class KEnum(
 internal class KStruct(
     @JvmField val path: String,
     @JvmField val name: String,
+    @JvmField val tag: String,
     @JvmField val fields: List<KField>,
     @JvmField val parent: String? = null,
     @JvmField val builder: String? = null,
@@ -43,6 +46,8 @@ internal class KStruct(
 internal class KField(
     @JvmField val name: String,
     @JvmField val type: String,
+    @JvmField val write: String?,
+    @JvmField val read: String?,
 )
 
 internal class KUnion(
@@ -57,6 +62,7 @@ internal class KUnion(
 internal class KUnit(
     @JvmField val path: String,
     @JvmField val name: String,
+    @JvmField val tag: String,
     @JvmField val parent: String? = null,
     @JvmField val builder: String? = null,
     @JvmField val visit: String? = null,
