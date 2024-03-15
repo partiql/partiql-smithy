@@ -23,7 +23,7 @@ internal object KotlinGenerator {
     fun generate(options: KotlinOptions, document: Document): List<File> {
 
         // Convert RIDL document to a Kotlin model
-        val model = document.toKModel()
+        val model = document.toKModel(options)
 
         //-------------------------------------------------------------------------
         // BEGIN: package
@@ -43,10 +43,10 @@ internal object KotlinGenerator {
     }
 
     // TODO namespaces
-    private fun Document.toKModel() = KModel(
-        `package` = "com.example",
+    private fun Document.toKModel(options: KotlinOptions) = KModel(
+        `package` = options.pkg.joinToString("."),
         namespace = KNamespace(
-            name = "Example",
+            name = options.namespace,
             types = definitions.filterIsInstance<Type>().map { it.toKType() }
         )
     )
@@ -57,7 +57,7 @@ internal object KotlinGenerator {
         is RTypeNamed -> type.toKType(name, parent)
         is RTypePrimitive -> type.toKType(name, parent)
         is RTypeStruct -> type.toKType(name, parent)
-        is RTypeUnion -> TODO()
+        is RTypeUnion -> type.toKType(name, parent)
         is RTypeUnit -> type.toKType(name, parent)
     }
 
@@ -79,17 +79,15 @@ internal object KotlinGenerator {
         )
     )
 
-    private fun RTypeNamed.toKType(name: Name, parent: String?) = KType(
-        alias = KAlias(
-            name = name.name(),
-            type = reference(),
-        )
-    )
+    private fun RTypeNamed.toKType(name: Name, parent: String?): KType = TODO()
 
     private fun RTypePrimitive.toKType(name: Name, parent: String?) = KType(
-        alias = KAlias(
+        scalar = KScalar(
+            path = name.path(),
             name = name.name(),
             type = reference(),
+            write = write("value")!!,
+            read = read()
         )
     )
 
@@ -115,7 +113,7 @@ internal object KotlinGenerator {
         union = KUnion(
             path = name.path(),
             name = name.name(),
-            variants = emptyList(),
+            variants = variants.map { it.toKType(name.name()) },
             parent = parent,
             builder = name.builder(),
             visit = name.visit(),
@@ -128,8 +126,6 @@ internal object KotlinGenerator {
             name = name.name(),
             tag = name.tag(),
             parent = parent,
-            builder = name.builder(),
-            visit = name.visit(),
         )
     )
 
@@ -148,7 +144,7 @@ internal object KotlinGenerator {
     }
 
     private fun RTypeRef.write(arg: String): String? = when (this) {
-        is RTypeNamed -> null
+        is RTypeNamed -> "$arg.write(writer)"
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "writeBool($arg)"
             Primitive.INT32 -> "writeInt($arg.toLong())"
@@ -157,7 +153,7 @@ internal object KotlinGenerator {
             Primitive.FLOAT64 -> "writeFloat($arg)"
             Primitive.STRING -> "writeString($arg)"
             Primitive.BYTE -> "writeBlob($arg)"
-            Primitive.BYTES -> "writeBlob($arg)\""
+            Primitive.BYTES -> "writeBlob($arg)"
         }
     }
 

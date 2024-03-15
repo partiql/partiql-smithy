@@ -1,6 +1,0 @@
-option java_package = "org.partiql.ridl.example";
-
-message Example {
-  required int32 fieldX = 1;
-  repeated int64 fieldY = 2;
-}

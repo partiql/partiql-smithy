@@ -113,7 +113,7 @@ internal object Definitions {
             val variants = ctx.typeUnionVariant().map {
                 val name = curr.get(it, it.NAME().text).toName()
                 val type = visitor.visitType(it.type())
-                RTypeUnion.Variant(name, type)
+                Type(name, type)
             }
             return RTypeUnion(variants)
         }

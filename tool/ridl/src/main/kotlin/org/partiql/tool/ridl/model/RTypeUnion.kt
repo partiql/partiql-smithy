@@ -10,16 +10,8 @@ package org.partiql.tool.ridl.model
  * @property variants
  */
 public data class RTypeUnion(
-    public val variants: List<Variant>,
+    public val variants: List<Type>,
 ) : RType {
-
-    public data class Variant(
-        val name: Name,
-        val type: RType,
-    ) {
-
-        override fun toString(): String = "$name $type;"
-    }
 
     override fun toString(): String = "union { ${variants.joinToString() } }"
 }

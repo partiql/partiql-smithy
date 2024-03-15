@@ -11,12 +11,12 @@ internal class KNamespace(
 )
 
 internal class KType(
-    @JvmField val alias: KAlias? = null,
     @JvmField val array: KArray? = null,
+    @JvmField val enum: KEnum? = null,
+    @JvmField val scalar: KScalar? = null,
     @JvmField val struct: KStruct? = null,
     @JvmField val union: KUnion? = null,
     @JvmField val unit: KUnit? = null,
-    @JvmField val enum: KEnum? = null,
 )
 
 internal class KArray(
@@ -64,11 +64,13 @@ internal class KUnit(
     @JvmField val name: String,
     @JvmField val tag: String,
     @JvmField val parent: String? = null,
-    @JvmField val builder: String? = null,
-    @JvmField val visit: String? = null,
 )
 
-internal class KAlias(
+internal class KScalar(
+    @JvmField val path: String,
     @JvmField val name: String,
     @JvmField val type: String,
+    @JvmField val parent: String? = null,
+    @JvmField val write: String,
+    @JvmField val read: String,
 )

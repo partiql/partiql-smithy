@@ -1,0 +1,19 @@
+{{#parent}}
+public data class {{name}}(@JvmField val value: {{type}}) : {{parent}} {
+{{/parent}}
+{{^parent}}
+public data class {{name}}(@JvmField val value: {{type}}) {
+{{/parent}}
+
+    public fun write(writer: IonWriter) {
+        writer.{{write}}
+    }
+
+    public companion object {
+
+        @JvmStatic
+        public fun read(reader: IonReader): {{name}} {
+            TODO()
+        }
+    }
+}

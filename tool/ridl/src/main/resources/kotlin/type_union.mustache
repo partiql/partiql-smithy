@@ -6,51 +6,8 @@ public sealed interface {{name}} {
 {{/parent}}
 
     {{#variants}}
-    {{>type}}
+        // test
+        {{> type}}
     {{/variants}}
 
-    public data class VInt(@JvmField val value: Int) : Either {
-
-        public fun write(writer: IonWriter) {
-            writer.writeInt(value.toLong())
-        }
-
-        public companion object {
-
-            @JvmStatic
-            public fun read(reader: IonReader): VInt {
-                TODO()
-            }
-        }
-    }
-
-    public data class VFloat(@JvmField val value: Int): Either {
-
-        public fun write(writer: IonWriter) {
-            writer.writeInt(value.toLong())
-        }
-
-        public companion object {
-
-            @JvmStatic
-            public fun read(reader: IonReader): VFloat {
-                TODO()
-            }
-        }
-    }
-
-    public companion object {
-
-        @JvmStatic
-        public fun read(reader: IonReader): Either {
-            val tags = reader.typeAnnotations
-            assert(tags.size == 1) { "Union type `Either` is missing a tag" }
-            val tag = tags[0].toInt()
-            return when (tag) {
-                0 -> VInt.read(reader)
-                1 -> VFloat.read(reader)
-                else -> error("Invalid tag `$tag` on union type `Either`")
-            }
-        }
-    }
 }
