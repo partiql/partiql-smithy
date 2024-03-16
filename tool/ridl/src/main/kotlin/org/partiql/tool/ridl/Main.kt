@@ -15,10 +15,8 @@
 
 package org.partiql.tool.ridl
 
-import com.amazon.ion.system.IonTextWriterBuilder
 import org.partiql.tool.ridl.codegen.language.isl.IslCommand
 import org.partiql.tool.ridl.codegen.language.kotlin.KotlinCommand
-import org.partiql.tool.ridl.codegen.language.kotlin.example.Example
 import picocli.CommandLine
 import kotlin.system.exitProcess
 
@@ -45,38 +43,5 @@ public class RIDL : Runnable {
     ],
 )
 public class Generate : Runnable {
-
-    override fun run() {
-
-        // Structs (basic)
-        val out = StringBuilder()
-//        val writer = IonTextWriterBuilder.pretty().build(out)
-        val writer = IonTextWriterBuilder.standard().build(out)
-        val pos = Example.Position(1, 2, 3)
-        pos.write(writer)
-
-        // Structs (recursive)
-        val lat = Example.Decimal(12, 1)
-        val lon = Example.Decimal(100, 2)
-        val coordinates = Example.Coordinates(lat, lon)
-        coordinates.write(writer)
-
-        // Enums
-        val asc = Example.Order.ASC
-        asc.write(writer)
-        val desc = Example.Order.DESC
-        desc.write(writer)
-
-        // Arrays
-        val arrayFixed = Example.ArrayFixed(arrayOf(1, 2, 3))
-        arrayFixed.write(writer)
-        val arrayVariable = Example.ArrayFixed(arrayOf(7, 8, 9))
-        arrayVariable.write(writer)
-
-        // Units
-        val singleton = Example.Singleton
-        singleton.write(writer)
-
-        println(out)
-    }
+    override fun run() {}
 }

@@ -1,13 +1,25 @@
-{{#parent}}
-public sealed interface {{name}} : {{.}} {
-{{/parent}}
-{{^parent}}
-public sealed interface {{name}} {
-{{/parent}}
+public sealed interface {{name}} : {{parent}} {
 
     {{#variants}}
         // test
-        {{> type}}
+        {{#type}}
+        {{>type}}
+        {{/type}}
     {{/variants}}
 
+    companion object {
+
+        @JvmStatic
+        public fun read(reader: IonReader): Either {
+            val tags = reader.typeAnnotations
+            assert(tags.size == 1) { "Union type `{{name}}` is missing a tag" }
+            val tag = tags[0].toInt()
+            return when (tag) {
+                {{#variants}}
+                {{tag}} -> {{name}}.read(reader)
+                {{/variants}}
+                else -> error("Invalid tag `$tag` on union type `{{name}}`")
+            }
+        }
+    }
 }

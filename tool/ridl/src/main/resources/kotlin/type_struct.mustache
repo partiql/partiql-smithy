@@ -2,14 +2,9 @@ public data class {{name}}(
 {{#fields}}
     @JvmField val {{name}}: {{type}},
 {{/fields}}
-{{#parent}}
-) : {{.}} {
-{{/parent}}
-{{^parent}}
-) {
-{{/parent}}
+) : {{parent}} {
 
-    public fun write(writer: IonWriter) {
+    public override fun write(writer: IonWriter) {
         // writer.addTypeAnnotation(TAG)
         writer.stepIn(IonType.SEXP)
         {{#fields}}
@@ -25,13 +20,9 @@ public data class {{name}}(
 
     public companion object {
 
-        // private const val TAG: String = "{{tag}}"
-
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
             // val tags = reader.typeAnnotations
-            // assert(tags.size == 1) { "Expected a single annotation `$TAG`" }
-            // assert(tags[0] == TAG) { "Expected tag `$TAG`, found `${tags[0]}`" }
             reader.stepIn()
             {{#fields}}
             val {{name}}: {{type}} = reader.{{read}}

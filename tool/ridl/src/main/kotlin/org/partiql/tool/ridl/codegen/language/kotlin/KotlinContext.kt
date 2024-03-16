@@ -36,9 +36,8 @@ internal class KEnum(
 internal class KStruct(
     @JvmField val path: String,
     @JvmField val name: String,
-    @JvmField val tag: String,
+    @JvmField val parent: String,
     @JvmField val fields: List<KField>,
-    @JvmField val parent: String? = null,
     @JvmField val builder: String? = null,
     @JvmField val visit: String? = null,
 )
@@ -53,24 +52,30 @@ internal class KField(
 internal class KUnion(
     @JvmField val path: String,
     @JvmField val name: String,
-    @JvmField val variants: List<KType>,
-    @JvmField val parent: String? = null,
+    @JvmField val parent: String,
+    @JvmField val variants: List<KVariant>,
     @JvmField val builder: String? = null,
     @JvmField val visit: String? = null,
+)
+
+internal class KVariant(
+    @JvmField val tag: Int,
+    @JvmField val name: String,
+    @JvmField val type: KType,
 )
 
 internal class KUnit(
     @JvmField val path: String,
     @JvmField val name: String,
+    @JvmField val parent: String,
     @JvmField val tag: String,
-    @JvmField val parent: String? = null,
 )
 
 internal class KScalar(
     @JvmField val path: String,
     @JvmField val name: String,
+    @JvmField val parent: String,
     @JvmField val type: String,
-    @JvmField val parent: String? = null,
     @JvmField val write: String,
     @JvmField val read: String,
 )

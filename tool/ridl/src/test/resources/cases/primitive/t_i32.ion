@@ -1,0 +1,35 @@
+{
+  type: 't_i32',
+  assert: success,
+  ion: 1,
+}
+{
+  type: 't_i32',
+  assert: success,
+  ion: 0,
+}
+{
+  type: 't_i32',
+  assert: success,
+  ion: -1,
+}
+{
+  type: 't_i32',
+  assert: success,
+  ion: 2147483647, // max
+}
+{
+  type: 't_i32',
+  assert: success,
+  ion: -2147483648, // min
+}
+{
+  type: 't_i32',
+  assert: failure,
+  ion: 2147483648, // max + 1
+}
+{
+  type: 't_i32',
+  assert: failure,
+  ion: -2147483649, // min - 1
+}

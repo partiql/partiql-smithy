@@ -46,12 +46,12 @@ internal object KotlinGenerator {
     private fun Document.toKModel(options: KotlinOptions) = KModel(
         `package` = options.pkg.joinToString("."),
         namespace = KNamespace(
-            name = options.namespace,
+            name = options.namespace.toPascalCase(),
             types = definitions.filterIsInstance<Type>().map { it.toKType() }
         )
     )
 
-    private fun Type.toKType(parent: String? = null): KType = when (type) {
+    private fun Type.toKType(parent: String = "IonSerializable"): KType = when (type) {
         is RTypeArray -> type.toKType(name, parent)
         is RTypeEnum -> type.toKType(name, parent)
         is RTypeNamed -> type.toKType(name, parent)
@@ -61,7 +61,7 @@ internal object KotlinGenerator {
         is RTypeUnit -> type.toKType(name, parent)
     }
 
-    private fun RTypeArray.toKType(name: Name, parent: String?) = KType(
+    private fun RTypeArray.toKType(name: Name, parent: String) = KType(
         array = KArray(
             path = name.path(),
             name = name.name(),
@@ -71,7 +71,7 @@ internal object KotlinGenerator {
         )
     )
 
-    private fun RTypeEnum.toKType(name: Name, parent: String?) = KType(
+    private fun RTypeEnum.toKType(name: Name, parent: String) = KType(
         enum = KEnum(
             path = name.path(),
             name = name.name(),
@@ -79,23 +79,24 @@ internal object KotlinGenerator {
         )
     )
 
-    private fun RTypeNamed.toKType(name: Name, parent: String?): KType = TODO()
+    private fun RTypeNamed.toKType(name: Name, parent: String): KType = TODO()
 
-    private fun RTypePrimitive.toKType(name: Name, parent: String?) = KType(
+    private fun RTypePrimitive.toKType(name: Name, parent: String) = KType(
         scalar = KScalar(
             path = name.path(),
             name = name.name(),
+            parent = parent,
             type = reference(),
             write = write("value")!!,
             read = read()
         )
     )
 
-    private fun RTypeStruct.toKType(name: Name, parent: String?) = KType(
+    private fun RTypeStruct.toKType(name: Name, parent: String) = KType(
         struct = KStruct(
             path = name.path(),
             name = name.name(),
-            tag = name.tag(),
+            parent = parent,
             fields = fields.map {
                 val fName = it.name
                 val fType = it.type.reference()
@@ -103,29 +104,34 @@ internal object KotlinGenerator {
                 val fRead = it.type.read()
                 KField(fName, fType, fWrite, fRead)
             },
-            parent = parent,
             builder = name.builder(),
             visit = name.visit(),
         )
     )
 
-    private fun RTypeUnion.toKType(name: Name, parent: String?) = KType(
+    private fun RTypeUnion.toKType(name: Name, parent: String) = KType(
         union = KUnion(
             path = name.path(),
             name = name.name(),
-            variants = variants.map { it.toKType(name.name()) },
             parent = parent,
+            variants = variants.mapIndexed { i, v ->
+                KVariant(
+                    tag = i,
+                    name = v.name.name(),
+                    type = v.toKType(name.name())
+                )
+            },
             builder = name.builder(),
             visit = name.visit(),
         )
     )
 
-    private fun RTypeUnit.toKType(name: Name, parent: String?) = KType(
+    private fun RTypeUnit.toKType(name: Name, parent: String) = KType(
         unit = KUnit(
             path = name.path(),
             name = name.name(),
-            tag = name.tag(),
             parent = parent,
+            tag = name.path(),
         )
     )
 
@@ -144,7 +150,7 @@ internal object KotlinGenerator {
     }
 
     private fun RTypeRef.write(arg: String): String? = when (this) {
-        is RTypeNamed -> "$arg.write(writer)"
+        is RTypeNamed -> null
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "writeBool($arg)"
             Primitive.INT32 -> "writeInt($arg.toLong())"
@@ -152,7 +158,7 @@ internal object KotlinGenerator {
             Primitive.FLOAT32 -> "writeFloat($arg.toDouble())"
             Primitive.FLOAT64 -> "writeFloat($arg)"
             Primitive.STRING -> "writeString($arg)"
-            Primitive.BYTE -> "writeBlob($arg)"
+            Primitive.BYTE -> "writeBlob(byteArrayOf($arg))"
             Primitive.BYTES -> "writeBlob($arg)"
         }
     }
@@ -166,16 +172,14 @@ internal object KotlinGenerator {
             Primitive.FLOAT32 -> "floatValue()"
             Primitive.FLOAT64 -> "doubleValue()"
             Primitive.STRING -> "stringValue()"
-            Primitive.BYTE -> TODO()
-            Primitive.BYTES -> TODO()
+            Primitive.BYTE -> "newBytes()[0]"
+            Primitive.BYTES -> "newBytes()"
         }
     }
 
     private fun Name.path(): String = path.joinToString(".") { it.toPascalCase() }
 
     private fun Name.name(): String = name.toPascalCase()
-
-    private fun Name.tag(): String = path.joinToString("::")
 
     private fun Name.pascal(): String = path.joinToString("") { it.toPascalCase() }
 

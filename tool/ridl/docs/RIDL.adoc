@@ -4,8 +4,6 @@
 :sectlinks:
 :table-caption!:
 
-include::navigation.adoc[]
-
 == About
 
 This document defines an interface definition language for types whose values can be serialized as Ion. It is intended to be a simple and high-level modeling language whose definitions trivially map to link:https://survey.stackoverflow.co/2023/#most-popular-technologies-language-prof[key languages] in the link:https://en.wikipedia.org/wiki/List_of_C-family_programming_languages[C-family] such as C, C++, Go, Rust, and Java.

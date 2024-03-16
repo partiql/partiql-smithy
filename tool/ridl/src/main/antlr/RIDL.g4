@@ -56,11 +56,11 @@ typeStructField
   ;
 
 typeUnion
-  : UNION L_BRACE typeUnionVariant+ R_BRACE
+  : UNION L_BRACE typeUnionVariant (COMMA typeUnionVariant)* COMMA? R_BRACE
   ;
 
 typeUnionVariant
-  : NAME type SEMICOLON
+  : NAME COLON type
   ;
 
 typeEnum

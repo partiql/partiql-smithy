@@ -1,0 +1,15 @@
+{
+  type: 't_bool',
+  assert: success,
+  body: true,
+}
+{
+  type: 't_bool',
+  assert: success,
+  body: false,
+}
+{
+  type: 't_bool',
+  assert: failure,
+  body: 1,
+}

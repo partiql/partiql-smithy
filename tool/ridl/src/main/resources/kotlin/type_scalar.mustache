@@ -1,11 +1,6 @@
-{{#parent}}
 public data class {{name}}(@JvmField val value: {{type}}) : {{parent}} {
-{{/parent}}
-{{^parent}}
-public data class {{name}}(@JvmField val value: {{type}}) {
-{{/parent}}
 
-    public fun write(writer: IonWriter) {
+    public override fun write(writer: IonWriter) {
         writer.{{write}}
     }
 
