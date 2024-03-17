@@ -1,19 +1,10 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
+import com.amazon.ion.IonType
 import net.pearx.kasechange.toPascalCase
 import org.partiql.tool.ridl.codegen.Templates
-import org.partiql.tool.ridl.model.Document
-import org.partiql.tool.ridl.model.Name
-import org.partiql.tool.ridl.model.Primitive
-import org.partiql.tool.ridl.model.RTypeArray
-import org.partiql.tool.ridl.model.RTypeEnum
-import org.partiql.tool.ridl.model.RTypeNamed
-import org.partiql.tool.ridl.model.RTypePrimitive
-import org.partiql.tool.ridl.model.RTypeRef
-import org.partiql.tool.ridl.model.RTypeStruct
-import org.partiql.tool.ridl.model.RTypeUnion
-import org.partiql.tool.ridl.model.RTypeUnit
-import org.partiql.tool.ridl.model.Type
+import org.partiql.tool.ridl.codegen.language.kotlin.KotlinGenerator.ion
+import org.partiql.tool.ridl.model.*
 import java.io.File
 
 internal object KotlinGenerator {
@@ -66,8 +57,10 @@ internal object KotlinGenerator {
             path = name.path(),
             name = name.name(),
             item = item.reference(),
+            itemIon = item.ion(),
             size = size,
             write = item.write("item"),
+            read = item.read(),
         )
     )
 
@@ -88,7 +81,7 @@ internal object KotlinGenerator {
             parent = parent,
             type = reference(),
             write = write("value")!!,
-            read = read()
+            read = read()!!
         )
     )
 
@@ -100,9 +93,10 @@ internal object KotlinGenerator {
             fields = fields.map {
                 val fName = it.name
                 val fType = it.type.reference()
+                val fIon = it.type.ion()
                 val fWrite = it.type.write(fName)
                 val fRead = it.type.read()
-                KField(fName, fType, fWrite, fRead)
+                KField(fName, fType, fIon, fWrite, fRead)
             },
             builder = name.builder(),
             visit = name.visit(),
@@ -163,13 +157,13 @@ internal object KotlinGenerator {
         }
     }
 
-    private fun RTypeRef.read(): String = when (this) {
-        is RTypeNamed -> "TODO()"
+    private fun RTypeRef.read(): String? = when (this) {
+        is RTypeNamed -> null
         is RTypePrimitive -> when (kind) {
-            Primitive.BOOL -> "boolValue()"
+            Primitive.BOOL -> "booleanValue()"
             Primitive.INT32 -> "intValue()"
             Primitive.INT64 -> "longValue()"
-            Primitive.FLOAT32 -> "floatValue()"
+            Primitive.FLOAT32 -> "doubleValue().toFloat()"
             Primitive.FLOAT64 -> "doubleValue()"
             Primitive.STRING -> "stringValue()"
             Primitive.BYTE -> "newBytes()[0]"
@@ -186,5 +180,23 @@ internal object KotlinGenerator {
     private fun Name.builder(): String = "${pascal()}Builder"
 
     private fun Name.visit(): String = "visit${pascal()}"
-}
 
+    private fun RType.ion(): IonType = when (this) {
+        is RTypeNamed -> IonType.SEXP
+        is RTypeArray -> IonType.LIST
+        is RTypeEnum -> IonType.SYMBOL
+        is RTypeStruct -> IonType.SEXP
+        is RTypeUnion -> IonType.SEXP
+        is RTypeUnit -> IonType.SYMBOL
+        is RTypePrimitive -> when (kind) {
+            Primitive.BOOL -> IonType.BOOL
+            Primitive.INT32 -> IonType.INT
+            Primitive.INT64 -> IonType.INT
+            Primitive.FLOAT32 -> IonType.FLOAT
+            Primitive.FLOAT64 -> IonType.FLOAT
+            Primitive.STRING -> IonType.STRING
+            Primitive.BYTE -> IonType.BLOB
+            Primitive.BYTES -> IonType.BLOB
+        }
+    }
+}

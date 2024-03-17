@@ -1,9 +1,5 @@
 {{#size}}
 public class {{name}}(items: Array<{{item}}>) : _Array<{{item}}>(items) {
-{{/size}}
-{{^size}}
-public class {{name}}(items: ArrayList<{{item}}>) : _ArrayList<{{item}}>(items) {
-{{/size}}
 
     override fun write(writer: IonWriter, item: {{item}}) {
         {{#write}}
@@ -13,4 +9,65 @@ public class {{name}}(items: ArrayList<{{item}}>) : _ArrayList<{{item}}>(items) 
         item.write(writer)
         {{/write}}
     }
+
+
+    companion object {
+
+        @JvmStatic
+        fun read(reader: IonReader): {{name}} {
+            var i = 0
+            val n = {{size}}
+            val items = arrayOfNulls<{{item}}>(n)
+            reader.stepIn()
+            while (reader.next() == IonType.{{itemIon}}) {
+                if (i == n) {
+                    error("Expected array of len `$n`, found len $i")
+                }
+                {{#read}}
+                items[i++] = reader.{{read}}
+                {{/read}}
+                {{^read}}
+                items[i++] = {{item}}.read(reader)
+                {{/read}}
+            }
+            if (i != n) {
+                error("Expected array of len `$n`, found len $i")
+            }
+            reader.stepOut()
+            return {{name}}(items.requireNoNulls())
+        }
+    }
 }
+{{/size}}
+{{^size}}
+public class {{name}}(items: ArrayList<{{item}}>) : _ArrayList<{{item}}>(items) {
+
+    override fun write(writer: IonWriter, item: {{item}}) {
+        {{#write}}
+        writer.{{write}}
+        {{/write}}
+        {{^write}}
+        item.write(writer)
+        {{/write}}
+    }
+
+    companion object {
+
+        @JvmStatic
+        fun read(reader: IonReader): {{name}} {
+            val items = arrayListOf<{{item}}>()
+            reader.stepIn()
+            while (reader.next() == IonType.{{itemIon}}) {
+                {{#read}}
+                items.add(reader.{{read}})
+                {{/read}}
+                {{^read}}
+                items.add({{item}}.read(reader))
+                {{/read}}
+            }
+            reader.stepOut()
+            return {{name}}(items)
+        }
+    }
+}
+{{/size}}

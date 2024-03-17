@@ -5,7 +5,6 @@ public data class {{name}}(
 ) : {{parent}} {
 
     public override fun write(writer: IonWriter) {
-        // writer.addTypeAnnotation(TAG)
         writer.stepIn(IonType.SEXP)
         {{#fields}}
         {{#write}}
@@ -22,11 +21,17 @@ public data class {{name}}(
 
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
-            // val tags = reader.typeAnnotations
             reader.stepIn()
             {{#fields}}
+            assert(reader.next() == IonType.{{ion}})
+            {{#read}}
             val {{name}}: {{type}} = reader.{{read}}
+            {{/read}}
+            {{^read}}
+            val {{name}}: {{type}} = {{type}}.read(reader)
+            {{/read}}
             {{/fields}}
+            assert(reader.next() == null)
             reader.stepOut()
             return {{name}}({{#fields}}{{name}},{{/fields}})
         }

@@ -1,15 +1,15 @@
 {
   type: 't_bool',
   assert: success,
-  body: true,
+  value:  true,
 }
 {
   type: 't_bool',
   assert: success,
-  body: false,
+  value:  false,
 }
 {
   type: 't_bool',
   assert: failure,
-  body: 1,
+  value:  1,
 }

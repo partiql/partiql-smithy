@@ -6,7 +6,7 @@ type t_f32 float32;
 type t_f64 float64;
 type t_str string;
 type t_byte byte;
-type t_byte_string bytes;
+type t_bytes bytes;
 
 // Arrays
 type t_array_prim_var bool[];
@@ -19,7 +19,7 @@ type t_struct_prim struct {
     x: int32,
     y: int64,
 };
-type t_struct_ struct {
+type t_struct struct {
     x: t_i32,
     y: t_i64,
 };

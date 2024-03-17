@@ -1,0 +1,20 @@
+{
+  type: 't_array_prim_fix',
+  assert: success,
+  value: [false,false,false,false,false,true,true,true,true,true],
+}
+{
+  type: 't_array_prim_fix',
+  assert: failure,
+  value: [],
+}
+{
+  type: 't_array_prim_fix',
+  assert: failure,
+  value: [false],
+}
+{
+  type: 't_array_prim_fix',
+  assert: failure,
+  value: [false,false,false,false,false,true,true,true,true,true,true], // 11
+}

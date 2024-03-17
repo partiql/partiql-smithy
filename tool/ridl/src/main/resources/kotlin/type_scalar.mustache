@@ -8,7 +8,8 @@ public data class {{name}}(@JvmField val value: {{type}}) : {{parent}} {
 
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
-            TODO()
+            val value = reader.{{read}}
+            return {{name}}(value)
         }
     }
 }

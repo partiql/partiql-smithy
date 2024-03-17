@@ -55,7 +55,8 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TBool {
-                TODO()
+                val value = reader.booleanValue()
+                return TBool(value)
             }
         }
     }
@@ -71,7 +72,8 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TI32 {
-                TODO()
+                val value = reader.intValue()
+                return TI32(value)
             }
         }
     }
@@ -87,7 +89,8 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TI64 {
-                TODO()
+                val value = reader.longValue()
+                return TI64(value)
             }
         }
     }
@@ -103,7 +106,8 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TF32 {
-                TODO()
+                val value = reader.doubleValue().toFloat()
+                return TF32(value)
             }
         }
     }
@@ -119,7 +123,8 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TF64 {
-                TODO()
+                val value = reader.doubleValue()
+                return TF64(value)
             }
         }
     }
@@ -135,7 +140,8 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TStr {
-                TODO()
+                val value = reader.stringValue()
+                return TStr(value)
             }
         }
     }
@@ -151,13 +157,14 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TByte {
-                TODO()
+                val value = reader.newBytes()[0]
+                return TByte(value)
             }
         }
     }
 
 
-    public data class TByteString(@JvmField val value: ByteArray) : IonSerializable {
+    public data class TBytes(@JvmField val value: ByteArray) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
             writer.writeBlob(value)
@@ -166,8 +173,9 @@ public class Coverage private constructor() {
         public companion object {
 
             @JvmStatic
-            public fun read(reader: IonReader): TByteString {
-                TODO()
+            public fun read(reader: IonReader): TBytes {
+                val value = reader.newBytes()
+                return TBytes(value)
             }
         }
     }
@@ -178,6 +186,20 @@ public class Coverage private constructor() {
         override fun write(writer: IonWriter, item: Boolean) {
             writer.writeBool(item)
         }
+
+        companion object {
+
+            @JvmStatic
+            fun read(reader: IonReader): TArrayPrimVar {
+                val items = arrayListOf<Boolean>()
+                reader.stepIn()
+                while (reader.next() == IonType.BOOL) {
+                    items.add(reader.booleanValue())
+                }
+                reader.stepOut()
+                return TArrayPrimVar(items)
+            }
+        }
     }
 
 
@@ -185,6 +207,29 @@ public class Coverage private constructor() {
 
         override fun write(writer: IonWriter, item: Boolean) {
             writer.writeBool(item)
+        }
+
+
+        companion object {
+
+            @JvmStatic
+            fun read(reader: IonReader): TArrayPrimFix {
+                var i = 0
+                val n = 10
+                val items = arrayOfNulls<Boolean>(n)
+                reader.stepIn()
+                while (reader.next() == IonType.BOOL) {
+                    if (i == n) {
+                        error("Expected array of len `$n`, found len $i")
+                    }
+                    items[i++] = reader.booleanValue()
+                }
+                if (i != n) {
+                    error("Expected array of len `$n`, found len $i")
+                }
+                reader.stepOut()
+                return TArrayPrimFix(items.requireNoNulls())
+            }
         }
     }
 
@@ -194,6 +239,20 @@ public class Coverage private constructor() {
         override fun write(writer: IonWriter, item: TBool) {
             item.write(writer)
         }
+
+        companion object {
+
+            @JvmStatic
+            fun read(reader: IonReader): TArrayVar {
+                val items = arrayListOf<TBool>()
+                reader.stepIn()
+                while (reader.next() == IonType.SEXP) {
+                    items.add(TBool.read(reader))
+                }
+                reader.stepOut()
+                return TArrayVar(items)
+            }
+        }
     }
 
 
@@ -201,6 +260,29 @@ public class Coverage private constructor() {
 
         override fun write(writer: IonWriter, item: TBool) {
             item.write(writer)
+        }
+
+
+        companion object {
+
+            @JvmStatic
+            fun read(reader: IonReader): TArrayFix {
+                var i = 0
+                val n = 10
+                val items = arrayOfNulls<TBool>(n)
+                reader.stepIn()
+                while (reader.next() == IonType.SEXP) {
+                    if (i == n) {
+                        error("Expected array of len `$n`, found len $i")
+                    }
+                    items[i++] = TBool.read(reader)
+                }
+                if (i != n) {
+                    error("Expected array of len `$n`, found len $i")
+                }
+                reader.stepOut()
+                return TArrayFix(items.requireNoNulls())
+            }
         }
     }
 
@@ -211,7 +293,6 @@ public class Coverage private constructor() {
     ) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
-            // writer.addTypeAnnotation(TAG)
             writer.stepIn(IonType.SEXP)
             writer.writeInt(x.toLong())
             writer.writeInt(y)
@@ -222,10 +303,12 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TStructPrim {
-                // val tags = reader.typeAnnotations
                 reader.stepIn()
+                assert(reader.next() == IonType.INT)
                 val x: Int = reader.intValue()
+                assert(reader.next() == IonType.INT)
                 val y: Long = reader.longValue()
+                assert(reader.next() == null)
                 reader.stepOut()
                 return TStructPrim(x, y)
             }
@@ -239,7 +322,6 @@ public class Coverage private constructor() {
     ) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
-            // writer.addTypeAnnotation(TAG)
             writer.stepIn(IonType.SEXP)
             x.write(writer)
             y.write(writer)
@@ -250,13 +332,15 @@ public class Coverage private constructor() {
 
             @JvmStatic
             public fun read(reader: IonReader): TStruct {
-                // val tags = reader.typeAnnotations
                 reader.stepIn()
-                TODO()
+                assert(reader.next() == IonType.SEXP)
+                val x: TI32 = TI32.read(reader)
+                assert(reader.next() == IonType.SEXP)
+                val y: TI64 = TI64.read(reader)
+                assert(reader.next() == null)
+                reader.stepOut()
+                return TStruct(x, y)
             }
         }
     }
-
-
 }
-

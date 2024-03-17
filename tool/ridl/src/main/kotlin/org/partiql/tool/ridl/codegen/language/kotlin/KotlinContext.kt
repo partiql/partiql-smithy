@@ -1,5 +1,8 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
+import com.amazon.ion.IonType
+import com.amazon.ion.IonValue
+
 internal class KModel(
     @JvmField val `package`: String,
     @JvmField val namespace: KNamespace,
@@ -23,8 +26,10 @@ internal class KArray(
     @JvmField val path: String,
     @JvmField val name: String,
     @JvmField val item: String,
+    @JvmField val itemIon: IonType,
     @JvmField val size: Int?,
     @JvmField val write: String?,
+    @JvmField val read: String?,
 )
 
 internal class KEnum(
@@ -45,6 +50,7 @@ internal class KStruct(
 internal class KField(
     @JvmField val name: String,
     @JvmField val type: String,
+    @JvmField val ion: IonType,
     @JvmField val write: String?,
     @JvmField val read: String?,
 )

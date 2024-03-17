@@ -1,0 +1,15 @@
+{
+  type: 't_f32',
+  assert: success,
+  value:  1e0,
+}
+{
+  type: 't_f32',
+  assert: success,
+  value:  0e0,
+}
+{
+  type: 't_f32',
+  assert: success,
+  value:  -1e0,
+}

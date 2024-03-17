@@ -1,0 +1,20 @@
+{
+  type: 't_byte',
+  assert: success,
+  value:  0x00,
+}
+{
+  type: 't_byte',
+  assert: success,
+  value:  0x0F,
+}
+{
+  type: 't_byte',
+  assert: success,
+  value:  0xFF,
+}
+{
+  type: 't_byte',
+  assert: fail,
+  value:  0xFF,
+}
