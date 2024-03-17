@@ -6,6 +6,7 @@ import org.partiql.tool.ridl.model.Name
  * Names (namespaces and types)
  *
  * @property name
+ * @property location   Source location for error messaging.
  * @property parent     Used to search up the tree.
  * @property children   Used to search down the tree.
  */

@@ -81,7 +81,7 @@ internal object Definitions {
                 val namespace = namespace.toString()
                 error("Could not resolve name `$fullname` in namespace `${namespace}` at ${Location.of(ctx)}")
             }
-            return RTypeNamed(symbol.toName())
+            return RTypeNamed(symbol.toName(), null)
         }
 
         override fun visitTypePrimitive(ctx: RIDLParser.TypePrimitiveContext): RTypePrimitive {

@@ -3,7 +3,6 @@ package org.partiql.tool.ridl.codegen.language.kotlin
 import com.amazon.ion.IonType
 import net.pearx.kasechange.toPascalCase
 import org.partiql.tool.ridl.codegen.Templates
-import org.partiql.tool.ridl.codegen.language.kotlin.KotlinGenerator.ion
 import org.partiql.tool.ridl.model.*
 import java.io.File
 
@@ -33,13 +32,22 @@ internal object KotlinGenerator {
         return emptyList()
     }
 
-    // TODO namespaces
     private fun Document.toKModel(options: KotlinOptions) = KModel(
         `package` = options.pkg.joinToString("."),
         namespace = KNamespace(
             name = options.namespace.toPascalCase(),
-            types = definitions.filterIsInstance<Type>().map { it.toKType() }
+            definitions = definitions.map { it.toKDefinition() },
         )
+    )
+
+    private fun Definition.toKDefinition(): KDefinition = when (this) {
+        is Namespace -> KDefinition(namespace = toKNamespace())
+        is Type -> KDefinition(type = toKType())
+    }
+
+    private fun Namespace.toKNamespace() = KNamespace(
+        name = name.name(),
+        definitions = definitions.map { it.toKDefinition() }
     )
 
     private fun Type.toKType(parent: String = "IonSerializable"): KType = when (type) {

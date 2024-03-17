@@ -1,7 +1,6 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
 import com.amazon.ion.IonType
-import com.amazon.ion.IonValue
 
 internal class KModel(
     @JvmField val `package`: String,
@@ -10,7 +9,12 @@ internal class KModel(
 
 internal class KNamespace(
     @JvmField val name: String,
-    @JvmField val types: List<KType>,
+    @JvmField val definitions: List<KDefinition>,
+)
+
+internal class KDefinition(
+    @JvmField val type: KType? = null,
+    @JvmField val namespace: KNamespace? = null,
 )
 
 internal class KType(

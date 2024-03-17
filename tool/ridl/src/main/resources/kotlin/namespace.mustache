@@ -1,6 +1,13 @@
 public class {{name}} private constructor() {
 
-    {{#types}}
+    {{#definitions}}
+
+    {{#namespace}}
+    {{>namespace}}
+    {{/namespace}}
+
+    {{#type}}
     {{>type}}
-    {{/types}}
+    {{/type}}
+    {{/definitions}}
 }

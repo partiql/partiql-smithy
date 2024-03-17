@@ -16,9 +16,7 @@ public abstract class _Array<T>(private val items: Array<T>) : IonSerializable {
 
     public override fun write(writer: IonWriter) {
         writer.stepIn(IonType.LIST)
-        for (item in items) {
-            write(writer, item)
-        }
+        for (item in items) { write(writer, item) }
         writer.stepOut()
     }
 
@@ -33,9 +31,7 @@ public abstract class _ArrayList<T>(private val items: ArrayList<T>) : IonSerial
 
     public override fun write(writer: IonWriter) {
         writer.stepIn(IonType.LIST)
-        for (item in items) {
-            write(writer, item)
-        }
+        for (item in items) { write(writer, item) }
         writer.stepOut()
     }
 
@@ -43,6 +39,9 @@ public abstract class _ArrayList<T>(private val items: ArrayList<T>) : IonSerial
 }
 
 public class Coverage private constructor() {
+
+
+
 
 
     public data class TBool(@JvmField val value: Boolean) : IonSerializable {
@@ -62,6 +61,11 @@ public class Coverage private constructor() {
     }
 
 
+
+
+
+
+
     public data class TI32(@JvmField val value: Int) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
@@ -77,6 +81,11 @@ public class Coverage private constructor() {
             }
         }
     }
+
+
+
+
+
 
 
     public data class TI64(@JvmField val value: Long) : IonSerializable {
@@ -96,6 +105,11 @@ public class Coverage private constructor() {
     }
 
 
+
+
+
+
+
     public data class TF32(@JvmField val value: Float) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
@@ -111,6 +125,11 @@ public class Coverage private constructor() {
             }
         }
     }
+
+
+
+
+
 
 
     public data class TF64(@JvmField val value: Double) : IonSerializable {
@@ -130,6 +149,11 @@ public class Coverage private constructor() {
     }
 
 
+
+
+
+
+
     public data class TStr(@JvmField val value: String) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
@@ -145,6 +169,11 @@ public class Coverage private constructor() {
             }
         }
     }
+
+
+
+
+
 
 
     public data class TByte(@JvmField val value: Byte) : IonSerializable {
@@ -164,6 +193,11 @@ public class Coverage private constructor() {
     }
 
 
+
+
+
+
+
     public data class TBytes(@JvmField val value: ByteArray) : IonSerializable {
 
         public override fun write(writer: IonWriter) {
@@ -179,6 +213,9 @@ public class Coverage private constructor() {
             }
         }
     }
+
+
+
 
 
     public class TArrayPrimVar(items: ArrayList<Boolean>) : _ArrayList<Boolean>(items) {
@@ -201,6 +238,11 @@ public class Coverage private constructor() {
             }
         }
     }
+
+
+
+
+
 
 
     public class TArrayPrimFix(items: Array<Boolean>) : _Array<Boolean>(items) {
@@ -234,6 +276,11 @@ public class Coverage private constructor() {
     }
 
 
+
+
+
+
+
     public class TArrayVar(items: ArrayList<TBool>) : _ArrayList<TBool>(items) {
 
         override fun write(writer: IonWriter, item: TBool) {
@@ -254,6 +301,11 @@ public class Coverage private constructor() {
             }
         }
     }
+
+
+
+
+
 
 
     public class TArrayFix(items: Array<TBool>) : _Array<TBool>(items) {
@@ -287,6 +339,14 @@ public class Coverage private constructor() {
     }
 
 
+
+
+
+
+
+
+
+
     public data class TStructPrim(
         @JvmField val x: Int,
         @JvmField val y: Long,
@@ -310,10 +370,15 @@ public class Coverage private constructor() {
                 val y: Long = reader.longValue()
                 assert(reader.next() == null)
                 reader.stepOut()
-                return TStructPrim(x, y)
+                return TStructPrim(x,y,)
             }
         }
     }
+
+
+
+
+
 
 
     public data class TStruct(
@@ -339,8 +404,43 @@ public class Coverage private constructor() {
                 val y: TI64 = TI64.read(reader)
                 assert(reader.next() == null)
                 reader.stepOut()
-                return TStruct(x, y)
+                return TStruct(x,y,)
             }
         }
     }
+
+
+
+    public class Test private constructor() {
+
+
+
+        public class Nested(items: ArrayList<Int>) : _ArrayList<Int>(items) {
+
+            override fun write(writer: IonWriter, item: Int) {
+                writer.writeInt(item.toLong())
+            }
+
+            companion object {
+
+                @JvmStatic
+                fun read(reader: IonReader): Nested {
+                    val items = arrayListOf<Int>()
+                    reader.stepIn()
+                    while (reader.next() == IonType.INT) {
+                        items.add(reader.intValue())
+                    }
+                    reader.stepOut()
+                    return Nested(items)
+                }
+            }
+        }
+
+
+
+
+
+    }
+
 }
+
