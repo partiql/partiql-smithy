@@ -28,7 +28,7 @@ type
   ;
 
 typeNamed
-  : NAME
+  : root=COCO? NAME (COCO NAME)*
   ;
 
 typePrimitive
@@ -93,6 +93,7 @@ UNIT: 'unit';
 
 COMMA: ',';
 COLON: ':';
+COCO: '::';
 SEMICOLON: ';';
 L_ANGLE: '<';
 R_ANGLE: '>';

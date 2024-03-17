@@ -50,20 +50,22 @@ internal class Symbol(
     }
 
     /**
-     * Find the symbol in this namespace.
+     * Find the symbol starting in the current namespace and work outwards.
      */
-    fun find(name: String): Symbol? = children.find { it.name == name }
-
-    /**
-     * Find the symbol starting in the current namespace and working outwards.
-     */
-    fun lookup(name: String): Symbol? {
+    fun find(path: Array<String>): Symbol? {
         var namespace: Symbol? = this
         while (namespace != null) {
-            val symbol = namespace.find(name)
-            if (symbol != null) {
-                return symbol
+            var curr = children.find { it.name == path[0] }
+            if (curr != null) {
+                // matched the root, now match the rest or fail
+                var i = 1
+                while (i < path.size && curr != null) {
+                    curr = curr.children.find { it.name == path[i] }
+                    i++
+                }
+                return if (i == path.size) curr else null
             }
+            // did not match root; move up one namespace.
             namespace = namespace.parent
         }
         return null

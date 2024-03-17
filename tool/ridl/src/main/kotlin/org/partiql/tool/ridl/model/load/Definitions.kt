@@ -25,25 +25,31 @@ internal object Definitions {
 
     fun build(tree: RIDLParser.DocumentContext, root: Symbol): List<Definition> {
         // unpack top-level namespace
-        return DVisitor(root).visitDocument(tree).definitions
+        return DVisitor(root, root).visitDocument(tree).definitions
     }
 
     /**
      * Walk through the symbol tree for name resolution.
+     *
+     * @property root       Root namespace symbol
+     * @property namespace  Current namespace
      */
-    private class DVisitor(private val namespace: Symbol) : RIDLBaseVisitor<Definition>() {
+    private class DVisitor(
+        private val root: Symbol,
+        private val namespace: Symbol,
+    ) : RIDLBaseVisitor<Definition>() {
 
         override fun visitDocument(ctx: RIDLParser.DocumentContext) = visitBody(ctx.body())
 
         override fun visitDefinitionType(ctx: RIDLParser.DefinitionTypeContext): Type {
             val name = namespace.get(ctx, ctx.NAME().text).toName()
-            val definition = TVisitor(name, namespace).visitType(ctx.type())
+            val definition = TVisitor(root, name, namespace).visitType(ctx.type())
             return Type(name, definition)
         }
 
         override fun visitDefinitionNamespace(ctx: RIDLParser.DefinitionNamespaceContext): Namespace {
             val curr = namespace.get(ctx, ctx.NAME().text)
-            return DVisitor(curr).visitBody(ctx.body())
+            return DVisitor(root, curr).visitBody(ctx.body())
         }
 
         override fun visitBody(ctx: RIDLParser.BodyContext): Namespace {
@@ -51,24 +57,29 @@ internal object Definitions {
             val definitions = ctx.definition().map { visit(it) }
             return Namespace(name, definitions)
         }
-
     }
 
     /**
      * Produce an RType.
      *
-     * @property namespace
+     * @property root       Root namespace symbol
+     * @property name       Current symbol name
+     * @property namespace  Current namespace
      */
     private class TVisitor(
+        private val root: Symbol,
         private val name: Name,
         private val namespace: Symbol,
     ) : RIDLBaseVisitor<RType>() {
 
         override fun visitTypeNamed(ctx: RIDLParser.TypeNamedContext): RTypeNamed {
-            val name = ctx.NAME().text
-            val symbol = namespace.find(name)
+            val path = ctx.NAME().map { it.text!! }.toTypedArray()
+            val curr = if (ctx.root != null) root else namespace
+            val symbol = curr.find(path)
             if (symbol == null) {
-                error("Could not resolve name `$name` in namespace `${namespace}` at ${Location.of(ctx)}")
+                val fullname = path.joinToString("::")
+                val namespace = namespace.toString()
+                error("Could not resolve name `$fullname` in namespace `${namespace}` at ${Location.of(ctx)}")
             }
             return RTypeNamed(symbol.toName())
         }
@@ -109,7 +120,7 @@ internal object Definitions {
         override fun visitTypeUnion(ctx: RIDLParser.TypeUnionContext): RTypeUnion {
             // define variants in the namespace created by the union
             val curr = namespace.get(ctx, name.name)
-            val visitor = TVisitor(name, curr)
+            val visitor = TVisitor(root, name, curr)
             val variants = ctx.typeUnionVariant().map {
                 val name = curr.get(it, it.NAME().text).toName()
                 val type = visitor.visitType(it.type())
@@ -125,7 +136,7 @@ internal object Definitions {
 
     private fun Symbol.get(ctx: ParserRuleContext, name: String): Symbol {
         val location = Location.of(ctx)
-        val symbol = this.find(name)
+        val symbol = this.find(arrayOf(name))
         if (symbol == null) {
             error("Name `$name` was not found; appeared at $location")
         }
