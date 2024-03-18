@@ -7,13 +7,15 @@ import org.partiql.tool.ridl.model.Document
 class LoaderTest {
 
     @Test
-    fun load() {
+    fun aliases() {
 
         val grammar = """
             type p_type int32;
-            type foo p_type;
+
+            // alias without forward declaration
             type bar foo;
-            
+            type foo p_type;
+
             type point struct { x: foo, y: bar };
 
             namespace other {

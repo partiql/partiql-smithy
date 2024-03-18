@@ -6,7 +6,7 @@ import org.partiql.tool.ridl.antlr.RIDLBaseVisitor
 import org.partiql.tool.ridl.antlr.RIDLParser
 
 /**
- * Helper function to turn the ANTLR tree to a Symbol tree.
+ * Helper function to turn the ANTLR AST to a Symbol tree for name resolution.
  */
 internal object Symbols {
 

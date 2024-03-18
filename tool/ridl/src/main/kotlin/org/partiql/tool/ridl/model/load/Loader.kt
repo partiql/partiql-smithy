@@ -31,8 +31,9 @@ internal object Loader {
         val tree = parser.document()!!
         // 1st pass, build the symbol tree for name resolution.
         val namespace = Symbols.build(tree)
-        // 2nd pass, populate definitions using the symbol tree.
-        val definitions = Definitions.build(tree, namespace)
+        // 2nd and 3rd passes, populate definitions using the symbol tree and rebase(?) aliases.
+        val definitions = Definitions.build(tree, namespace).rebase()
+        // Done.
         return Document(definitions)
     }
 

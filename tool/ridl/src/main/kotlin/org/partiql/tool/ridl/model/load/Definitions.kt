@@ -19,14 +19,35 @@ import org.partiql.tool.ridl.model.RTypeUnit
 import org.partiql.tool.ridl.model.Type
 
 /**
- * Helper function to turn the ANTLR tree to a definition tree.
+ * Helper function to turn the ANTLR AST to a definition tree.
  */
-internal object Definitions {
+internal class Definitions(
+    private val definitions: List<Definition>,
+    private val aliases: Map<Name, RTypeRef>,
+) {
 
-    fun build(tree: RIDLParser.DocumentContext, root: Symbol): List<Definition> {
-        // unpack top-level namespace
-        return DVisitor(root, root).visitDocument(tree).definitions
+    companion object {
+
+        @JvmStatic
+        fun build(tree: RIDLParser.DocumentContext, root: Symbol): Definitions {
+            // collect aliases when visiting definitions
+            val aliases = mutableMapOf<Name, RTypeRef>()
+            // unpack top-level namespace
+            val definitions =  DVisitor(root, root, aliases).visitDocument(tree).definitions
+            return Definitions(definitions, aliases)
+        }
+
+        internal fun Symbol.get(ctx: ParserRuleContext, name: String): Symbol {
+            val location = Location.of(ctx)
+            val symbol = this.find(arrayOf(name))
+            if (symbol == null) {
+                error("Name `$name` was not found; appeared at $location")
+            }
+            return symbol
+        }
     }
+
+    public fun rebase(): List<Definition> = Rebase.apply(definitions, aliases)
 
     /**
      * Walk through the symbol tree for name resolution.
@@ -37,6 +58,7 @@ internal object Definitions {
     private class DVisitor(
         private val root: Symbol,
         private val namespace: Symbol,
+        private val aliases: MutableMap<Name, RTypeRef>,
     ) : RIDLBaseVisitor<Definition>() {
 
         override fun visitDocument(ctx: RIDLParser.DocumentContext) = visitBody(ctx.body())
@@ -44,12 +66,16 @@ internal object Definitions {
         override fun visitDefinitionType(ctx: RIDLParser.DefinitionTypeContext): Type {
             val name = namespace.get(ctx, ctx.NAME().text).toName()
             val definition = TVisitor(root, name, namespace).visitType(ctx.type())
+            if (definition is RTypeRef) {
+                // this is an alias; as we are assigning a name to an existing type.
+                aliases[name] = definition
+            }
             return Type(name, definition)
         }
 
         override fun visitDefinitionNamespace(ctx: RIDLParser.DefinitionNamespaceContext): Namespace {
             val curr = namespace.get(ctx, ctx.NAME().text)
-            return DVisitor(root, curr).visitBody(ctx.body())
+            return DVisitor(root, curr, aliases).visitBody(ctx.body())
         }
 
         override fun visitBody(ctx: RIDLParser.BodyContext): Namespace {
@@ -133,14 +159,4 @@ internal object Definitions {
 
         override fun visitTypeUnit(ctx: RIDLParser.TypeUnitContext) = RTypeUnit
     }
-
-    private fun Symbol.get(ctx: ParserRuleContext, name: String): Symbol {
-        val location = Location.of(ctx)
-        val symbol = this.find(arrayOf(name))
-        if (symbol == null) {
-            error("Name `$name` was not found; appeared at $location")
-        }
-        return symbol
-    }
 }
-

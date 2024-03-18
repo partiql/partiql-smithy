@@ -6,4 +6,8 @@ public class Name(
 ) {
 
     override fun toString(): String = path.joinToString("::")
+
+    override fun equals(other: Any?): Boolean = (other is Name && other.path.contentEquals(path))
+
+    override fun hashCode(): Int = path.contentHashCode()
 }

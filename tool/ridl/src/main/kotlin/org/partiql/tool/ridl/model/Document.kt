@@ -7,7 +7,7 @@ import java.nio.file.Path
  * Top-level model of a grammar
  */
 public class Document(
-    public val definitions: List<Definition>,
+    @JvmField public val definitions: List<Definition>,
 ) {
 
     public companion object {
