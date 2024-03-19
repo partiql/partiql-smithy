@@ -31,11 +31,11 @@ type t_struct struct {
 //     inline: struct { x: int32, y: int64 },
 // };
 
-// type my_union union {
-//     var_a: int32,
-//     var_b: int64,
-//     var_c: struct { x: int32, y: int32 },
-// }
+type my_union union {
+    var_a: int32,
+    var_b: int64,
+    var_c: struct { x: int32, y: int32 },
+}
 
 // type my_enum enum { ENUMERATOR_X, ENUMERATOR_Y, ENUMERATOR_Z }
 

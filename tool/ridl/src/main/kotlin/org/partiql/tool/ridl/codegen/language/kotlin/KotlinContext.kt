@@ -20,7 +20,6 @@ internal class KDefinition(
 internal class KType(
     @JvmField val array: KArray? = null,
     @JvmField val enum: KEnum? = null,
-    @JvmField val scalar: KScalar? = null,
     @JvmField val struct: KStruct? = null,
     @JvmField val union: KUnion? = null,
     @JvmField val unit: KUnit? = null,
@@ -79,13 +78,4 @@ internal class KUnit(
     @JvmField val name: String,
     @JvmField val parent: String,
     @JvmField val tag: String,
-)
-
-internal class KScalar(
-    @JvmField val path: String,
-    @JvmField val name: String,
-    @JvmField val parent: String,
-    @JvmField val type: String,
-    @JvmField val write: String,
-    @JvmField val read: String,
 )

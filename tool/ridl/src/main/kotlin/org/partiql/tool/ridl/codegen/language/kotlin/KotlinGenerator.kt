@@ -13,7 +13,7 @@ internal object KotlinGenerator {
     fun generate(options: KotlinOptions, document: Document): List<File> {
 
         // Convert RIDL document to a Kotlin model
-        val model = document.toKModel(options)
+        val model = document.lower().toKModel(options)
 
         //-------------------------------------------------------------------------
         // BEGIN: package
@@ -32,13 +32,14 @@ internal object KotlinGenerator {
         return emptyList()
     }
 
-    private fun Document.toKModel(options: KotlinOptions) = KModel(
-        `package` = options.pkg.joinToString("."),
-        namespace = KNamespace(
-            name = options.namespace.toPascalCase(),
-            definitions = definitions.map { it.toKDefinition() },
-        )
-    )
+    private fun Document.toKModel(options: KotlinOptions): KModel {
+            return KModel(
+                `package` = options.pkg.joinToString("."), namespace = KNamespace(
+                    name = options.namespace.toPascalCase(),
+                    definitions = definitions.map { it.toKDefinition() },
+                )
+            )
+    }
 
     private fun Definition.toKDefinition(): KDefinition = when (this) {
         is Namespace -> KDefinition(namespace = toKNamespace())
@@ -47,14 +48,14 @@ internal object KotlinGenerator {
 
     private fun Namespace.toKNamespace() = KNamespace(
         name = name.name(),
-        definitions = definitions.map { it.toKDefinition() }
+        definitions = definitions.map { it.toKDefinition() },
     )
 
     private fun Type.toKType(parent: String = "IonSerializable"): KType = when (type) {
         is RTypeArray -> type.toKType(name, parent)
         is RTypeEnum -> type.toKType(name, parent)
-        is RTypeNamed -> type.toKType(name, parent)
-        is RTypePrimitive -> type.toKType(name, parent)
+        is RTypeNamed -> error("Cannot define an alias; model should have been lowered.")
+        is RTypePrimitive -> error("Cannot define a primitive; model should have been lowered.")
         is RTypeStruct -> type.toKType(name, parent)
         is RTypeUnion -> type.toKType(name, parent)
         is RTypeUnit -> type.toKType(name, parent)
@@ -77,19 +78,6 @@ internal object KotlinGenerator {
             path = name.path(),
             name = name.name(),
             values = values,
-        )
-    )
-
-    private fun RTypeNamed.toKType(name: Name, parent: String): KType = TODO()
-
-    private fun RTypePrimitive.toKType(name: Name, parent: String) = KType(
-        scalar = KScalar(
-            path = name.path(),
-            name = name.name(),
-            parent = parent,
-            type = reference(),
-            write = write("value")!!,
-            read = read()!!
         )
     )
 
@@ -120,7 +108,7 @@ internal object KotlinGenerator {
                 KVariant(
                     tag = i,
                     name = v.name.name(),
-                    type = v.toKType(name.name())
+                    type = v.toKType(name.name()),
                 )
             },
             builder = name.builder(),
@@ -138,7 +126,10 @@ internal object KotlinGenerator {
     )
 
     private fun RTypeRef.reference(): String = when (this) {
-        is RTypeNamed -> name.path()
+        is RTypeNamed -> when (base) {
+            null -> name.path()
+            else -> base.reference()
+        }
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "Boolean"
             Primitive.INT32 -> "Int"
@@ -152,7 +143,10 @@ internal object KotlinGenerator {
     }
 
     private fun RTypeRef.write(arg: String): String? = when (this) {
-        is RTypeNamed -> null
+        is RTypeNamed -> when (base) {
+            null -> null
+            else -> base.write(arg)
+        }
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "writeBool($arg)"
             Primitive.INT32 -> "writeInt($arg.toLong())"
@@ -166,7 +160,10 @@ internal object KotlinGenerator {
     }
 
     private fun RTypeRef.read(): String? = when (this) {
-        is RTypeNamed -> null
+        is RTypeNamed -> when (base) {
+            null -> null
+            else -> base.read()
+        }
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "booleanValue()"
             Primitive.INT32 -> "intValue()"

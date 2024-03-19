@@ -1,6 +1,8 @@
 package org.partiql.tool.ridl.model.load
 
 import org.junit.jupiter.api.Test
+import org.partiql.tool.ridl.codegen.language.kotlin.KotlinGenerator
+import org.partiql.tool.ridl.codegen.language.kotlin.KotlinOptions
 
 import org.partiql.tool.ridl.model.Document
 
@@ -33,5 +35,8 @@ class LoaderTest {
 
         val document = Document.load(grammar)
         println(document)
+
+        val options = KotlinOptions(namespace = "example", pkg = listOf("com", "exapmle"))
+        KotlinGenerator.generate(options, document)
     }
 }

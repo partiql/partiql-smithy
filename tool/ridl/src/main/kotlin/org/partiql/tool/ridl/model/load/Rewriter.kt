@@ -11,8 +11,10 @@ internal abstract class Rewriter {
         is Type -> rewrite(definition)
     }
 
-    open fun rewrite(namespace: Namespace): Namespace =
-        Namespace(name = namespace.name, definitions = namespace.definitions.map { rewrite(it) })
+    open fun rewrite(namespace: Namespace): Namespace = Namespace(
+        name = namespace.name,
+        definitions = namespace.definitions.map { rewrite(it) },
+    )
 
     open fun rewrite(type: Type): Type = Type(
         name = type.name, type = rewrite(type.type)
@@ -37,14 +39,14 @@ internal abstract class Rewriter {
 
     open fun rewrite(type: RTypeEnum): RType = type
 
-    open fun rewrite(type: RTypeNamed): RTypeNamed = type
-
-    open fun rewrite(type: RTypePrimitive): RTypePrimitive = type
-
     open fun rewrite(type: RTypeRef): RTypeRef = when (type) {
         is RTypeNamed -> rewrite(type)
         is RTypePrimitive -> rewrite(type)
     }
+
+    open fun rewrite(type: RTypeNamed): RTypeRef = type
+
+    open fun rewrite(type: RTypePrimitive): RTypeRef = type
 
     open fun rewrite(type: RTypeStruct): RTypeStruct {
         val fields = type.fields.map {

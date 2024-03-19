@@ -21,15 +21,6 @@ class TestKotlinCoverage {
 
     // type to read functions
     private val readers = mapOf<String, (IonReader) -> IonSerializable>(
-        // primitives
-        "t_bool" to Coverage.TBool::read,
-        "t_i32" to Coverage.TI32::read,
-        "t_i64" to Coverage.TI64::read,
-        "t_f32" to Coverage.TF32::read,
-        "t_f64" to Coverage.TF64::read,
-        "t_str" to Coverage.TStr::read,
-        "t_byte" to Coverage.TByte::read,
-        "t_bytes" to Coverage.TBytes::read,
         // arrays
         "t_array_prim_var" to Coverage.TArrayPrimVar::read,
         "t_array_prim_fix" to Coverage.TArrayPrimFix::read,
@@ -37,6 +28,7 @@ class TestKotlinCoverage {
         "t_array_fix" to Coverage.TArrayFix::read,
         // structs
         "t_struct_prim" to Coverage.TStructPrim::read,
+        "t_struct" to Coverage.TStruct::read,
     )
 
     @TestFactory
