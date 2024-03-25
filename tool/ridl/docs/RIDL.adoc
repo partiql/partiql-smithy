@@ -96,7 +96,6 @@ reference
     ;
 ----
 
-
 === Primitive
 
 [source,antlr]
@@ -118,6 +117,8 @@ primitive
 
 Arrays represent either fixed-length or variable-length sequences; an array type is variable-length if no size is given.
 
+NOTE: Add a note about why byte/bytes vs byte[n], byte[], and bytes as Ion blob with length constraint.
+
 [source,antlr]
 ----
 array: type '[' size=int? ']';
@@ -130,6 +131,10 @@ type uuid byte[16]; // fixed-length array
 type sha1 byte[20]; // ''
 
 type nums int32[];  // variable-length array
+
+// Equivalent in Ion encoding
+byte  <-> byte[1]
+bytes <-> byte[]
 ----
 
 === Struct
@@ -160,11 +165,11 @@ type coordinates struct {
 [source,antlr]
 ----
 union
-    : 'union' '{' variant+ '}'
+    : 'union' '{' variant (',' variant)* ','? '}'
     ;
 
 variant
-    : identifier type ';'
+    : identifier ':' type
     ;
 ----
 
@@ -173,15 +178,15 @@ variant
 ----
 type my_union union {
 
-    variant_a struct {
+    variant_a: struct {
         x: int32,
         y: int32,
-    };
+    },
 
-    variant_b stuct {
+    variant_b: stuct {
         u: int32,
         v: int32,
-    };
+    },
 };
 ----
 
@@ -217,8 +222,6 @@ type my_singleton unit;
 
 === Include
 
-IMPORTANT: This section is out of scope for version 1, but was included for discussion.
-
 An include statement is used to bring all type definitions from another source into the current namespace. It is effectively a pre-processing copy-paste of the included source.
 
 .Include Example
@@ -238,8 +241,6 @@ type b enum { X, Y };
 ----
 
 === Namespace
-
-IMPORTANT: This section is out of scope for version 1, but was included for discussion.
 
 Namespaces allow grouping of type names to preventing name conflicts. The syntax and behavior match typedef in C++ namespaces and the Type Namespace of Rust. In RIDL, there is only one _type_ of namespace i.e. the _names_ of namespaces and the _names_ types of occupy the same space.
 
@@ -296,7 +297,7 @@ Array values are encoded as Ion lists.
 
 ==== Struct
 
-A struct is encoded as an Ion s-expression annotated with its qualified name. Note that a qualified name is delimited with '::' and is always quoted to form a single annotation.
+A struct is encoded as an untagged Ion s-expression — see note on records, products, packed structs etc. This basic text encoding translates to a similar Ion binary encoding to that of both Protobuf and Avro [1]. The omission of struct type annotations is typical as concrete types are given during deserialization as seen in Jackson JSON / Moshi / Rust Serde JSON.
 
 .Example
 [source]
@@ -311,7 +312,7 @@ type my_struct {
 // { a: 1, b: 2 }
 
 // Ion Encoding
-'my_struct'::(1,2)
+(1,2)
 ----
 
 .Namespaced Example
@@ -329,38 +330,40 @@ namespace foo {
 // { x: true, y: false }
 
 // Ion Encoding
-'foo::bar'::(true,false)
+(true,false)
 ----
 
 NOTE: Related topics which are illustrative here are link:https://ziglang.org/documentation/master/#packed-struct[Zig packed structs] and link:https://en.wikipedia.org/wiki/Product_type[product] types vs. link:https://en.wikipedia.org/wiki/Record_(computer_science)[record] types. The crux here is asking which algebraic type we _want_ struct to represent in RIDL, and will there be a tuple type? This proposal aligns with Zig's packed struct which is much like a product type where names are discarded and fields are accessed in the order they are declared. I'm eager to discuss this, but consider a definitive decision out of scope for version 1.
 
+.Notes
+* https://protobuf.dev/programming-guides/encoding/
+* https://avro.apache.org/docs/1.11.1/specification/#data-serialization-and-deserialization
+
 ==== Union
 
-A union type is encoded as the encoding of its conrete type.
+A union type is encoded as the encoding of its concrete type.
 
 .Example
 [source]
 ----
 type my_union union {
-
-    foo int32;
-
-    bar struct { x: int32, y: int32 };
+    foo: int32,
+    bar: struct { x: int32, y: int32 },
 };
 
 // Foo Value, 3
 // Bar Value,  { x: 1, y: 2 }
 
-// Foo Encoding
-'my_union::foo'::3
+// Foo Encoding — tag 0
+(0 3)
 
-// Bar Encoding
-'my_union::bar'::(1,2)
+// Bar Encoding — tag 1
+(1 (1 2))
 ----
 
 ==== Enum
 
-An enum is serialized to Ion with its qualified name annotated on the enumerator value.
+An enum is serialized to Ion as a symbol.
 
 .Example
 [source]
@@ -372,12 +375,12 @@ type my_enum enum { A, B, C };
 // B
 
 // Ion Encoding
-'my_enum'::B
+B
 ----
 
 ==== Unit
 
-A unit is serialized to Ion with its qualified name annotated on the symbol `unit`.
+A unit is serialized to Ion as the symbol `$unit`. Add note as to why or why not this exists.
 
 .Example
 [source]
@@ -391,8 +394,7 @@ namespace foo {
 }
 
 // Ion Encodings
-'my_unit'::unit
-'::foo::my_unit'::unit
+$unit
 ----
 
 === Ion Schema
@@ -509,7 +511,6 @@ type::{
     name: '<..NAME>',
     type: sexp,
     container_length: <N>,
-    annotations: required::closed::[ '<..NAME>' ],
     ordered_elements: [
         <T_1>,
         ...,
@@ -525,9 +526,9 @@ NOTE: Each `<T_i>` which is an inline type definition is defined before the oute
 [source,ridl]
 ----
 type <NAME> union { 
-    <V_1> <T_1>;
+    <V_1>: <T_1>,
     ...
-    <V_N> <T_N>;
+    <V_N>: <T_N>,
 }
 ----
 
@@ -547,7 +548,16 @@ type::{
 
 type::{
     name: '<..NAME>',
-    one_of: [ <T_1>, ..., <T_N> ],
+    type: sexp,
+    ordered_elements: [
+      {
+        type: int,
+        valid_values: range::[0, exclusive::<N>],
+      },
+      {
+        one_of: [ <T_1>, ..., <T_N> ],
+      }
+    ]
 }
 ----
 
@@ -737,7 +747,6 @@ UNRECOGNIZED
 type
 namespace
 include
-
 bool
 int32
 int64
@@ -746,10 +755,44 @@ float64
 string
 byte
 bytes
-
 array
 struct
 union
 enum
 unit
+----
+
+=== A3 — Editor Configuration
+
+**Intellij**
+[source]
+----
+1. CMD + ,
+2. Editor > File Types
+3. CMD + N
+4. Add RIDL:
+
+    Name: RIDL
+    Description: RIDL
+    Line comment: //
+    [x] Support paired braces
+    [x] Support paired brackets
+    [x] Support paired parents
+    Keywords:
+        type
+        namespace
+        include
+        bool
+        int32
+        int64
+        float32
+        float64
+        string
+        byte
+        bytes
+        array
+        struct
+        union
+        enum
+        unit
 ----

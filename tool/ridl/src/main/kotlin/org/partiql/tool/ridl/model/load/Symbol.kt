@@ -54,9 +54,9 @@ internal class Symbol(
      * Find the symbol starting in the current namespace and work outwards.
      */
     fun find(path: Array<String>): Symbol? {
-        var namespace: Symbol? = this
-        while (namespace != null) {
-            var curr = children.find { it.name == path[0] }
+        var ns: Symbol? = this
+        while (ns != null) {
+            var curr = ns.children.find { it.name == path[0] }
             if (curr != null) {
                 // matched the root, now match the rest or fail
                 var i = 1
@@ -67,7 +67,7 @@ internal class Symbol(
                 return if (i == path.size) curr else null
             }
             // did not match root; move up one namespace.
-            namespace = namespace.parent
+            ns = ns.parent
         }
         return null
     }

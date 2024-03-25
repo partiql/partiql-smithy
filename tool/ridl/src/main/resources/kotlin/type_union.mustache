@@ -1,16 +1,15 @@
 public sealed interface {{name}} : {{parent}} {
 
     {{#variants}}
-        // test
-        {{#type}}
-        {{>type}}
-        {{/type}}
+    {{#type}}
+    {{>type}}
+    {{/type}}
     {{/variants}}
 
     companion object {
 
         @JvmStatic
-        public fun read(reader: IonReader): Either {
+        public fun read(reader: IonReader): {{name}} {
             val tags = reader.typeAnnotations
             assert(tags.size == 1) { "Union type `{{name}}` is missing a tag" }
             val tag = tags[0].toInt()

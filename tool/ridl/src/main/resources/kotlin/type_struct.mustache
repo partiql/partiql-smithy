@@ -5,7 +5,9 @@ public data class {{name}}(
 ) : {{parent}} {
 
     public override fun write(writer: IonWriter) {
+        {{#wrap}}
         writer.stepIn(IonType.SEXP)
+        {{/wrap}}
         {{#fields}}
         {{#write}}
         writer.{{write}}
@@ -14,14 +16,18 @@ public data class {{name}}(
         {{name}}.write(writer)
         {{/write}}
         {{/fields}}
+        {{#wrap}}
         writer.stepOut()
+        {{/wrap}}
     }
 
     public companion object {
 
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
+            {{#wrap}}
             reader.stepIn()
+            {{/wrap}}
             {{#fields}}
             assert(reader.next() == IonType.{{ion}})
             {{#read}}
@@ -31,8 +37,10 @@ public data class {{name}}(
             val {{name}}: {{type}} = {{type}}.read(reader)
             {{/read}}
             {{/fields}}
+            {{#wrap}}
             assert(reader.next() == null)
             reader.stepOut()
+            {{/wrap}}
             return {{name}}({{#fields}}{{name}},{{/fields}})
         }
     }

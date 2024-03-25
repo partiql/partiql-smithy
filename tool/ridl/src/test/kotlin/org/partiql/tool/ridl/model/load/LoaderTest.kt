@@ -10,7 +10,6 @@ class LoaderTest {
 
     @Test
     fun aliases() {
-
         val grammar = """
             type p_type int32;
 
@@ -32,11 +31,58 @@ class LoaderTest {
                 };
             }
         """.trimIndent()
+        val document = Document.load(grammar)
+        println(document)
+    }
 
+    @Test
+    fun unions() {
+        val grammar = """
+            type t_struct struct {
+                x: int32,
+                y: int64,
+            };
+            
+            type t_union union {
+                var_a: t_struct,
+                var_b: t_struct,
+            };
+            
+            type t_union_3 union {
+                var_a: struct { x: int32, y: int64 },
+                var_b: struct { x: float32, y: float64 },
+            };
+
+            type t_union_4 union {
+                var_a: int32,
+                var_b: t_struct,
+                var_c: struct { x: float32, y: float64 },
+            };
+
+            type t_union_5 union {
+                var_1: union {
+                    var_a: int32,
+                    var_b: int64,
+                },
+                var_2: union {
+                    var_a: t_struct,
+                    var_b: t_struct,
+                },
+                var_3: union {
+                    var_a: struct { x: int32, y: int64 },
+                    var_b: struct { x: float32, y: float64 },
+                },
+                var_4: union {
+                    var_a: int32,
+                    var_b: t_struct,
+                    var_c: struct { x: float32, y: float64 },
+                },
+            };
+        """.trimIndent()
         val document = Document.load(grammar)
         println(document)
 
-        val options = KotlinOptions(namespace = "example", pkg = listOf("com", "exapmle"))
+        val options = KotlinOptions("example", listOf("com", "example"))
         KotlinGenerator.generate(options, document)
     }
 }

@@ -1,9 +1,5 @@
 = RIDL — Kotlin
 
-Notes to self
-* No semicolon.
-* Make union and struct syntax the same.
-
 == Support
 
 === Primitives

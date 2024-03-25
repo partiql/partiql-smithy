@@ -209,5 +209,94 @@ public class Coverage private constructor() {
     }
 
 
+    public sealed interface MyUnion : IonSerializable {
+
+
+        public data class VarA(
+            @JvmField val value: Int,
+        ) : MyUnion {
+
+            public override fun write(writer: IonWriter) {
+                writer.writeInt(value.toLong())
+            }
+
+            public companion object {
+
+                @JvmStatic
+                public fun read(reader: IonReader): VarA {
+                    assert(reader.next() == IonType.INT)
+                    val value: Int = reader.intValue()
+                    return VarA(value)
+                }
+            }
+        }
+
+
+        public data class VarB(
+            @JvmField val value: Long,
+        ) : MyUnion {
+
+            public override fun write(writer: IonWriter) {
+                writer.writeInt(value)
+            }
+
+            public companion object {
+
+                @JvmStatic
+                public fun read(reader: IonReader): VarB {
+                    assert(reader.next() == IonType.INT)
+                    val value: Long = reader.longValue()
+                    return VarB(value)
+                }
+            }
+        }
+
+
+        public data class VarC(
+            @JvmField val x: Int,
+            @JvmField val y: Int,
+        ) : MyUnion {
+
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(x.toLong())
+                writer.writeInt(y.toLong())
+                writer.stepOut()
+            }
+
+            public companion object {
+
+                @JvmStatic
+                public fun read(reader: IonReader): VarC {
+                    reader.stepIn()
+                    assert(reader.next() == IonType.INT)
+                    val x: Int = reader.intValue()
+                    assert(reader.next() == IonType.INT)
+                    val y: Int = reader.intValue()
+                    assert(reader.next() == null)
+                    reader.stepOut()
+                    return VarC(x, y)
+                }
+            }
+        }
+
+
+        companion object {
+
+            @JvmStatic
+            public fun read(reader: IonReader): MyUnion {
+                val tags = reader.typeAnnotations
+                assert(tags.size == 1) { "Union type `MyUnion` is missing a tag" }
+                val tag = tags[0].toInt()
+                return when (tag) {
+                    0 -> VarA.read(reader)
+                    1 -> VarB.read(reader)
+                    2 -> VarC.read(reader)
+                    else -> error("Invalid tag `$tag` on union type `MyUnion`")
+                }
+            }
+        }
+    }
+
 }
 

@@ -39,7 +39,7 @@ internal class Definitions(
 
         internal fun Symbol.get(ctx: ParserRuleContext, name: String): Symbol {
             val location = Location.of(ctx)
-            val symbol = this.find(arrayOf(name))
+            val symbol = find(arrayOf(name))
             if (symbol == null) {
                 error("Name `$name` was not found; appeared at $location")
             }
@@ -146,10 +146,9 @@ internal class Definitions(
         override fun visitTypeUnion(ctx: RIDLParser.TypeUnionContext): RTypeUnion {
             // define variants in the namespace created by the union
             val curr = namespace.get(ctx, name.name)
-            val visitor = TVisitor(root, name, curr)
             val variants = ctx.typeUnionVariant().map {
                 val name = curr.get(it, it.NAME().text).toName()
-                val type = visitor.visitType(it.type())
+                val type = TVisitor(root, name, curr).visitType(it.type())
                 Type(name, type)
             }
             return RTypeUnion(variants)

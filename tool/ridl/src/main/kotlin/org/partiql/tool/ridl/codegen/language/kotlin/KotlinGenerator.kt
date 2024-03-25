@@ -1,8 +1,10 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
 import com.amazon.ion.IonType
+import com.amazon.ionelement.api.field
 import net.pearx.kasechange.toPascalCase
 import org.partiql.tool.ridl.codegen.Templates
+import org.partiql.tool.ridl.codegen.language.kotlin.KotlinGenerator.toKType
 import org.partiql.tool.ridl.model.*
 import java.io.File
 
@@ -81,7 +83,7 @@ internal object KotlinGenerator {
         )
     )
 
-    private fun RTypeStruct.toKType(name: Name, parent: String) = KType(
+    private fun RTypeStruct.toKType(name: Name, parent: String, wrap: Boolean = true) = KType(
         struct = KStruct(
             path = name.path(),
             name = name.name(),
@@ -96,6 +98,7 @@ internal object KotlinGenerator {
             },
             builder = name.builder(),
             visit = name.visit(),
+            wrap = wrap,
         )
     )
 
@@ -104,16 +107,24 @@ internal object KotlinGenerator {
             path = name.path(),
             name = name.name(),
             parent = parent,
-            variants = variants.mapIndexed { i, v ->
-                KVariant(
-                    tag = i,
-                    name = v.name.name(),
-                    type = v.toKType(name.name()),
-                )
-            },
+            variants = variants.mapIndexed { i, v -> v.toKVariant(i, name.name()) },
             builder = name.builder(),
             visit = name.visit(),
         )
+    )
+
+    private fun Type.toKVariant(tag: Int, parent: String) = KVariant(
+        tag = tag,
+        name = name.name(),
+        type = when (type) {
+            is RTypePrimitive -> {
+                // Derive a struct by wrapping the primitive
+                val fields = listOf(RTypeStruct.Field("value", type))
+                val derived = RTypeStruct(fields)
+                derived.toKType(name, parent, wrap = false)
+            }
+            else -> toKType(parent)
+        }
     )
 
     private fun RTypeUnit.toKType(name: Name, parent: String) = KType(

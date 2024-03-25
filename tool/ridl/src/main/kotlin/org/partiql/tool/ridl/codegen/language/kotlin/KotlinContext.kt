@@ -48,6 +48,7 @@ internal class KStruct(
     @JvmField val fields: List<KField>,
     @JvmField val builder: String? = null,
     @JvmField val visit: String? = null,
+    @JvmField val wrap: Boolean = true,
 )
 
 internal class KField(

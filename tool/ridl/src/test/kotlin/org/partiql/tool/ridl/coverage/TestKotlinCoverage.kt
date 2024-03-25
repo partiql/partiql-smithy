@@ -19,7 +19,7 @@ class TestKotlinCoverage {
     private val root = this::class.java.getResource("/cases")!!.toURI().toPath()
     private val ion = IonSystemBuilder.standard().build()
 
-    // type to read functions
+    // type to `read` functions
     private val readers = mapOf<String, (IonReader) -> IonSerializable>(
         // arrays
         "t_array_prim_var" to Coverage.TArrayPrimVar::read,
@@ -29,6 +29,7 @@ class TestKotlinCoverage {
         // structs
         "t_struct_prim" to Coverage.TStructPrim::read,
         "t_struct" to Coverage.TStruct::read,
+        // unions
     )
 
     @TestFactory
