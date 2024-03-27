@@ -30,6 +30,7 @@ class TestKotlinCoverage {
         "t_struct_prim" to Coverage.TStructPrim::read,
         "t_struct" to Coverage.TStruct::read,
         // unions
+        "t_union_1" to Coverage.TUnion1::read,
     )
 
     @TestFactory

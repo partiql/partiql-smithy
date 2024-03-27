@@ -4,8 +4,19 @@ public enum class {{name}} {
     {{/values}}
     ;
 
+    {{#tag}}
+    private val tag: Long = {{.}}
+    {{/tag}}
+
     public override fun write(writer: IonWriter) {
+        {{#tag}}
+        writer.stepIn(IonType.SEXP)
+        writer.writeInt(tag)
+        {{/tag}}
         writer.writeSymbol(name)
+        {{#tag}}
+        writer.stepOut()
+        {{/tag}}
     }
 
     public companion object {

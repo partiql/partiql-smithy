@@ -1,10 +1,9 @@
 package org.partiql.tool.ridl.codegen.language.kotlin
 
 import com.amazon.ion.IonType
-import com.amazon.ionelement.api.field
 import net.pearx.kasechange.toPascalCase
 import org.partiql.tool.ridl.codegen.Templates
-import org.partiql.tool.ridl.codegen.language.kotlin.KotlinGenerator.toKType
+import org.partiql.tool.ridl.codegen.language.kotlin.KotlinGenerator.visit
 import org.partiql.tool.ridl.model.*
 import java.io.File
 
@@ -35,12 +34,12 @@ internal object KotlinGenerator {
     }
 
     private fun Document.toKModel(options: KotlinOptions): KModel {
-            return KModel(
-                `package` = options.pkg.joinToString("."), namespace = KNamespace(
-                    name = options.namespace.toPascalCase(),
-                    definitions = definitions.map { it.toKDefinition() },
-                )
+        return KModel(
+            `package` = options.pkg.joinToString("."), namespace = KNamespace(
+                name = options.namespace.toPascalCase(),
+                definitions = definitions.map { it.toKDefinition() },
             )
+        )
     }
 
     private fun Definition.toKDefinition(): KDefinition = when (this) {
@@ -53,7 +52,7 @@ internal object KotlinGenerator {
         definitions = definitions.map { it.toKDefinition() },
     )
 
-    private fun Type.toKType(parent: String = "IonSerializable"): KType = when (type) {
+    private fun Type.toKType(parent: String = "IonSerializable", tag: Int? = null): KType = when (type) {
         is RTypeArray -> type.toKType(name, parent)
         is RTypeEnum -> type.toKType(name, parent)
         is RTypeNamed -> error("Cannot define an alias; model should have been lowered.")
@@ -83,7 +82,7 @@ internal object KotlinGenerator {
         )
     )
 
-    private fun RTypeStruct.toKType(name: Name, parent: String, wrap: Boolean = true) = KType(
+    private fun RTypeStruct.toKType(name: Name, parent: String) = KType(
         struct = KStruct(
             path = name.path(),
             name = name.name(),
@@ -96,9 +95,6 @@ internal object KotlinGenerator {
                 val fRead = it.type.read()
                 KField(fName, fType, fIon, fWrite, fRead)
             },
-            builder = name.builder(),
-            visit = name.visit(),
-            wrap = wrap,
         )
     )
 
@@ -108,8 +104,6 @@ internal object KotlinGenerator {
             name = name.name(),
             parent = parent,
             variants = variants.mapIndexed { i, v -> v.toKVariant(i, name.name()) },
-            builder = name.builder(),
-            visit = name.visit(),
         )
     )
 
@@ -117,14 +111,25 @@ internal object KotlinGenerator {
         tag = tag,
         name = name.name(),
         type = when (type) {
-            is RTypePrimitive -> {
-                // Derive a struct by wrapping the primitive
-                val fields = listOf(RTypeStruct.Field("value", type))
-                val derived = RTypeStruct(fields)
-                derived.toKType(name, parent, wrap = false)
-            }
-            else -> toKType(parent)
+            is RTypeRef -> type.box(name, parent, tag)
+            else -> toKType(parent, tag)
         }
+    )
+
+    /**
+     * Box a reference to `T` with a simple `class Name(val value: T)` for modeling of unions with sealed classes.
+     */
+    private fun RTypeRef.box(name: Name, parent: String, tag: Int): KType = KType(
+        box = KBox(
+            path = name.path(),
+            name = name.name(),
+            parent = parent,
+            type = reference(),
+            ion = ion(),
+            write = write("value"),
+            read = read(),
+            tag = tag,
+        )
     )
 
     private fun RTypeUnit.toKType(name: Name, parent: String) = KType(
@@ -141,6 +146,7 @@ internal object KotlinGenerator {
             null -> name.path()
             else -> base.reference()
         }
+
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "Boolean"
             Primitive.INT32 -> "Int"
@@ -158,6 +164,7 @@ internal object KotlinGenerator {
             null -> null
             else -> base.write(arg)
         }
+
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "writeBool($arg)"
             Primitive.INT32 -> "writeInt($arg.toLong())"
@@ -175,6 +182,7 @@ internal object KotlinGenerator {
             null -> null
             else -> base.read()
         }
+
         is RTypePrimitive -> when (kind) {
             Primitive.BOOL -> "booleanValue()"
             Primitive.INT32 -> "intValue()"

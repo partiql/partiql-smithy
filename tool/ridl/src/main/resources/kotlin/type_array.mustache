@@ -1,15 +1,25 @@
 {{#size}}
 public class {{name}}(items: Array<{{item}}>) : _Array<{{item}}>(items) {
 
+    {{#tag}}
+    private val tag: Long = {{.}}
+    {{/tag}}
+
     override fun write(writer: IonWriter, item: {{item}}) {
+        {{#tag}}
+        writer.stepIn(IonType.SEXP)
+        writer.writeInt(tag)
+        {{/tag}}
         {{#write}}
         writer.{{write}}
         {{/write}}
         {{^write}}
         item.write(writer)
         {{/write}}
+        {{#tag}}
+        writer.stepOut()
+        {{/tag}}
     }
-
 
     companion object {
 

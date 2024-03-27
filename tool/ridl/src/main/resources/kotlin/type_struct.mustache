@@ -4,10 +4,16 @@ public data class {{name}}(
 {{/fields}}
 ) : {{parent}} {
 
+    {{#tag}}
+    private val tag: Int = {{.}}
+    {{/tag}}
+
     public override fun write(writer: IonWriter) {
-        {{#wrap}}
+        {{#tag}}
         writer.stepIn(IonType.SEXP)
-        {{/wrap}}
+        writer.writeInt(tag)
+        {{/tag}}
+        writer.stepIn(IonType.SEXP)
         {{#fields}}
         {{#write}}
         writer.{{write}}
@@ -16,18 +22,17 @@ public data class {{name}}(
         {{name}}.write(writer)
         {{/write}}
         {{/fields}}
-        {{#wrap}}
         writer.stepOut()
-        {{/wrap}}
+        {{#tag}}
+        writer.stepOut()
+        {{/tag}}
     }
 
     public companion object {
 
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
-            {{#wrap}}
             reader.stepIn()
-            {{/wrap}}
             {{#fields}}
             assert(reader.next() == IonType.{{ion}})
             {{#read}}
@@ -37,10 +42,8 @@ public data class {{name}}(
             val {{name}}: {{type}} = {{type}}.read(reader)
             {{/read}}
             {{/fields}}
-            {{#wrap}}
             assert(reader.next() == null)
             reader.stepOut()
-            {{/wrap}}
             return {{name}}({{#fields}}{{name}},{{/fields}})
         }
     }

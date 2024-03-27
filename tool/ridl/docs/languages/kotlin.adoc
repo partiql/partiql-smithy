@@ -35,7 +35,7 @@ A struct is represented as a Kotlin data class.
 .Serde
 |===
 | Read  | Write
-|       | x
+| x     | x
 |===
 
 === Union
@@ -47,6 +47,8 @@ A union is represented as a Kotlin sealed class.
 | Read  | Write
 |       |
 |===
+
+Each union member's `read()` method reads the _untagged_ body; whereas each `write()` method writes with the tag.
 
 === Enum
 

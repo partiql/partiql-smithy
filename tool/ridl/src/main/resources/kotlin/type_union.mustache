@@ -1,5 +1,9 @@
 public sealed interface {{name}} : {{parent}} {
 
+    {{#tag}}
+    private val tag: Int = {{.}}
+    {{/tag}}
+
     {{#variants}}
     {{#type}}
     {{>type}}
@@ -10,15 +14,18 @@ public sealed interface {{name}} : {{parent}} {
 
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
-            val tags = reader.typeAnnotations
-            assert(tags.size == 1) { "Union type `{{name}}` is missing a tag" }
-            val tag = tags[0].toInt()
-            return when (tag) {
+            reader.stepIn()
+            assert(reader.next() == IonType.INT)
+            val tag: Int = reader.intValue()
+            reader.next()
+            val variant =  when (tag) {
                 {{#variants}}
                 {{tag}} -> {{name}}.read(reader)
                 {{/variants}}
                 else -> error("Invalid tag `$tag` on union type `{{name}}`")
             }
+            reader.stepOut()
+            return variant
         }
     }
 }

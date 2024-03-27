@@ -1,0 +1,36 @@
+public data class {{name}}(@JvmField val value: {{type}}) : {{parent}} {
+
+    {{#tag}}
+    private val tag: Long = {{.}}
+    {{/tag}}
+
+    public override fun write(writer: IonWriter) {
+        {{#tag}}
+        writer.stepIn(IonType.SEXP)
+        writer.writeInt(tag)
+        {{/tag}}
+        {{#write}}
+        writer.{{write}}
+        {{/write}}
+        {{^write}}
+        value.write(writer)
+        {{/write}}
+        {{#tag}}
+        writer.stepOut()
+        {{/tag}}
+    }
+
+    public companion object {
+
+        @JvmStatic
+        public fun read(reader: IonReader): {{name}} {
+            {{#read}}
+            val value: {{type}} = reader.{{read}}
+            {{/read}}
+            {{^read}}
+            val value: {{type}} = {{type}}.read(reader)
+            {{/read}}
+            return {{name}}(value)
+        }
+    }
+}

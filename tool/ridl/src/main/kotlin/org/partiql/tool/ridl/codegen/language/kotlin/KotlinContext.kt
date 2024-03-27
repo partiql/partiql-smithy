@@ -3,80 +3,92 @@ package org.partiql.tool.ridl.codegen.language.kotlin
 import com.amazon.ion.IonType
 
 internal class KModel(
-    @JvmField val `package`: String,
-    @JvmField val namespace: KNamespace,
+    @JvmField var `package`: String,
+    @JvmField var namespace: KNamespace,
 )
 
 internal class KNamespace(
-    @JvmField val name: String,
-    @JvmField val definitions: List<KDefinition>,
+    @JvmField var name: String,
+    @JvmField var definitions: List<KDefinition>,
 )
 
 internal class KDefinition(
-    @JvmField val type: KType? = null,
-    @JvmField val namespace: KNamespace? = null,
+    @JvmField var type: KType? = null,
+    @JvmField var namespace: KNamespace? = null,
 )
 
 internal class KType(
-    @JvmField val array: KArray? = null,
-    @JvmField val enum: KEnum? = null,
-    @JvmField val struct: KStruct? = null,
-    @JvmField val union: KUnion? = null,
-    @JvmField val unit: KUnit? = null,
+    @JvmField var array: KArray? = null,
+    @JvmField var enum: KEnum? = null,
+    @JvmField var struct: KStruct? = null,
+    @JvmField var union: KUnion? = null,
+    @JvmField var unit: KUnit? = null,
+    @JvmField var box: KBox? = null,
 )
 
 internal class KArray(
-    @JvmField val path: String,
-    @JvmField val name: String,
-    @JvmField val item: String,
-    @JvmField val itemIon: IonType,
-    @JvmField val size: Int?,
-    @JvmField val write: String?,
-    @JvmField val read: String?,
+    @JvmField var path: String,
+    @JvmField var name: String,
+    @JvmField var item: String,
+    @JvmField var itemIon: IonType,
+    @JvmField var size: Int?,
+    @JvmField var write: String?,
+    @JvmField var read: String?,
+    @JvmField var tag: Int? = null,
 )
 
 internal class KEnum(
-    @JvmField val path: String,
-    @JvmField val name: String,
-    @JvmField val values: List<String>,
+    @JvmField var path: String,
+    @JvmField var name: String,
+    @JvmField var values: List<String>,
+    @JvmField var tag: Int? = null,
 )
 
 internal class KStruct(
-    @JvmField val path: String,
-    @JvmField val name: String,
-    @JvmField val parent: String,
-    @JvmField val fields: List<KField>,
-    @JvmField val builder: String? = null,
-    @JvmField val visit: String? = null,
-    @JvmField val wrap: Boolean = true,
+    @JvmField var path: String,
+    @JvmField var name: String,
+    @JvmField var parent: String,
+    @JvmField var fields: List<KField>,
+    @JvmField var tag: Int? = null,
+)
+
+internal class KBox(
+    @JvmField var path: String,
+    @JvmField var name: String,
+    @JvmField var parent: String,
+    @JvmField var type: String,
+    @JvmField var ion: IonType,
+    @JvmField var write: String?,
+    @JvmField var read: String?,
+    @JvmField var tag: Int? = null,
 )
 
 internal class KField(
-    @JvmField val name: String,
-    @JvmField val type: String,
-    @JvmField val ion: IonType,
-    @JvmField val write: String?,
-    @JvmField val read: String?,
+    @JvmField var name: String,
+    @JvmField var type: String,
+    @JvmField var ion: IonType,
+    @JvmField var write: String?,
+    @JvmField var read: String?,
+    @JvmField var tag: Int? = null,
 )
 
 internal class KUnion(
-    @JvmField val path: String,
-    @JvmField val name: String,
-    @JvmField val parent: String,
-    @JvmField val variants: List<KVariant>,
-    @JvmField val builder: String? = null,
-    @JvmField val visit: String? = null,
+    @JvmField var path: String,
+    @JvmField var name: String,
+    @JvmField var parent: String,
+    @JvmField var variants: List<KVariant>,
+    @JvmField var tag: Int? = null,
 )
 
 internal class KVariant(
-    @JvmField val tag: Int,
-    @JvmField val name: String,
-    @JvmField val type: KType,
+    @JvmField var tag: Int,
+    @JvmField var name: String,
+    @JvmField var type: KType,
 )
 
 internal class KUnit(
-    @JvmField val path: String,
-    @JvmField val name: String,
-    @JvmField val parent: String,
-    @JvmField val tag: String,
+    @JvmField var path: String,
+    @JvmField var name: String,
+    @JvmField var parent: String,
+    @JvmField var tag: String,
 )

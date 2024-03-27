@@ -1,0 +1,25 @@
+{
+  type: 't_union_1',
+  assert: success,
+  value: (0 0),
+}
+{
+  type: 't_union_1',
+  assert: success,
+  value: (1 100),
+}
+{
+  type: 't_union_1',
+  assert: failure,
+  value: (0 false),
+}
+{
+  type: 't_union_1',
+  assert: failure,
+  value: 0,
+}
+{
+  type: 't_union_1',
+  assert: failure,
+  value: (2 0),
+}

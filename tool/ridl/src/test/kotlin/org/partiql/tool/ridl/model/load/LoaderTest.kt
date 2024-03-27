@@ -81,8 +81,5 @@ class LoaderTest {
         """.trimIndent()
         val document = Document.load(grammar)
         println(document)
-
-        val options = KotlinOptions("example", listOf("com", "example"))
-        KotlinGenerator.generate(options, document)
     }
 }

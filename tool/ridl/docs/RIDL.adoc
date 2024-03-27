@@ -192,15 +192,15 @@ type my_union union {
 
 === Enum
 
-[source,ion]
+[source,antlr]
 ----
-enum : 'enum' { enumerator (',' enumerator)* '}'
+enum : 'enum' { enumerator (',' enumerator)* '}' ;
 
-enumerator : [A-Z]+
+enumerator : [A-Z]+ ;
 ----
 
 .Example
-[source,ion]
+[source,ridl]
 ----
 type my_enum enum { A, B, C };
 ----
