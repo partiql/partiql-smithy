@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 /*
@@ -125,7 +123,7 @@ tasks.test {
 }
 
 tasks.generateGrammarSource {
-    val antlrPackage = "org.partiql.tool.ridl.antlr"
+    val antlrPackage = "io.github.amzn.ridl.antlr"
     val antlrSources = "$buildDir/generated-src/${antlrPackage.replace('.', '/')}"
     maxHeapSize = "64m"
     arguments = listOf("-visitor", "-long-messages", "-package", antlrPackage)
@@ -152,5 +150,5 @@ tasks.register<GradleBuild>("install") {
 
 application {
     applicationName = "ridl"
-    mainClass.set("org.partiql.tool.ridl.MainKt")
+    mainClass.set("io.github.amzn.ridl.MainKt")
 }

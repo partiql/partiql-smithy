@@ -1,0 +1,21 @@
+package io.github.amzn.ridl.codegen.language.kotlin
+
+import io.github.amzn.ridl.codegen.Templates
+
+internal class KotlinFile(
+    private val name: String,
+    private val template: String,
+    private val ctx: Any,
+) {
+
+    fun write(templates: io.github.amzn.ridl.codegen.Templates) {
+        try {
+            val output = templates.apply(template, ctx)
+            println(output)
+        } catch (ex: Exception) {
+            val message = "Error in file $name for template $template"
+            val cause = ex
+            throw RuntimeException(message, cause)
+        }
+    }
+}
