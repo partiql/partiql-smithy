@@ -1,8 +1,6 @@
 = RIDL — Kotlin
 
-== Support
-
-=== Primitives
+== Primitives
 
 |===
 | RIDL Primitive | Kotlin Type
@@ -17,56 +15,119 @@
 | bytes | ByteArray
 |===
 
-=== Array
+=== Arrays
 
-* Fixed length arrays wrap the builtin Array type.
-* Variable length arrays wrap the builtin ArrayList type.
+Variable and fixed length arrays wrap the builtin ArrayList and Array classes respectively. They delegate to the underlying collection and can be used exactly like an immutable ArrayList and immutable Array.
 
-.Serde
-|===
-| Read  | Write
-|       | x
-|===
+.Array Example Definitions
+[source,ridl]
+----
+type t_array_var bool[];
+type t_array_fix bool[10];
+----
 
-=== Struct
-
-A struct is represented as a Kotlin data class.
-
-.Serde
-|===
-| Read  | Write
-| x     | x
-|===
-
-=== Union
-
-A union is represented as a Kotlin sealed class.
-
-.Serde
-|===
-| Read  | Write
-|       |
-|===
-
-Each union member's `read()` method reads the _untagged_ body; whereas each `write()` method writes with the tag.
+.Array Example Classes
+[source,kotlin]
+----
+class TArrayVar(private val items: ArrayList<Boolean>) : ...
+class TArrayFix(private val items: Array<Boolean>) : ...
+----
 
 === Enum
 
 An enum is represented as a Kotlin enum.
 
-.Serde
-|===
-| Read  | Write
-|       | x
-|===
+.Enum Example Definitions
+[source,ridl]
+----
+type t_enum { X, Y, Z };
+----
 
+.Enum Example Classes
+[source,kotlin]
+----
+enum class TEnum { X, Y, Z }
+----
+
+=== Struct
+
+A struct is represented as a Kotlin data class.
+
+.Struct Example Definitions
+[source,ridl]
+----
+type t_struct struct { x: int32, y: int32 };
+----
+
+.Struct Example Classes
+[source,kotlin]
+----
+data class TStruct(
+    @JvmField val x: Int,
+    @JvmField val y: Int,
+)
+----
+
+=== Union
+
+Union's are more complicated than the other types because we have to map a tagged union to some OO representation. For example, the following is trivial in C but not in Java/Kotlin.
+
+[source,ridl]
+----
+type my_union {
+  i: int32,
+  f: float32,
+};
+----
+
+We could represent this in Kotlin as a single class with optionals,
+
+[source,ridl]
+----
+data class MyUnion(
+    @JvmField val i: Int? = null,
+    @JvmField val f: Float32? = null,
+)
+----
+
+But this is fragile, less sound than sealed unions, and makes for a poor OO experience due to its lack of inheritance. I've chosen to make a RIDL union type into a Kotlin sealed interface and box both primitives and references to make them fit into the appropriate hierarchy. Here is an example,
+
+[source,ridl]
+----
+type t_union {
+    var_a: int32,    // Primitive
+    var_b: t_enum,   // Reference — the enum defined earlier
+    var_c: struct {  // Inline
+        x: bool,
+        y: bool,
+    },
+};
+----
+
+[source,kotlin]
+----
+sealed interface TUnion {
+
+    class VarA(val value: Int) : TUnion { ... }
+
+    class VarB(val value: TEnum) : TUnion { ... }
+
+    data class VarC(
+        @JvmField val x: Boolean,
+        @JvmField val y: Boolean,
+    ) : TUnion { ... }
+}
+----
+
+Importantly though, the values are unboxed when written to Ion. Here is what some Ion encodings for this union look like:
+
+[source,ion]
+----
+(0 42)  // tag 0 -> var_a -> unboxed integer primitive 42
+(1 X)   // tag 1 -> var_b -> unboxed enum X
+(2 (true false)) // tag 2 -> var_c
+----
 
 === Unit
 
-A unit is represented by a Kotlin object.
-
-.Serde
-|===
-| Read  | Write
-|       | x
-|===
+A unit is represented by a Kotlin object. This may be deleted. I don't know why/how its useful at the moment.
