@@ -113,7 +113,7 @@ INTEGER
   ;
 
 ENUMERATOR
-  : [A-Z][A-Z0-9_]+
+  : [A-Z][A-Z0-9_]*
   ;
 
 STRING

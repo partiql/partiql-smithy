@@ -13,16 +13,6 @@ public abstract class _Array<T>(private val items: Array<T>) : IonSerializable {
     public operator fun get(index: Int): T = items[index]
     public operator fun set(index: Int, value: T): Unit = items.set(index, value)
     public operator fun iterator(): Iterator<T> = items.iterator()
-
-    public override fun write(writer: IonWriter) {
-        writer.stepIn(IonType.LIST)
-        for (item in items) {
-            write(writer, item)
-        }
-        writer.stepOut()
-    }
-
-    public abstract fun write(writer: IonWriter, item: T)
 }
 
 public abstract class _ArrayList<T>(private val items: ArrayList<T>) : IonSerializable {
@@ -30,32 +20,28 @@ public abstract class _ArrayList<T>(private val items: ArrayList<T>) : IonSerial
     public operator fun get(index: Int): T = items[index]
     public operator fun set(index: Int, value: T): T = items.set(index, value)
     public operator fun iterator(): Iterator<T> = items.iterator()
-
-    public override fun write(writer: IonWriter) {
-        writer.stepIn(IonType.LIST)
-        for (item in items) {
-            write(writer, item)
-        }
-        writer.stepOut()
-    }
-
-    public abstract fun write(writer: IonWriter, item: T)
 }
 
 public class Coverage private constructor() {
 
 
-    public class TArrayPrimVar(items: ArrayList<Boolean>) : _ArrayList<Boolean>(items) {
+    public class TArrayPrimVar(private val items: ArrayList<Boolean>) : _ArrayList<Boolean>(items), IonSerializable {
 
-        override fun write(writer: IonWriter, item: Boolean) {
-            writer.writeBool(item)
+        override fun write(writer: IonWriter) {
+            writer.stepIn(IonType.LIST)
+            for (item in items) {
+                writer.writeBool(item)
+            }
+            writer.stepOut()
         }
 
         companion object {
 
+
             @JvmStatic
             fun read(reader: IonReader): TArrayPrimVar {
                 val items = arrayListOf<Boolean>()
+                assert(reader.type == IonType.LIST)
                 reader.stepIn()
                 while (reader.next() == IonType.BOOL) {
                     items.add(reader.booleanValue())
@@ -67,14 +53,18 @@ public class Coverage private constructor() {
     }
 
 
-    public class TArrayPrimFix(items: Array<Boolean>) : _Array<Boolean>(items) {
+    public class TArrayPrimFix(private val items: Array<Boolean>) : _Array<Boolean>(items), IonSerializable {
 
-
-        override fun write(writer: IonWriter, item: Boolean) {
-            writer.writeBool(item)
+        override fun write(writer: IonWriter) {
+            writer.stepIn(IonType.LIST)
+            for (item in items) {
+                writer.writeBool(item)
+            }
+            writer.stepOut()
         }
 
         companion object {
+
 
             @JvmStatic
             fun read(reader: IonReader): TArrayPrimFix {
@@ -98,17 +88,23 @@ public class Coverage private constructor() {
     }
 
 
-    public class TArrayVar(items: ArrayList<Boolean>) : _ArrayList<Boolean>(items) {
+    public class TArrayVar(private val items: ArrayList<Boolean>) : _ArrayList<Boolean>(items), IonSerializable {
 
-        override fun write(writer: IonWriter, item: Boolean) {
-            writer.writeBool(item)
+        override fun write(writer: IonWriter) {
+            writer.stepIn(IonType.LIST)
+            for (item in items) {
+                writer.writeBool(item)
+            }
+            writer.stepOut()
         }
 
         companion object {
 
+
             @JvmStatic
             fun read(reader: IonReader): TArrayVar {
                 val items = arrayListOf<Boolean>()
+                assert(reader.type == IonType.LIST)
                 reader.stepIn()
                 while (reader.next() == IonType.BOOL) {
                     items.add(reader.booleanValue())
@@ -120,14 +116,18 @@ public class Coverage private constructor() {
     }
 
 
-    public class TArrayFix(items: Array<Boolean>) : _Array<Boolean>(items) {
+    public class TArrayFix(private val items: Array<Boolean>) : _Array<Boolean>(items), IonSerializable {
 
-
-        override fun write(writer: IonWriter, item: Boolean) {
-            writer.writeBool(item)
+        override fun write(writer: IonWriter) {
+            writer.stepIn(IonType.LIST)
+            for (item in items) {
+                writer.writeBool(item)
+            }
+            writer.stepOut()
         }
 
         companion object {
+
 
             @JvmStatic
             fun read(reader: IonReader): TArrayFix {
@@ -156,7 +156,6 @@ public class Coverage private constructor() {
         @JvmField val y: Long,
     ) : IonSerializable {
 
-
         public override fun write(writer: IonWriter) {
             writer.stepIn(IonType.SEXP)
             writer.writeInt(x.toLong())
@@ -166,8 +165,10 @@ public class Coverage private constructor() {
 
         public companion object {
 
+
             @JvmStatic
             public fun read(reader: IonReader): TStructPrim {
+                assert(reader.type == IonType.SEXP)
                 reader.stepIn()
                 assert(reader.next() == IonType.INT)
                 val x: Int = reader.intValue()
@@ -186,7 +187,6 @@ public class Coverage private constructor() {
         @JvmField val y: Long,
     ) : IonSerializable {
 
-
         public override fun write(writer: IonWriter) {
             writer.stepIn(IonType.SEXP)
             writer.writeInt(x.toLong())
@@ -196,8 +196,10 @@ public class Coverage private constructor() {
 
         public companion object {
 
+
             @JvmStatic
             public fun read(reader: IonReader): TStruct {
+                assert(reader.type == IonType.SEXP)
                 reader.stepIn()
                 assert(reader.next() == IonType.INT)
                 val x: Int = reader.intValue()
@@ -211,613 +213,442 @@ public class Coverage private constructor() {
     }
 
 
-    public sealed interface TUnion1 : IonSerializable {
+    public enum class TEnum : IonSerializable {
+        X, Y, Z, ;
 
-
-        public data class VarA(@JvmField val value: Int) : TUnion1 {
-
-            private val tag: Long = 0
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeInt(tag)
-                writer.writeInt(value.toLong())
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarA {
-                    val value: Int = reader.intValue()
-                    return VarA(value)
-                }
-            }
+        public override fun write(writer: IonWriter) {
+            writer.writeSymbol(name)
         }
 
+        public companion object {
 
-        public data class VarB(@JvmField val value: Long) : TUnion1 {
-
-            private val tag: Long = 1
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeInt(tag)
-                writer.writeInt(value)
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarB {
-                    val value: Long = reader.longValue()
-                    return VarB(value)
-                }
-            }
-        }
-
-
-        companion object {
 
             @JvmStatic
-            public fun read(reader: IonReader): TUnion1 {
-                reader.stepIn()
-                assert(reader.next() == IonType.INT)
-                val tag: Int = reader.intValue()
-                reader.next()
-                val variant = when (tag) {
-                    0 -> VarA.read(reader)
-                    1 -> VarB.read(reader)
-                    else -> error("Invalid tag `$tag` on union type `TUnion1`")
-                }
-                reader.stepOut()
-                return variant
+            public fun read(reader: IonReader): TEnum = try {
+                TEnum.valueOf(reader.symbolValue().text)
+            } catch (ex: IllegalArgumentException) {
+                // TODO error messaging
+                throw ex
             }
         }
     }
 
 
-    public sealed interface TUnion2 : IonSerializable {
+    public sealed interface TUnionRefs : IonSerializable {
 
 
-        public data class VarA(@JvmField val value: TStruct) : TUnion2 {
-
-            private val tag: Long = 0
+        public data class Var1(@JvmField val value: Boolean) : TUnionRefs {
 
             public override fun write(writer: IonWriter) {
                 writer.stepIn(IonType.SEXP)
-                writer.writeInt(tag)
-                value.write(writer)
+                writer.writeInt(TAG)
+                writer.writeBool(value)
                 writer.stepOut()
             }
 
             public companion object {
 
-                @JvmStatic
-                public fun read(reader: IonReader): VarA {
-                    val value: TStruct = TStruct.read(reader)
-                    return VarA(value)
-                }
-            }
-        }
-
-
-        public data class VarB(@JvmField val value: TStruct) : TUnion2 {
-
-            private val tag: Long = 1
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeInt(tag)
-                value.write(writer)
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarB {
-                    val value: TStruct = TStruct.read(reader)
-                    return VarB(value)
-                }
-            }
-        }
-
-
-        companion object {
-
-            @JvmStatic
-            public fun read(reader: IonReader): TUnion2 {
-                reader.stepIn()
-                assert(reader.next() == IonType.INT)
-                val tag: Int = reader.intValue()
-                reader.next()
-                val variant = when (tag) {
-                    0 -> VarA.read(reader)
-                    1 -> VarB.read(reader)
-                    else -> error("Invalid tag `$tag` on union type `TUnion2`")
-                }
-                reader.stepOut()
-                return variant
-            }
-        }
-    }
-
-
-    public sealed interface TUnion3 : IonSerializable {
-
-
-        public data class VarA(
-            @JvmField val x: Int,
-            @JvmField val y: Long,
-        ) : TUnion3 {
-
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeInt(x.toLong())
-                writer.writeInt(y)
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarA {
-                    reader.stepIn()
-                    assert(reader.next() == IonType.INT)
-                    val x: Int = reader.intValue()
-                    assert(reader.next() == IonType.INT)
-                    val y: Long = reader.longValue()
-                    assert(reader.next() == null)
-                    reader.stepOut()
-                    return VarA(x, y)
-                }
-            }
-        }
-
-
-        public data class VarB(
-            @JvmField val x: Float,
-            @JvmField val y: Double,
-        ) : TUnion3 {
-
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeFloat(x.toDouble())
-                writer.writeFloat(y)
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarB {
-                    reader.stepIn()
-                    assert(reader.next() == IonType.FLOAT)
-                    val x: Float = reader.doubleValue().toFloat()
-                    assert(reader.next() == IonType.FLOAT)
-                    val y: Double = reader.doubleValue()
-                    assert(reader.next() == null)
-                    reader.stepOut()
-                    return VarB(x, y)
-                }
-            }
-        }
-
-
-        companion object {
-
-            @JvmStatic
-            public fun read(reader: IonReader): TUnion3 {
-                reader.stepIn()
-                assert(reader.next() == IonType.INT)
-                val tag: Int = reader.intValue()
-                reader.next()
-                val variant = when (tag) {
-                    0 -> VarA.read(reader)
-                    1 -> VarB.read(reader)
-                    else -> error("Invalid tag `$tag` on union type `TUnion3`")
-                }
-                reader.stepOut()
-                return variant
-            }
-        }
-    }
-
-
-    public sealed interface TUnion4 : IonSerializable {
-
-
-        public data class VarA(@JvmField val value: Int) : TUnion4 {
-
-            private val tag: Long = 0
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeInt(tag)
-                writer.writeInt(value.toLong())
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarA {
-                    val value: Int = reader.intValue()
-                    return VarA(value)
-                }
-            }
-        }
-
-
-        public data class VarB(@JvmField val value: TStruct) : TUnion4 {
-
-            private val tag: Long = 1
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeInt(tag)
-                value.write(writer)
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarB {
-                    val value: TStruct = TStruct.read(reader)
-                    return VarB(value)
-                }
-            }
-        }
-
-
-        public data class VarC(
-            @JvmField val x: Float,
-            @JvmField val y: Double,
-        ) : TUnion4 {
-
-
-            public override fun write(writer: IonWriter) {
-                writer.stepIn(IonType.SEXP)
-                writer.writeFloat(x.toDouble())
-                writer.writeFloat(y)
-                writer.stepOut()
-            }
-
-            public companion object {
-
-                @JvmStatic
-                public fun read(reader: IonReader): VarC {
-                    reader.stepIn()
-                    assert(reader.next() == IonType.FLOAT)
-                    val x: Float = reader.doubleValue().toFloat()
-                    assert(reader.next() == IonType.FLOAT)
-                    val y: Double = reader.doubleValue()
-                    assert(reader.next() == null)
-                    reader.stepOut()
-                    return VarC(x, y)
-                }
-            }
-        }
-
-
-        companion object {
-
-            @JvmStatic
-            public fun read(reader: IonReader): TUnion4 {
-                reader.stepIn()
-                assert(reader.next() == IonType.INT)
-                val tag: Int = reader.intValue()
-                reader.next()
-                val variant = when (tag) {
-                    0 -> VarA.read(reader)
-                    1 -> VarB.read(reader)
-                    2 -> VarC.read(reader)
-                    else -> error("Invalid tag `$tag` on union type `TUnion4`")
-                }
-                reader.stepOut()
-                return variant
-            }
-        }
-    }
-
-
-    public sealed interface TUnion5 : IonSerializable {
-
-
-        public sealed interface Var1 : TUnion5 {
-
-
-            public data class VarA(@JvmField val value: Int) : Var1 {
-
-                private val tag: Long = 0
-
-                public override fun write(writer: IonWriter) {
-                    writer.stepIn(IonType.SEXP)
-                    writer.writeInt(tag)
-                    writer.writeInt(value.toLong())
-                    writer.stepOut()
-                }
-
-                public companion object {
-
-                    @JvmStatic
-                    public fun read(reader: IonReader): VarA {
-                        val value: Int = reader.intValue()
-                        return VarA(value)
-                    }
-                }
-            }
-
-
-            public data class VarB(@JvmField val value: Long) : Var1 {
-
-                private val tag: Long = 1
-
-                public override fun write(writer: IonWriter) {
-                    writer.stepIn(IonType.SEXP)
-                    writer.writeInt(tag)
-                    writer.writeInt(value)
-                    writer.stepOut()
-                }
-
-                public companion object {
-
-                    @JvmStatic
-                    public fun read(reader: IonReader): VarB {
-                        val value: Long = reader.longValue()
-                        return VarB(value)
-                    }
-                }
-            }
-
-
-            companion object {
+                public const val TAG: Long = 0
 
                 @JvmStatic
                 public fun read(reader: IonReader): Var1 {
-                    reader.stepIn()
-                    assert(reader.next() == IonType.INT)
-                    val tag: Int = reader.intValue()
-                    reader.next()
-                    val variant = when (tag) {
-                        0 -> VarA.read(reader)
-                        1 -> VarB.read(reader)
-                        else -> error("Invalid tag `$tag` on union type `Var1`")
-                    }
-                    reader.stepOut()
-                    return variant
+                    assert(reader.type == IonType.BOOL)
+                    val value: Boolean = reader.booleanValue()
+                    return Var1(value)
                 }
             }
         }
 
 
-        public sealed interface Var2 : TUnion5 {
+        public data class Var2(@JvmField val value: TArrayPrimVar) : TUnionRefs {
 
-
-            public data class VarA(@JvmField val value: TStruct) : Var2 {
-
-                private val tag: Long = 0
-
-                public override fun write(writer: IonWriter) {
-                    writer.stepIn(IonType.SEXP)
-                    writer.writeInt(tag)
-                    value.write(writer)
-                    writer.stepOut()
-                }
-
-                public companion object {
-
-                    @JvmStatic
-                    public fun read(reader: IonReader): VarA {
-                        val value: TStruct = TStruct.read(reader)
-                        return VarA(value)
-                    }
-                }
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                value.write(writer)
+                writer.stepOut()
             }
 
+            public companion object {
 
-            public data class VarB(@JvmField val value: TStruct) : Var2 {
-
-                private val tag: Long = 1
-
-                public override fun write(writer: IonWriter) {
-                    writer.stepIn(IonType.SEXP)
-                    writer.writeInt(tag)
-                    value.write(writer)
-                    writer.stepOut()
-                }
-
-                public companion object {
-
-                    @JvmStatic
-                    public fun read(reader: IonReader): VarB {
-                        val value: TStruct = TStruct.read(reader)
-                        return VarB(value)
-                    }
-                }
-            }
-
-
-            companion object {
+                public const val TAG: Long = 1
 
                 @JvmStatic
                 public fun read(reader: IonReader): Var2 {
-                    reader.stepIn()
-                    assert(reader.next() == IonType.INT)
-                    val tag: Int = reader.intValue()
-                    reader.next()
-                    val variant = when (tag) {
-                        0 -> VarA.read(reader)
-                        1 -> VarB.read(reader)
-                        else -> error("Invalid tag `$tag` on union type `Var2`")
-                    }
-                    reader.stepOut()
-                    return variant
+                    assert(reader.type == IonType.SEXP)
+                    val value: TArrayPrimVar = TArrayPrimVar.read(reader)
+                    return Var2(value)
                 }
             }
         }
 
 
-        public sealed interface Var3 : TUnion5 {
+        public data class Var3(@JvmField val value: TEnum) : TUnionRefs {
 
-
-            public data class VarA(
-                @JvmField val x: Int,
-                @JvmField val y: Long,
-            ) : Var3 {
-
-
-                public override fun write(writer: IonWriter) {
-                    writer.stepIn(IonType.SEXP)
-                    writer.writeInt(x.toLong())
-                    writer.writeInt(y)
-                    writer.stepOut()
-                }
-
-                public companion object {
-
-                    @JvmStatic
-                    public fun read(reader: IonReader): VarA {
-                        reader.stepIn()
-                        assert(reader.next() == IonType.INT)
-                        val x: Int = reader.intValue()
-                        assert(reader.next() == IonType.INT)
-                        val y: Long = reader.longValue()
-                        assert(reader.next() == null)
-                        reader.stepOut()
-                        return VarA(x, y)
-                    }
-                }
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                value.write(writer)
+                writer.stepOut()
             }
 
+            public companion object {
 
-            public data class VarB(
-                @JvmField val x: Float,
-                @JvmField val y: Double,
-            ) : Var3 {
-
-
-                public override fun write(writer: IonWriter) {
-                    writer.stepIn(IonType.SEXP)
-                    writer.writeFloat(x.toDouble())
-                    writer.writeFloat(y)
-                    writer.stepOut()
-                }
-
-                public companion object {
-
-                    @JvmStatic
-                    public fun read(reader: IonReader): VarB {
-                        reader.stepIn()
-                        assert(reader.next() == IonType.FLOAT)
-                        val x: Float = reader.doubleValue().toFloat()
-                        assert(reader.next() == IonType.FLOAT)
-                        val y: Double = reader.doubleValue()
-                        assert(reader.next() == null)
-                        reader.stepOut()
-                        return VarB(x, y)
-                    }
-                }
-            }
-
-
-            companion object {
+                public const val TAG: Long = 2
 
                 @JvmStatic
                 public fun read(reader: IonReader): Var3 {
-                    reader.stepIn()
-                    assert(reader.next() == IonType.INT)
-                    val tag: Int = reader.intValue()
-                    reader.next()
-                    val variant = when (tag) {
-                        0 -> VarA.read(reader)
-                        1 -> VarB.read(reader)
-                        else -> error("Invalid tag `$tag` on union type `Var3`")
-                    }
-                    reader.stepOut()
-                    return variant
+                    assert(reader.type == IonType.SEXP)
+                    val value: TEnum = TEnum.read(reader)
+                    return Var3(value)
                 }
             }
         }
 
 
-        public sealed interface Var4 : TUnion5 {
+        public data class Var4(@JvmField val value: TStruct) : TUnionRefs {
+
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                value.write(writer)
+                writer.stepOut()
+            }
+
+            public companion object {
+
+                public const val TAG: Long = 3
+
+                @JvmStatic
+                public fun read(reader: IonReader): Var4 {
+                    assert(reader.type == IonType.SEXP)
+                    val value: TStruct = TStruct.read(reader)
+                    return Var4(value)
+                }
+            }
+        }
 
 
-            public data class VarA(@JvmField val value: Int) : Var4 {
+        companion object {
 
-                private val tag: Long = 0
+
+            @JvmStatic
+            public fun read(reader: IonReader): TUnionRefs {
+                assert(reader.type == IonType.SEXP)
+                reader.stepIn()
+                assert(reader.next() == IonType.INT)
+                val tag: Long = reader.longValue()
+                reader.next()
+                val variant = when (tag) {
+                    Var1.TAG -> Var1.read(reader)
+                    Var2.TAG -> Var2.read(reader)
+                    Var3.TAG -> Var3.read(reader)
+                    Var4.TAG -> Var4.read(reader)
+                    else -> error("Invalid tag `$tag` on union type `TUnionRefs`")
+                }
+                reader.stepOut()
+                return variant
+            }
+        }
+    }
+
+
+    public sealed interface TUnion : IonSerializable {
+
+
+        public data class Var1(@JvmField val value: Boolean) : TUnion {
+
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                writer.writeBool(value)
+                writer.stepOut()
+            }
+
+            public companion object {
+
+                public const val TAG: Long = 0
+
+                @JvmStatic
+                public fun read(reader: IonReader): Var1 {
+                    assert(reader.type == IonType.BOOL)
+                    val value: Boolean = reader.booleanValue()
+                    return Var1(value)
+                }
+            }
+        }
+
+        public class Var2(private val items: ArrayList<Boolean>) : _ArrayList<Boolean>(items), TUnion {
+
+            override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                writer.stepIn(IonType.LIST)
+                for (item in items) {
+                    writer.writeBool(item)
+                }
+                writer.stepOut()
+                writer.stepOut()
+            }
+
+            companion object {
+
+                public const val TAG: Long = 1
+
+                @JvmStatic
+                fun read(reader: IonReader): Var2 {
+                    val items = arrayListOf<Boolean>()
+                    assert(reader.type == IonType.LIST)
+                    reader.stepIn()
+                    while (reader.next() == IonType.BOOL) {
+                        items.add(reader.booleanValue())
+                    }
+                    reader.stepOut()
+                    return Var2(items)
+                }
+            }
+        }
+
+
+        public enum class Var3 : TUnion {
+            A, B, C, ;
+
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                writer.writeSymbol(name)
+                writer.stepOut()
+            }
+
+            public companion object {
+
+                public const val TAG: Long = 2
+
+                @JvmStatic
+                public fun read(reader: IonReader): Var3 = try {
+                    Var3.valueOf(reader.symbolValue().text)
+                } catch (ex: IllegalArgumentException) {
+                    // TODO error messaging
+                    throw ex
+                }
+            }
+        }
+
+
+        public data class Var4(
+            @JvmField val x: Boolean,
+            @JvmField val y: Boolean,
+        ) : TUnion {
+
+            public override fun write(writer: IonWriter) {
+                writer.stepIn(IonType.SEXP)
+                writer.writeInt(TAG)
+                writer.stepIn(IonType.SEXP)
+                writer.writeBool(x)
+                writer.writeBool(y)
+                writer.stepOut()
+                writer.stepOut()
+            }
+
+            public companion object {
+
+                public const val TAG: Long = 3
+
+                @JvmStatic
+                public fun read(reader: IonReader): Var4 {
+                    assert(reader.type == IonType.SEXP)
+                    reader.stepIn()
+                    assert(reader.next() == IonType.BOOL)
+                    val x: Boolean = reader.booleanValue()
+                    assert(reader.next() == IonType.BOOL)
+                    val y: Boolean = reader.booleanValue()
+                    assert(reader.next() == null)
+                    reader.stepOut()
+                    return Var4(x, y)
+                }
+            }
+        }
+
+
+        public sealed interface Var5 : TUnion {
+
+
+            public data class VarA(@JvmField val value: Boolean) : Var5 {
 
                 public override fun write(writer: IonWriter) {
                     writer.stepIn(IonType.SEXP)
-                    writer.writeInt(tag)
-                    writer.writeInt(value.toLong())
+                    writer.writeInt(TAG)
+                    writer.writeBool(value)
                     writer.stepOut()
                 }
 
                 public companion object {
 
+                    public const val TAG: Long = 0
+
                     @JvmStatic
                     public fun read(reader: IonReader): VarA {
-                        val value: Int = reader.intValue()
+                        assert(reader.type == IonType.BOOL)
+                        val value: Boolean = reader.booleanValue()
                         return VarA(value)
                     }
                 }
             }
 
+            public class VarB(private val items: ArrayList<Boolean>) : _ArrayList<Boolean>(items), Var5 {
 
-            public data class VarB(@JvmField val value: TStruct) : Var4 {
-
-                private val tag: Long = 1
-
-                public override fun write(writer: IonWriter) {
+                override fun write(writer: IonWriter) {
                     writer.stepIn(IonType.SEXP)
-                    writer.writeInt(tag)
-                    value.write(writer)
+                    writer.writeInt(TAG)
+                    writer.stepIn(IonType.LIST)
+                    for (item in items) {
+                        writer.writeBool(item)
+                    }
+                    writer.stepOut()
                     writer.stepOut()
                 }
 
-                public companion object {
+                companion object {
+
+                    public const val TAG: Long = 1
 
                     @JvmStatic
-                    public fun read(reader: IonReader): VarB {
-                        val value: TStruct = TStruct.read(reader)
-                        return VarB(value)
+                    fun read(reader: IonReader): VarB {
+                        val items = arrayListOf<Boolean>()
+                        assert(reader.type == IonType.LIST)
+                        reader.stepIn()
+                        while (reader.next() == IonType.BOOL) {
+                            items.add(reader.booleanValue())
+                        }
+                        reader.stepOut()
+                        return VarB(items)
                     }
                 }
             }
 
 
-            public data class VarC(
-                @JvmField val x: Float,
-                @JvmField val y: Double,
-            ) : Var4 {
-
+            public enum class VarC : Var5 {
+                A, B, C, ;
 
                 public override fun write(writer: IonWriter) {
                     writer.stepIn(IonType.SEXP)
-                    writer.writeFloat(x.toDouble())
-                    writer.writeFloat(y)
+                    writer.writeInt(TAG)
+                    writer.writeSymbol(name)
                     writer.stepOut()
                 }
 
                 public companion object {
 
+                    public const val TAG: Long = 2
+
                     @JvmStatic
-                    public fun read(reader: IonReader): VarC {
+                    public fun read(reader: IonReader): VarC = try {
+                        VarC.valueOf(reader.symbolValue().text)
+                    } catch (ex: IllegalArgumentException) {
+                        // TODO error messaging
+                        throw ex
+                    }
+                }
+            }
+
+
+            public data class VarD(
+                @JvmField val x: Boolean,
+            ) : Var5 {
+
+                public override fun write(writer: IonWriter) {
+                    writer.stepIn(IonType.SEXP)
+                    writer.writeInt(TAG)
+                    writer.stepIn(IonType.SEXP)
+                    writer.writeBool(x)
+                    writer.stepOut()
+                    writer.stepOut()
+                }
+
+                public companion object {
+
+                    public const val TAG: Long = 3
+
+                    @JvmStatic
+                    public fun read(reader: IonReader): VarD {
+                        assert(reader.type == IonType.SEXP)
                         reader.stepIn()
-                        assert(reader.next() == IonType.FLOAT)
-                        val x: Float = reader.doubleValue().toFloat()
-                        assert(reader.next() == IonType.FLOAT)
-                        val y: Double = reader.doubleValue()
+                        assert(reader.next() == IonType.BOOL)
+                        val x: Boolean = reader.booleanValue()
                         assert(reader.next() == null)
                         reader.stepOut()
-                        return VarC(x, y)
+                        return VarD(x)
+                    }
+                }
+            }
+
+
+            public sealed interface VarE : Var5 {
+
+                public data class I(@JvmField val value: Int) : VarE {
+
+                    public override fun write(writer: IonWriter) {
+                        writer.stepIn(IonType.SEXP)
+                        writer.writeInt(TAG)
+                        writer.writeInt(value.toLong())
+                        writer.stepOut()
+                    }
+
+                    public companion object {
+
+                        public const val TAG: Long = 0
+
+                        @JvmStatic
+                        public fun read(reader: IonReader): I {
+                            assert(reader.type == IonType.INT)
+                            val value: Int = reader.intValue()
+                            return I(value)
+                        }
+                    }
+                }
+
+
+                public data class F(@JvmField val value: Double) : VarE {
+
+                    public override fun write(writer: IonWriter) {
+                        writer.stepIn(IonType.SEXP)
+                        writer.writeInt(TAG)
+                        writer.writeFloat(value)
+                        writer.stepOut()
+                    }
+
+                    public companion object {
+
+                        public const val TAG: Long = 1
+
+                        @JvmStatic
+                        public fun read(reader: IonReader): F {
+                            assert(reader.type == IonType.FLOAT)
+                            val value: Double = reader.doubleValue()
+                            return F(value)
+                        }
+                    }
+                }
+
+
+                companion object {
+
+                    public const val TAG: Long = 4
+
+                    @JvmStatic
+                    public fun read(reader: IonReader): VarE {
+                        assert(reader.type == IonType.SEXP)
+                        reader.stepIn()
+                        assert(reader.next() == IonType.INT)
+                        val tag: Long = reader.longValue()
+                        reader.next()
+                        val variant = when (tag) {
+                            I.TAG -> I.read(reader)
+                            F.TAG -> F.read(reader)
+                            else -> error("Invalid tag `$tag` on union type `VarE`")
+                        }
+                        reader.stepOut()
+                        return variant
                     }
                 }
             }
@@ -825,17 +656,22 @@ public class Coverage private constructor() {
 
             companion object {
 
+                public const val TAG: Long = 4
+
                 @JvmStatic
-                public fun read(reader: IonReader): Var4 {
+                public fun read(reader: IonReader): Var5 {
+                    assert(reader.type == IonType.SEXP)
                     reader.stepIn()
                     assert(reader.next() == IonType.INT)
-                    val tag: Int = reader.intValue()
+                    val tag: Long = reader.longValue()
                     reader.next()
                     val variant = when (tag) {
-                        0 -> VarA.read(reader)
-                        1 -> VarB.read(reader)
-                        2 -> VarC.read(reader)
-                        else -> error("Invalid tag `$tag` on union type `Var4`")
+                        VarA.TAG -> VarA.read(reader)
+                        VarB.TAG -> VarB.read(reader)
+                        VarC.TAG -> VarC.read(reader)
+                        VarD.TAG -> VarD.read(reader)
+                        VarE.TAG -> VarE.read(reader)
+                        else -> error("Invalid tag `$tag` on union type `Var5`")
                     }
                     reader.stepOut()
                     return variant
@@ -846,18 +682,21 @@ public class Coverage private constructor() {
 
         companion object {
 
+
             @JvmStatic
-            public fun read(reader: IonReader): TUnion5 {
+            public fun read(reader: IonReader): TUnion {
+                assert(reader.type == IonType.SEXP)
                 reader.stepIn()
                 assert(reader.next() == IonType.INT)
-                val tag: Int = reader.intValue()
+                val tag: Long = reader.longValue()
                 reader.next()
                 val variant = when (tag) {
-                    0 -> Var1.read(reader)
-                    1 -> Var2.read(reader)
-                    2 -> Var3.read(reader)
-                    3 -> Var4.read(reader)
-                    else -> error("Invalid tag `$tag` on union type `TUnion5`")
+                    Var1.TAG -> Var1.read(reader)
+                    Var2.TAG -> Var2.read(reader)
+                    Var3.TAG -> Var3.read(reader)
+                    Var4.TAG -> Var4.read(reader)
+                    Var5.TAG -> Var5.read(reader)
+                    else -> error("Invalid tag `$tag` on union type `TUnion`")
                 }
                 reader.stepOut()
                 return variant

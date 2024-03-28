@@ -26,11 +26,14 @@ class TestKotlinCoverage {
         "t_array_prim_fix" to Coverage.TArrayPrimFix::read,
         "t_array_var" to Coverage.TArrayVar::read,
         "t_array_fix" to Coverage.TArrayFix::read,
+        // enums
+        //
         // structs
         "t_struct_prim" to Coverage.TStructPrim::read,
         "t_struct" to Coverage.TStruct::read,
         // unions
-        "t_union_1" to Coverage.TUnion1::read,
+        "t_union_refs" to Coverage.TUnionRefs::read,
+        "t_union" to Coverage.TUnion::read,
     )
 
     @TestFactory

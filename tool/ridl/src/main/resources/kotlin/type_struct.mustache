@@ -4,14 +4,10 @@ public data class {{name}}(
 {{/fields}}
 ) : {{parent}} {
 
-    {{#tag}}
-    private val tag: Int = {{.}}
-    {{/tag}}
-
     public override fun write(writer: IonWriter) {
         {{#tag}}
         writer.stepIn(IonType.SEXP)
-        writer.writeInt(tag)
+        writer.writeInt(TAG)
         {{/tag}}
         writer.stepIn(IonType.SEXP)
         {{#fields}}
@@ -30,8 +26,13 @@ public data class {{name}}(
 
     public companion object {
 
+        {{#tag}}
+        public const val TAG: Long = {{.}}
+        {{/tag}}
+
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
+            assert(reader.type == IonType.SEXP)
             reader.stepIn()
             {{#fields}}
             assert(reader.next() == IonType.{{ion}})

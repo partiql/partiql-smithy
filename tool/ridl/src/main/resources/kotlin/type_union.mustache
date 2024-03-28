@@ -1,9 +1,5 @@
 public sealed interface {{name}} : {{parent}} {
 
-    {{#tag}}
-    private val tag: Int = {{.}}
-    {{/tag}}
-
     {{#variants}}
     {{#type}}
     {{>type}}
@@ -12,15 +8,20 @@ public sealed interface {{name}} : {{parent}} {
 
     companion object {
 
+        {{#tag}}
+        public const val TAG: Long = {{.}}
+        {{/tag}}
+
         @JvmStatic
         public fun read(reader: IonReader): {{name}} {
+            assert(reader.type == IonType.SEXP)
             reader.stepIn()
             assert(reader.next() == IonType.INT)
-            val tag: Int = reader.intValue()
+            val tag: Long = reader.longValue()
             reader.next()
             val variant =  when (tag) {
                 {{#variants}}
-                {{tag}} -> {{name}}.read(reader)
+                {{name}}.TAG -> {{name}}.read(reader)
                 {{/variants}}
                 else -> error("Invalid tag `$tag` on union type `{{name}}`")
             }

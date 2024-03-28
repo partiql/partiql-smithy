@@ -53,36 +53,40 @@ internal object KotlinGenerator {
     )
 
     private fun Type.toKType(parent: String = "IonSerializable", tag: Int? = null): KType = when (type) {
-        is RTypeArray -> type.toKType(name, parent)
-        is RTypeEnum -> type.toKType(name, parent)
+        is RTypeArray -> type.toKType(name, parent, tag)
+        is RTypeEnum -> type.toKType(name, parent, tag)
         is RTypeNamed -> error("Cannot define an alias; model should have been lowered.")
         is RTypePrimitive -> error("Cannot define a primitive; model should have been lowered.")
-        is RTypeStruct -> type.toKType(name, parent)
-        is RTypeUnion -> type.toKType(name, parent)
-        is RTypeUnit -> type.toKType(name, parent)
+        is RTypeStruct -> type.toKType(name, parent, tag)
+        is RTypeUnion -> type.toKType(name, parent, tag)
+        is RTypeUnit -> type.toKType(name, parent, tag)
     }
 
-    private fun RTypeArray.toKType(name: Name, parent: String) = KType(
+    private fun RTypeArray.toKType(name: Name, parent: String, tag: Int? = null) = KType(
         array = KArray(
             path = name.path(),
             name = name.name(),
+            parent = parent,
             item = item.reference(),
             itemIon = item.ion(),
             size = size,
             write = item.write("item"),
             read = item.read(),
+            tag = tag,
         )
     )
 
-    private fun RTypeEnum.toKType(name: Name, parent: String) = KType(
+    private fun RTypeEnum.toKType(name: Name, parent: String, tag: Int? = null) = KType(
         enum = KEnum(
             path = name.path(),
             name = name.name(),
+            parent = parent,
             values = values,
+            tag = tag,
         )
     )
 
-    private fun RTypeStruct.toKType(name: Name, parent: String) = KType(
+    private fun RTypeStruct.toKType(name: Name, parent: String, tag: Int? = null) = KType(
         struct = KStruct(
             path = name.path(),
             name = name.name(),
@@ -95,15 +99,17 @@ internal object KotlinGenerator {
                 val fRead = it.type.read()
                 KField(fName, fType, fIon, fWrite, fRead)
             },
+            tag = tag,
         )
     )
 
-    private fun RTypeUnion.toKType(name: Name, parent: String) = KType(
+    private fun RTypeUnion.toKType(name: Name, parent: String, tag: Int? = null) = KType(
         union = KUnion(
             path = name.path(),
             name = name.name(),
             parent = parent,
             variants = variants.mapIndexed { i, v -> v.toKVariant(i, name.name()) },
+            tag = tag,
         )
     )
 
@@ -119,7 +125,7 @@ internal object KotlinGenerator {
     /**
      * Box a reference to `T` with a simple `class Name(val value: T)` for modeling of unions with sealed classes.
      */
-    private fun RTypeRef.box(name: Name, parent: String, tag: Int): KType = KType(
+    private fun RTypeRef.box(name: Name, parent: String, tag: Int? = null): KType = KType(
         box = KBox(
             path = name.path(),
             name = name.name(),
@@ -132,7 +138,7 @@ internal object KotlinGenerator {
         )
     )
 
-    private fun RTypeUnit.toKType(name: Name, parent: String) = KType(
+    private fun RTypeUnit.toKType(name: Name, parent: String, tag: Int? = null) = KType(
         unit = KUnit(
             path = name.path(),
             name = name.name(),

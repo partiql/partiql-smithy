@@ -1,0 +1,217 @@
+// var_1
+
+{
+  type: 't_union',
+  assert: success,
+  value: (0 true),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (0 false),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (0 1),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (0 1e2),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (0 foo),
+}
+
+// var_2
+
+{
+  type: 't_union',
+  assert: success,
+  value: (1 []),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (1 [true]),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (1 [true, false]),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (1 true),
+}
+
+// var_3
+
+{
+  type: 't_union',
+  assert: success,
+  value: (2 A),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (2 B),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (2 C),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (2 D),
+}
+
+// var_4
+
+{
+  type: 't_union',
+  assert: success,
+  value: (3 (true true)),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (3 (false false)),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (3 ()),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (3 (true true true)),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (3 (0 0)),
+}
+
+// var_5
+
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (0 true)),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (0 false)),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (0 1)),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (0 1e2)),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (0 foo)),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (1 [])),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (1 [true])),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (1 [true, false])),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (1 true)),
+}
+
+// var_3
+
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (2 A)),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (2 B)),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (2 C)),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (2 D)),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (3 (true true))),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (3 (false false))),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (3 ())),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (3 (true true true))),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (3 (0 0))),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (4 (0 0))),
+}
+{
+  type: 't_union',
+  assert: success,
+  value: (4 (4 (1 0e0))),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (4 (1 0))),
+}
+{
+  type: 't_union',
+  assert: failure,
+  value: (4 (4 (0 0e0))),
+}

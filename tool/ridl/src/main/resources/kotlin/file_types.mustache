@@ -13,14 +13,6 @@ public abstract class _Array<T>(private val items: Array<T>) : IonSerializable {
     public operator fun get(index: Int): T = items[index]
     public operator fun set(index: Int, value: T): Unit = items.set(index, value)
     public operator fun iterator(): Iterator<T> = items.iterator()
-
-    public override fun write(writer: IonWriter) {
-        writer.stepIn(IonType.LIST)
-        for (item in items) { write(writer, item) }
-        writer.stepOut()
-    }
-
-    public abstract fun write(writer: IonWriter, item: T)
 }
 
 public abstract class _ArrayList<T>(private val items: ArrayList<T>) : IonSerializable {
@@ -28,14 +20,6 @@ public abstract class _ArrayList<T>(private val items: ArrayList<T>) : IonSerial
     public operator fun get(index: Int): T = items[index]
     public operator fun set(index: Int, value: T): T = items.set(index, value)
     public operator fun iterator(): Iterator<T> = items.iterator()
-
-    public override fun write(writer: IonWriter) {
-        writer.stepIn(IonType.LIST)
-        for (item in items) { write(writer, item) }
-        writer.stepOut()
-    }
-
-    public abstract fun write(writer: IonWriter, item: T)
 }
 
 {{#namespace}}

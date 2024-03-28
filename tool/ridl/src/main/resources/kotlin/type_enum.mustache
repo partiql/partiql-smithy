@@ -1,17 +1,13 @@
-public enum class {{name}} {
+public enum class {{name}} : {{parent}} {
     {{#values}}
     {{.}},
     {{/values}}
     ;
 
-    {{#tag}}
-    private val tag: Long = {{.}}
-    {{/tag}}
-
     public override fun write(writer: IonWriter) {
         {{#tag}}
         writer.stepIn(IonType.SEXP)
-        writer.writeInt(tag)
+        writer.writeInt(TAG)
         {{/tag}}
         writer.writeSymbol(name)
         {{#tag}}
@@ -21,8 +17,12 @@ public enum class {{name}} {
 
     public companion object {
 
+        {{#tag}}
+        public const val TAG: Long = {{.}}
+        {{/tag}}
+
         @JvmStatic
-        public fun read(reader: IonReader): Order = try {
+        public fun read(reader: IonReader): {{name}} = try {
             {{name}}.valueOf(reader.symbolValue().text)
         } catch (ex: IllegalArgumentException) {
             // TODO error messaging

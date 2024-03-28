@@ -29,6 +29,7 @@ internal class KType(
 internal class KArray(
     @JvmField var path: String,
     @JvmField var name: String,
+    @JvmField var parent: String,
     @JvmField var item: String,
     @JvmField var itemIon: IonType,
     @JvmField var size: Int?,
@@ -40,6 +41,7 @@ internal class KArray(
 internal class KEnum(
     @JvmField var path: String,
     @JvmField var name: String,
+    @JvmField var parent: String,
     @JvmField var values: List<String>,
     @JvmField var tag: Int? = null,
 )

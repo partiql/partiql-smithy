@@ -1,27 +1,31 @@
 {{#size}}
-public class {{name}}(items: Array<{{item}}>) : _Array<{{item}}>(items) {
+public class {{name}}(private val items: Array<{{item}}>) : _Array<{{item}}>(items), {{parent}} {
 
-    {{#tag}}
-    private val tag: Long = {{.}}
-    {{/tag}}
-
-    override fun write(writer: IonWriter, item: {{item}}) {
+    override fun write(writer: IonWriter) {
         {{#tag}}
         writer.stepIn(IonType.SEXP)
-        writer.writeInt(tag)
+        writer.writeInt(TAG)
         {{/tag}}
-        {{#write}}
-        writer.{{write}}
-        {{/write}}
-        {{^write}}
-        item.write(writer)
-        {{/write}}
+        writer.stepIn(IonType.LIST)
+        for (item in items) {
+            {{#write}}
+            writer.{{write}}
+            {{/write}}
+            {{^write}}
+            item.write(writer)
+            {{/write}}
+        }
+        writer.stepOut()
         {{#tag}}
         writer.stepOut()
         {{/tag}}
     }
 
     companion object {
+
+        {{#tag}}
+        public const val TAG: Long = {{.}}
+        {{/tag}}
 
         @JvmStatic
         fun read(reader: IonReader): {{name}} {
@@ -50,22 +54,38 @@ public class {{name}}(items: Array<{{item}}>) : _Array<{{item}}>(items) {
 }
 {{/size}}
 {{^size}}
-public class {{name}}(items: ArrayList<{{item}}>) : _ArrayList<{{item}}>(items) {
+public class {{name}}(private val items: ArrayList<{{item}}>) : _ArrayList<{{item}}>(items), {{parent}} {
 
-    override fun write(writer: IonWriter, item: {{item}}) {
-        {{#write}}
-        writer.{{write}}
-        {{/write}}
-        {{^write}}
-        item.write(writer)
-        {{/write}}
+    override fun write(writer: IonWriter) {
+        {{#tag}}
+        writer.stepIn(IonType.SEXP)
+        writer.writeInt(TAG)
+        {{/tag}}
+        writer.stepIn(IonType.LIST)
+        for (item in items) {
+            {{#write}}
+            writer.{{write}}
+            {{/write}}
+            {{^write}}
+            item.write(writer)
+            {{/write}}
+        }
+        writer.stepOut()
+        {{#tag}}
+        writer.stepOut()
+        {{/tag}}
     }
 
     companion object {
 
+        {{#tag}}
+        public const val TAG: Long = {{.}}
+        {{/tag}}
+
         @JvmStatic
         fun read(reader: IonReader): {{name}} {
             val items = arrayListOf<{{item}}>()
+            assert(reader.type == IonType.LIST)
             reader.stepIn()
             while (reader.next() == IonType.{{itemIon}}) {
                 {{#read}}

@@ -41,55 +41,38 @@ type t_struct struct {
 // };
 
 //-------------------------
-// Unions
-//-------------------------
-
-type t_union_1 union {
-    var_a: int32,
-    var_b: int64,
-};
-
-type t_union_2 union {
-    var_a: t_struct,
-    var_b: t_struct,
-};
-
-type t_union_3 union {
-    var_a: struct { x: int32, y: int64 },
-    var_b: struct { x: float32, y: float64 },
-};
-
-type t_union_4 union {
-    var_a: int32,
-    var_b: t_struct,
-    var_c: struct { x: float32, y: float64 },
-};
-
-type t_union_5 union {
-    var_1: union {
-        var_a: int32,
-        var_b: int64,
-    },
-    var_2: union {
-        var_a: t_struct,
-        var_b: t_struct,
-    },
-    var_3: union {
-        var_a: struct { x: int32, y: int64 },
-        var_b: struct { x: float32, y: float64 },
-    },
-    var_4: union {
-        var_a: int32,
-        var_b: t_struct,
-        var_c: struct { x: float32, y: float64 },
-    },
-};
-
-//-------------------------
 // Enums
 //-------------------------
 
-// type my_enum enum { ENUMERATOR_X, ENUMERATOR_Y, ENUMERATOR_Z }
+type t_enum enum { X, Y, Z };
+
+//-------------------------
+// Unions
+//-------------------------
+
+type t_union_refs union {
+    var_1: t_bool,
+    var_2: t_array_prim_var,
+    var_3: t_enum,
+    var_4: t_struct,
+};
+
+type t_union union {
+    var_1: bool,                    // primitive
+    var_2: bool[],                  // array
+    var_3: enum { A, B, C },        // enum
+    var_4: struct { x: bool, y: bool },      // struct
+    var_5: union {                  // union of union
+        var_a: bool,
+        var_b: bool[],
+        var_c: enum { A, B, C },
+        var_d: struct { x: bool },
+        var_e: union {
+            i: t_i32,
+            f: t_f64,
+        },
+    },
+};
 
 //-------------------------
 // Namespaces
