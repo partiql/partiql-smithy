@@ -240,9 +240,11 @@ public class Coverage private constructor() {
         public data class Var1(@JvmField val value: Boolean) : TUnionRefs {
 
             public override fun write(writer: IonWriter) {
+                TUnionRefs.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 writer.writeBool(value)
+                TUnionRefs.stepOut(writer)
                 writer.stepOut()
             }
 
@@ -263,9 +265,11 @@ public class Coverage private constructor() {
         public data class Var2(@JvmField val value: TArrayPrimVar) : TUnionRefs {
 
             public override fun write(writer: IonWriter) {
+                TUnionRefs.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 value.write(writer)
+                TUnionRefs.stepOut(writer)
                 writer.stepOut()
             }
 
@@ -286,9 +290,11 @@ public class Coverage private constructor() {
         public data class Var3(@JvmField val value: TEnum) : TUnionRefs {
 
             public override fun write(writer: IonWriter) {
+                TUnionRefs.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 value.write(writer)
+                TUnionRefs.stepOut(writer)
                 writer.stepOut()
             }
 
@@ -309,9 +315,11 @@ public class Coverage private constructor() {
         public data class Var4(@JvmField val value: TStruct) : TUnionRefs {
 
             public override fun write(writer: IonWriter) {
+                TUnionRefs.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 value.write(writer)
+                TUnionRefs.stepOut(writer)
                 writer.stepOut()
             }
 
@@ -331,6 +339,13 @@ public class Coverage private constructor() {
 
         companion object {
 
+            internal fun stepIn(writer: IonWriter) {
+                // no-op
+            }
+
+            internal fun stepOut(writer: IonWriter) {
+                // no-op
+            }
 
             @JvmStatic
             public fun read(reader: IonReader): TUnionRefs {
@@ -359,9 +374,11 @@ public class Coverage private constructor() {
         public data class Var1(@JvmField val value: Boolean) : TUnion {
 
             public override fun write(writer: IonWriter) {
+                TUnion.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 writer.writeBool(value)
+                TUnion.stepOut(writer)
                 writer.stepOut()
             }
 
@@ -381,6 +398,7 @@ public class Coverage private constructor() {
         public class Var2(private val items: ArrayList<Boolean>) : _ArrayList<Boolean>(items), TUnion {
 
             override fun write(writer: IonWriter) {
+                TUnion.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 writer.stepIn(IonType.LIST)
@@ -389,6 +407,7 @@ public class Coverage private constructor() {
                 }
                 writer.stepOut()
                 writer.stepOut()
+                TUnion.stepOut(writer)
             }
 
             companion object {
@@ -414,10 +433,12 @@ public class Coverage private constructor() {
             A, B, C, ;
 
             public override fun write(writer: IonWriter) {
+                TUnion.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 writer.writeSymbol(name)
                 writer.stepOut()
+                TUnion.stepOut(writer)
             }
 
             public companion object {
@@ -441,6 +462,7 @@ public class Coverage private constructor() {
         ) : TUnion {
 
             public override fun write(writer: IonWriter) {
+                TUnion.stepIn(writer)
                 writer.stepIn(IonType.SEXP)
                 writer.writeInt(TAG)
                 writer.stepIn(IonType.SEXP)
@@ -448,6 +470,7 @@ public class Coverage private constructor() {
                 writer.writeBool(y)
                 writer.stepOut()
                 writer.stepOut()
+                TUnion.stepOut(writer)
             }
 
             public companion object {
@@ -476,9 +499,11 @@ public class Coverage private constructor() {
             public data class VarA(@JvmField val value: Boolean) : Var5 {
 
                 public override fun write(writer: IonWriter) {
+                    Var5.stepIn(writer)
                     writer.stepIn(IonType.SEXP)
                     writer.writeInt(TAG)
                     writer.writeBool(value)
+                    Var5.stepOut(writer)
                     writer.stepOut()
                 }
 
@@ -498,6 +523,7 @@ public class Coverage private constructor() {
             public class VarB(private val items: ArrayList<Boolean>) : _ArrayList<Boolean>(items), Var5 {
 
                 override fun write(writer: IonWriter) {
+                    Var5.stepIn(writer)
                     writer.stepIn(IonType.SEXP)
                     writer.writeInt(TAG)
                     writer.stepIn(IonType.LIST)
@@ -506,6 +532,7 @@ public class Coverage private constructor() {
                     }
                     writer.stepOut()
                     writer.stepOut()
+                    Var5.stepOut(writer)
                 }
 
                 companion object {
@@ -531,10 +558,12 @@ public class Coverage private constructor() {
                 A, B, C, ;
 
                 public override fun write(writer: IonWriter) {
+                    Var5.stepIn(writer)
                     writer.stepIn(IonType.SEXP)
                     writer.writeInt(TAG)
                     writer.writeSymbol(name)
                     writer.stepOut()
+                    Var5.stepOut(writer)
                 }
 
                 public companion object {
@@ -554,15 +583,19 @@ public class Coverage private constructor() {
 
             public data class VarD(
                 @JvmField val x: Boolean,
+                @JvmField val y: Boolean,
             ) : Var5 {
 
                 public override fun write(writer: IonWriter) {
+                    Var5.stepIn(writer)
                     writer.stepIn(IonType.SEXP)
                     writer.writeInt(TAG)
                     writer.stepIn(IonType.SEXP)
                     writer.writeBool(x)
+                    writer.writeBool(y)
                     writer.stepOut()
                     writer.stepOut()
+                    Var5.stepOut(writer)
                 }
 
                 public companion object {
@@ -575,9 +608,11 @@ public class Coverage private constructor() {
                         reader.stepIn()
                         assert(reader.next() == IonType.BOOL)
                         val x: Boolean = reader.booleanValue()
+                        assert(reader.next() == IonType.BOOL)
+                        val y: Boolean = reader.booleanValue()
                         assert(reader.next() == null)
                         reader.stepOut()
-                        return VarD(x)
+                        return VarD(x, y)
                     }
                 }
             }
@@ -585,12 +620,15 @@ public class Coverage private constructor() {
 
             public sealed interface VarE : Var5 {
 
+
                 public data class I(@JvmField val value: Int) : VarE {
 
                     public override fun write(writer: IonWriter) {
+                        VarE.stepIn(writer)
                         writer.stepIn(IonType.SEXP)
                         writer.writeInt(TAG)
                         writer.writeInt(value.toLong())
+                        VarE.stepOut(writer)
                         writer.stepOut()
                     }
 
@@ -611,9 +649,11 @@ public class Coverage private constructor() {
                 public data class F(@JvmField val value: Double) : VarE {
 
                     public override fun write(writer: IonWriter) {
+                        VarE.stepIn(writer)
                         writer.stepIn(IonType.SEXP)
                         writer.writeInt(TAG)
                         writer.writeFloat(value)
+                        VarE.stepOut(writer)
                         writer.stepOut()
                     }
 
@@ -634,6 +674,17 @@ public class Coverage private constructor() {
                 companion object {
 
                     public const val TAG: Long = 4
+
+                    internal fun stepIn(writer: IonWriter) {
+                        Var5.stepIn(writer)
+                        writer.stepIn(IonType.SEXP)
+                        writer.writeInt(TAG)
+                    }
+
+                    internal fun stepOut(writer: IonWriter) {
+                        writer.stepOut()
+                        Var5.stepOut(writer)
+                    }
 
                     @JvmStatic
                     public fun read(reader: IonReader): VarE {
@@ -657,6 +708,17 @@ public class Coverage private constructor() {
             companion object {
 
                 public const val TAG: Long = 4
+
+                internal fun stepIn(writer: IonWriter) {
+                    TUnion.stepIn(writer)
+                    writer.stepIn(IonType.SEXP)
+                    writer.writeInt(TAG)
+                }
+
+                internal fun stepOut(writer: IonWriter) {
+                    writer.stepOut()
+                    TUnion.stepOut(writer)
+                }
 
                 @JvmStatic
                 public fun read(reader: IonReader): Var5 {
@@ -682,6 +744,13 @@ public class Coverage private constructor() {
 
         companion object {
 
+            internal fun stepIn(writer: IonWriter) {
+                // no-op
+            }
+
+            internal fun stepOut(writer: IonWriter) {
+                // no-op
+            }
 
             @JvmStatic
             public fun read(reader: IonReader): TUnion {

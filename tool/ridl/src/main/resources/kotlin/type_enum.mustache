@@ -6,12 +6,14 @@ public enum class {{name}} : {{parent}} {
 
     public override fun write(writer: IonWriter) {
         {{#tag}}
+        {{parent}}.stepIn(writer)
         writer.stepIn(IonType.SEXP)
         writer.writeInt(TAG)
         {{/tag}}
         writer.writeSymbol(name)
         {{#tag}}
         writer.stepOut()
+        {{parent}}.stepOut(writer)
         {{/tag}}
     }
 

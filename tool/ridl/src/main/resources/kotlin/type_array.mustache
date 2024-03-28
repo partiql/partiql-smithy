@@ -58,6 +58,7 @@ public class {{name}}(private val items: ArrayList<{{item}}>) : _ArrayList<{{ite
 
     override fun write(writer: IonWriter) {
         {{#tag}}
+        {{parent}}.stepIn(writer)
         writer.stepIn(IonType.SEXP)
         writer.writeInt(TAG)
         {{/tag}}
@@ -73,6 +74,7 @@ public class {{name}}(private val items: ArrayList<{{item}}>) : _ArrayList<{{ite
         writer.stepOut()
         {{#tag}}
         writer.stepOut()
+        {{parent}}.stepOut(writer)
         {{/tag}}
     }
 

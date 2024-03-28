@@ -1,0 +1,40 @@
+{
+  type: 't_enum',
+  assert: success,
+  value: X,
+}
+{
+  type: 't_enum',
+  assert: success,
+  value: Y,
+}
+{
+  type: 't_enum',
+  assert: success,
+  value: Z,
+}
+{
+  type: 't_enum',
+  assert: failure,
+  value: x,
+}
+{
+  type: 't_enum',
+  assert: failure,
+  value: false,
+}
+{
+  type: 't_enum',
+  assert: failure,
+  value: 0,
+}
+{
+  type: 't_enum',
+  assert: failure,
+  value: 0e0,
+}
+{
+  type: 't_enum',
+  assert: failure,
+  value: (),
+}

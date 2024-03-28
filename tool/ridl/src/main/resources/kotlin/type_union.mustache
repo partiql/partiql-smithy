@@ -6,10 +6,31 @@ public sealed interface {{name}} : {{parent}} {
     {{/type}}
     {{/variants}}
 
+
     companion object {
 
         {{#tag}}
         public const val TAG: Long = {{.}}
+
+        internal fun stepIn(writer: IonWriter) {
+            {{parent}}.stepIn(writer)
+            writer.stepIn(IonType.SEXP)
+            writer.writeInt(TAG)
+        }
+
+        internal fun stepOut(writer: IonWriter) {
+            writer.stepOut()
+            {{parent}}.stepOut(writer)
+        }
+        {{/tag}}
+        {{^tag}}
+        internal fun stepIn(writer: IonWriter) {
+            // no-op
+        }
+
+        internal fun stepOut(writer: IonWriter) {
+            // no-op
+        }
         {{/tag}}
 
         @JvmStatic

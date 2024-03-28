@@ -27,7 +27,7 @@ class TestKotlinCoverage {
         "t_array_var" to Coverage.TArrayVar::read,
         "t_array_fix" to Coverage.TArrayFix::read,
         // enums
-        //
+        "t_enum" to Coverage.TEnum::read,
         // structs
         "t_struct_prim" to Coverage.TStructPrim::read,
         "t_struct" to Coverage.TStruct::read,
