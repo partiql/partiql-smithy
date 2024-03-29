@@ -1,6 +1,9 @@
 package io.github.amzn.ridl.model.load
 
-import io.github.amzn.ridl.model.*
+import io.github.amzn.ridl.model.Definition
+import io.github.amzn.ridl.model.Name
+import io.github.amzn.ridl.model.RTypeNamed
+import io.github.amzn.ridl.model.RTypeRef
 
 /**
  * For lack of a better name, I'm calling this "rebase" because it replaces the base type for each RTypeRef.

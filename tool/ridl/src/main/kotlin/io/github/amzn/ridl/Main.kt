@@ -21,14 +21,14 @@ import picocli.CommandLine
 import kotlin.system.exitProcess
 
 public fun main(args: Array<String>) {
-    val command = CommandLine(io.github.amzn.ridl.RIDL())
+    val command = CommandLine(RIDL())
     exitProcess(command.execute(*args))
 }
 
 @CommandLine.Command(
     name = "ridl",
     mixinStandardHelpOptions = true,
-    subcommands = [io.github.amzn.ridl.Generate::class],
+    subcommands = [Generate::class],
 )
 public class RIDL : Runnable {
     override fun run() {}

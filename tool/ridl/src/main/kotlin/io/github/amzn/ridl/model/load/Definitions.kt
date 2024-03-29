@@ -1,6 +1,5 @@
 package io.github.amzn.ridl.model.load
 
-import org.antlr.v4.runtime.ParserRuleContext
 import io.github.amzn.ridl.antlr.RIDLBaseVisitor
 import io.github.amzn.ridl.antlr.RIDLParser
 import io.github.amzn.ridl.model.Definition
@@ -17,6 +16,7 @@ import io.github.amzn.ridl.model.RTypeStruct
 import io.github.amzn.ridl.model.RTypeUnion
 import io.github.amzn.ridl.model.RTypeUnit
 import io.github.amzn.ridl.model.Type
+import org.antlr.v4.runtime.ParserRuleContext
 
 /**
  * Helper function to turn the ANTLR AST to a definition tree.
@@ -33,7 +33,7 @@ internal class Definitions(
             // collect aliases when visiting definitions
             val aliases = mutableMapOf<Name, RTypeRef>()
             // unpack top-level namespace
-            val definitions =  DVisitor(root, root, aliases).visitDocument(tree).definitions
+            val definitions = DVisitor(root, root, aliases).visitDocument(tree).definitions
             return Definitions(definitions, aliases)
         }
 
@@ -47,7 +47,7 @@ internal class Definitions(
         }
     }
 
-    public fun rebase(): List<Definition> = Rebase.apply(definitions, aliases)
+    fun rebase(): List<Definition> = Rebase.apply(definitions, aliases)
 
     /**
      * Walk through the symbol tree for name resolution.

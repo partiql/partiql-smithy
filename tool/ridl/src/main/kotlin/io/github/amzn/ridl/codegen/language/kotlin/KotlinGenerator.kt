@@ -1,15 +1,28 @@
 package io.github.amzn.ridl.codegen.language.kotlin
 
 import com.amazon.ion.IonType
-import net.pearx.kasechange.toPascalCase
 import io.github.amzn.ridl.codegen.Templates
-import io.github.amzn.ridl.codegen.language.kotlin.KotlinGenerator.visit
-import io.github.amzn.ridl.model.*
+import io.github.amzn.ridl.model.Definition
+import io.github.amzn.ridl.model.Document
+import io.github.amzn.ridl.model.Name
+import io.github.amzn.ridl.model.Namespace
+import io.github.amzn.ridl.model.Primitive
+import io.github.amzn.ridl.model.RType
+import io.github.amzn.ridl.model.RTypeArray
+import io.github.amzn.ridl.model.RTypeEnum
+import io.github.amzn.ridl.model.RTypeNamed
+import io.github.amzn.ridl.model.RTypePrimitive
+import io.github.amzn.ridl.model.RTypeRef
+import io.github.amzn.ridl.model.RTypeStruct
+import io.github.amzn.ridl.model.RTypeUnion
+import io.github.amzn.ridl.model.RTypeUnit
+import io.github.amzn.ridl.model.Type
+import net.pearx.kasechange.toPascalCase
 import java.io.File
 
 internal object KotlinGenerator {
 
-    private val templates = io.github.amzn.ridl.codegen.Templates("kotlin")
+    private val templates = Templates("kotlin")
 
     fun generate(options: KotlinOptions, document: Document): List<File> {
 

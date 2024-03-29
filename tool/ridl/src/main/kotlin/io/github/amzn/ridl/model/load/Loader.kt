@@ -1,14 +1,14 @@
 package io.github.amzn.ridl.model.load
 
+import io.github.amzn.ridl.antlr.RIDLLexer
+import io.github.amzn.ridl.antlr.RIDLParser
+import io.github.amzn.ridl.model.Document
 import org.antlr.v4.runtime.BaseErrorListener
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
 import org.antlr.v4.runtime.Token
-import io.github.amzn.ridl.antlr.RIDLLexer
-import io.github.amzn.ridl.antlr.RIDLParser
-import io.github.amzn.ridl.model.Document
 import java.io.ByteArrayInputStream
 import java.nio.file.Path
 

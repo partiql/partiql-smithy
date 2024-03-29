@@ -1,6 +1,12 @@
 = RIDL — Kotlin
+:toc: left
+:toc-title: Page Contents
+:sectlinks:
+:table-caption!:
 
-== Primitives
+== Types
+
+=== Primitives
 
 |===
 | RIDL Primitive | Kotlin Type

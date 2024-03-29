@@ -7,7 +7,7 @@ import java.io.Reader
 
 internal class Templates(private val root: String) {
 
-    private val loader: io.github.amzn.ridl.codegen.Templates.Loader = Loader()
+    private val loader: Templates.Loader = Loader()
     private val compiler: Mustache.Compiler = Mustache.compiler().withLoader(loader)
     private val cache: MutableMap<String, Template> = mutableMapOf()
 

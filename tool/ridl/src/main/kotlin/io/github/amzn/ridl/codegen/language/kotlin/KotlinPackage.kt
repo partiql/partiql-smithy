@@ -1,7 +1,5 @@
 package io.github.amzn.ridl.codegen.language.kotlin
 
-import io.github.amzn.ridl.codegen.Templates
-
 /**
  * Builder class for a kotlin package.
  */

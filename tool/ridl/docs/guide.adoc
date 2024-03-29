@@ -1,0 +1,114 @@
+= RIDL Development
+:toc: left
+:toc-title: Page Contents
+:sectlinks:
+:table-caption!:
+
+This document will walk through creating a target for `python`.
+
+== 1. Define the Target
+
+Create a package for your target in `ridl/codegen/languages/`.
+
+.New Package
+[source]
+----
+package io.github.amzn.ridl.codegen.language.python
+----
+
+== 2. Create a Command
+
+NOTE: RIDL uses link:https://picocli.info/[PicoCLI] for its commands.
+
+Create a _PythonCommand_ class and define necessary arguments per PicoCLI docs. At a minimum, you'll want the input file and likely the include path.
+
+[source,kotlin]
+----
+@CommandLine.Command(
+    name = "python",
+    mixinStandardHelpOptions = true,
+    description = ["Generates Python sources"]
+)
+internal class PCommand : Callable<Int> {
+
+    @CommandLine.Parameters(
+        index = "0",
+        description = ["Type definition file"]
+    )
+    lateinit var file: File
+
+    @CommandLine.Option(
+        names = ["-I"],
+        description = ["Include directory"]
+    )
+    var include: Path? = null
+
+    override fun call(): Int {
+        // Load type definitions
+        val input = file.readText()
+        val document = Document.load(input, include)
+        // Generate
+        // invoke the python generator...
+        return 0
+    }
+}
+----
+
+Finally, register this generate sub-command to the `Main.kt` file.
+
+[source,kotlin]
+----
+@CommandLine.Command(
+    name = "generate",
+    mixinStandardHelpOptions = true,
+    subcommands = [
+        ...
+        PythonCommand::class, // <----- Add this line!
+    ],
+)
+public class Generate : Runnable {
+    override fun run() {}
+}
+----
+
+== 3. Implement a Generator
+
+The details on how you may want to do this can vary. The tool has some facilities for link:https://mustache.github.io/mustache.5.html[mustache] templating via link:https://github.com/samskivert/jmustache[samskivert's kotlin implementation].
+
+Templates are kept in `src/main/resources/<target>`. In this case, we would create a directory `resources/python` and add our templates there.
+
+There is a `Templates` helper class which will load and cache templates by name. It also handles partials resolution.
+
+.File : `src/main/resources/hello_template.mustache`
+[source, mustache]
+----
+Hello, {{name}}!
+----
+
+.Generator Example
+[source,kotlin]
+----
+// src/main/kotlin/.../codegen/languages/python
+object PythonGenerator {
+
+    // create a template loader from root `python`
+    private val template = Templates("python")
+
+    // template context
+    private data class Context(@JvmField val name: String)
+
+    fun generate(document: Document) {
+        // whatever generation logic you want
+        // ...
+
+        // template usage
+        val ctx = Context("python")
+        val result = templates.apply("hello_template", ctx)
+        println(result) // Hello, python!
+    }
+}
+----
+
+== 4. Documentation
+
+I encourage any new target to add a document for its command options and type mappings/representations in the respective target. These are authored in asciidoc and kept in _docs/languages/_.

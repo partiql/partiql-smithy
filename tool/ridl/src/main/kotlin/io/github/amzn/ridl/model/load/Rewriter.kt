@@ -1,6 +1,18 @@
 package io.github.amzn.ridl.model.load
 
-import io.github.amzn.ridl.model.*
+import io.github.amzn.ridl.model.Definition
+import io.github.amzn.ridl.model.Document
+import io.github.amzn.ridl.model.Namespace
+import io.github.amzn.ridl.model.RType
+import io.github.amzn.ridl.model.RTypeArray
+import io.github.amzn.ridl.model.RTypeEnum
+import io.github.amzn.ridl.model.RTypeNamed
+import io.github.amzn.ridl.model.RTypePrimitive
+import io.github.amzn.ridl.model.RTypeRef
+import io.github.amzn.ridl.model.RTypeStruct
+import io.github.amzn.ridl.model.RTypeUnion
+import io.github.amzn.ridl.model.RTypeUnit
+import io.github.amzn.ridl.model.Type
 
 internal abstract class Rewriter {
 

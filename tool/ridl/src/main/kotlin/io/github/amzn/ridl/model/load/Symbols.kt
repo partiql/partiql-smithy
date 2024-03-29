@@ -1,9 +1,9 @@
 package io.github.amzn.ridl.model.load
 
-import org.antlr.v4.runtime.ParserRuleContext
-import org.antlr.v4.runtime.tree.TerminalNode
 import io.github.amzn.ridl.antlr.RIDLBaseVisitor
 import io.github.amzn.ridl.antlr.RIDLParser
+import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.TerminalNode
 
 /**
  * Helper function to turn the ANTLR AST to a Symbol tree for name resolution.

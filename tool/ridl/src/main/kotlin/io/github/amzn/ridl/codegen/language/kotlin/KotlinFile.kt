@@ -8,7 +8,7 @@ internal class KotlinFile(
     private val ctx: Any,
 ) {
 
-    fun write(templates: io.github.amzn.ridl.codegen.Templates) {
+    fun write(templates: Templates) {
         try {
             val output = templates.apply(template, ctx)
             println(output)

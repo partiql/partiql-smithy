@@ -1,27 +1,31 @@
 = RIDL — Interface Definition Language
-:toc:
+:toc: left
 :toc-title: Page Contents
 :sectlinks:
 :table-caption!:
 
 == About
 
-This document defines an interface definition language for types whose values can be serialized as Ion. It is intended to be a simple and high-level modeling language whose definitions trivially map to link:https://survey.stackoverflow.co/2023/#most-popular-technologies-language-prof[key languages] in the link:https://en.wikipedia.org/wiki/List_of_C-family_programming_languages[C-family] such as C, C++, Go, Rust, and Java.
+RIDL is an interface definition language for Ion. Its goal is to be a simple and high-level type modeling language whose definitions trivially map to link:https://survey.stackoverflow.co/2023/#most-popular-technologies-language-prof[key languages] in the link:https://en.wikipedia.org/wiki/List_of_C-family_programming_languages[C-family] such as C, C++, Go, Rust, and Java.
+
+The RIDL tool is a command-line tool which generates data structures and serde logic for various languages. It is similar to tools such as protoc, smithy cli, swagger cli, etc. — but uses Ion as the encoding format.
 
 === Supported Languages
 
+Today the RIDL tool has an Ion Schema and Kotlin generator; with the next target is Rust.
+
 * xref:languages/isl.adoc[Ion Schema]
 * xref:languages/kotlin.adoc[Kotlin]
+
+=== Development
+
+Please see the xref:guide.adoc[development guide].
 
 === License
 
 This project is licensed under the Apache-2.0 License.
 
 == Interface Definition Language
-
-=== Notation
-
-This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/grammars.md[ANTLR grammar notation] to define the IDL.
 
 === Example
 
@@ -46,6 +50,8 @@ type number union {
     double: float64
 };
 ----
+
+NOTE: This document uses the xref:https://github.com/antlr/antlr4/blob/master/doc/grammars.md[ANTLR grammar notation] to define the IDL.
 
 === Document
 
