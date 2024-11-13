@@ -1,0 +1,20 @@
+{
+  type: 't_array_prim_var',
+  assert: success,
+  value: [],
+}
+{
+  type: 't_array_prim_var',
+  assert: success,
+  value: [true],
+}
+{
+  type: 't_array_prim_var',
+  assert: success,
+  value: [true,true],
+}
+{
+  type: 't_array_prim_var',
+  assert: success,
+  value: [true,false],
+}

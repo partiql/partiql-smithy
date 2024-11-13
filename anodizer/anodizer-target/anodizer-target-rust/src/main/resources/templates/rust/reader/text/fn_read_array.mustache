@@ -1,0 +1,4 @@
+self.writer.set_tag("{{tag}}");
+self.writer.write_array_start({{items}}, {{size}})?;
+for {{item}} in {{items}} { {{write}}?; }
+self.writer.write_array_end()

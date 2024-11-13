@@ -1,0 +1,10 @@
+writer.stepIn(IonType.SEXP)
+when (value) {
+{{#variants}}
+    is {{type}} -> {
+      writer.writeInt({{index}}L)
+      {{write}}(value)
+    }
+{{/variants}}
+}
+writer.stepOut()

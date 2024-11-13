@@ -1,0 +1,7 @@
+```
+example (integration) of smithy-anodizer with ISL codegen.
+```
+
+**Examples**
+* [ISL Validation Example](https://amazon-ion.github.io/ion-schema/sandbox?schema=%0A%24ion_schema_2_0%0A%0Atype%3A%3A%7B%0A%20%20name%3Aunit%2C%0A%20%20type%3Asymbol%2C%0A%20%20valid_values%3A%5B%0A%20%20%20%20unit%0A%20%20%5D%0A%7D%0A%0Atype%3A%3A%7B%0A%20%20name%3Aput_paste_input%2C%0A%20%20annotations%3Arequired%3A%3A%5B%0A%20%20%20%20put_paste_input%0A%20%20%5D%2C%0A%20%20type%3Astruct%2C%0A%20%20fields%3Aclosed%3A%3A%7B%0A%20%20%20%20content_type%3Astring%2C%0A%20%20%20%20content%3Ablob%0A%20%20%7D%0A%7D%0A%0Atype%3A%3A%7B%0A%20%20name%3Aput_paste_output%2C%0A%20%20annotations%3Arequired%3A%3A%5B%0A%20%20%20%20put_paste_output%0A%20%20%5D%2C%0A%20%20type%3Astruct%2C%0A%20%20fields%3Aclosed%3A%3A%7B%0A%20%20%20%20id%3Aint%0A%20%20%7D%0A%7D%0A%0Atype%3A%3A%7B%0A%20%20name%3Aget_paste_input%2C%0A%20%20annotations%3Arequired%3A%3A%5B%0A%20%20%20%20get_paste_input%0A%20%20%5D%2C%0A%20%20type%3Astruct%2C%0A%20%20fields%3Aclosed%3A%3A%7B%0A%20%20%20%20id%3Aint%0A%20%20%7D%0A%7D%0A%0Atype%3A%3A%7B%0A%20%20name%3Aget_paste_output%2C%0A%20%20annotations%3Arequired%3A%3A%5B%0A%20%20%20%20get_paste_output%0A%20%20%5D%2C%0A%20%20type%3Astruct%2C%0A%20%20fields%3Aclosed%3A%3A%7B%0A%20%20%20%20content_type%3Astring%2C%0A%20%20%20%20content%3Ablob%0A%20%20%7D%0A%7D%0A&value=put_paste_input%3A%3A%7B%0A%20%20content_type%3A%20%22ascii%22%2C%0A%20%20content%3A%20%7B%7B%20VG8gaW5maW5pdHkuLi4gYW5kIGJleW9uZCE%3D%20%7D%7D%0A%7D&type=put_paste_input)
+

@@ -1,0 +1,6 @@
+self.writer.set_tag("{{tag}}");
+match value {
+{{#values}}
+    {{enum}}::{{name}} => self.writer.write_symbol("{{symbol}}"),
+{{/values}}
+}

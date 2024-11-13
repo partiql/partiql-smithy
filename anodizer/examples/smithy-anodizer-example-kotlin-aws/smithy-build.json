@@ -1,0 +1,33 @@
+{
+  "version": "1.0",
+  "sources": [
+    "model/"
+  ],
+  "plugins": {
+    "anodizer": {
+      "namespace": "amzn.paste",
+      "domain": "paste",
+      "targets": {
+        "isl": {},
+        "kotlin": {
+          "package": "io.github.amzn.paste.serde.ion"
+        }
+      }
+    },
+    "kotlin-codegen": {
+      "service": "amzn.paste#Paste",
+      "package": {
+        "name": "io.github.amzn.paste",
+        "version": "0.0.1"
+      },
+      "build": {
+        "rootProject": false
+      },
+      "api": {
+        "protocolResolutionPriority": [
+          "amzn.protocols#amznIon1_0"
+        ]
+      }
+    }
+  }
+}

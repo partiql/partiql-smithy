@@ -1,0 +1,117 @@
+//-------------------------
+// Primitives
+//-------------------------
+type t_bool bool;
+type t_int int;
+type t_float float;
+type t_decimal decimal;
+type t_str string;
+type t_blob blob;
+type t_clob clob;
+
+//-------------------------
+// Arrays
+//-------------------------
+type t_array_prim_var bool[];
+type t_array_prim_fix bool[10];
+type t_array_var t_bool[];
+type t_array_fix t_bool[10];
+
+//-------------------------
+// Structs
+//-------------------------
+
+type t_struct_prim struct {
+    x: int,
+    y: int,
+};
+
+type t_struct_prim struct {
+    x: x,
+    y: y;
+
+    type x int;
+    type y int;
+};
+
+type t_arr item[] {
+
+  type item struct {
+    foo: int,
+    bar: int,
+  }
+}
+
+type t_struct struct {
+    x: t_int,
+    y: t_int,
+};
+
+type t_pair struct {
+    lhs: t_struct,
+    rhs: t_struct,
+};
+
+// type t_struct_arrays struct {
+//     x: t_i32[],
+//     y: t_i64[],
+// };
+// type t_struct_inline struct {
+//     inline: struct { x: int32, y: int64 },
+// };
+
+//-------------------------
+// Enums
+//-------------------------
+
+type t_enum enum { X, Y, Z };
+
+//-------------------------
+// Unions
+//-------------------------
+
+type t_union_refs union {
+    var_1: t_bool,
+    var_2: t_array_prim_var,
+    var_3: t_enum,
+    var_4: t_struct,
+    var_5: t_pair,
+};
+
+type t_union union {
+    var_1: bool,                    // primitive
+    var_2: bool[],                  // array
+    var_3: enum { A, B, C },        // enum
+    var_4: struct { x: bool, y: bool },      // struct
+    var_5: union {                  // union of union
+        var_a: bool,
+        var_b: bool[],
+        var_c: enum { A, B, C },
+        var_d: struct { x: bool, y: bool },
+        var_e: union {
+            i: t_int,
+            f: t_float,
+        },
+    },
+};
+
+//-------------------------
+// Unit
+//-------------------------
+
+type greeting union {
+    hello: unit,
+    goodbye: unit,
+    custom: string,
+};
+
+//-------------------------
+// Namespaces
+//-------------------------
+
+// namespace foo {
+//     type my_byte byte;
+//     namespace bar {
+//         type my_byte byte;
+//     }
+// }

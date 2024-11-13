@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "sources": [
+    "model/"
+  ],
+  "plugins": {
+    "anodizer": {
+      "namespace": "amzn.paste",
+      "domain": "paste",
+      "targets": {
+        "isl": {}
+      }
+    }
+  }
+}

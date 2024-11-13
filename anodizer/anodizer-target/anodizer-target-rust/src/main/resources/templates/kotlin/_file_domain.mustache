@@ -1,0 +1,27 @@
+package {{package}}
+
+import com.amazon.ion.*
+import com.amazon.ion.IonWriter
+import com.amazon.ion.system.IonBinaryWriterBuilder
+import com.amazon.ion.system.IonReaderBuilder
+import com.amazon.ion.system.IonTextWriterBuilder
+import io.github.amzn.ridl.runtime.*
+import java.io.InputStream
+import java.io.OutputStream
+
+public class {{domain}} private constructor() {
+
+    public companion object {
+
+        @JvmStatic
+        private fun toString(write: ({{domain}}Writer) -> Unit): String {
+            val sb = StringBuilder()
+            val out = IonTextWriterBuilder.pretty().build(sb)
+            val writer = {{domain}}Writer.text(out)
+            write(writer)
+            return sb.toString()
+        }
+    }
+
+    {{{definitions}}}
+}

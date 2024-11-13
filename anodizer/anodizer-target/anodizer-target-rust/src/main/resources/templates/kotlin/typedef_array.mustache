@@ -1,0 +1,6 @@
+public class {{name}}(@JvmField public val values: Collection<{{type}}>): Iterable<{{type}}>{{#parent}}, {{.}}{{/parent}} {
+
+    override fun iterator(): Iterator<{{type}}> = values.iterator()
+
+    override fun toString(): String = toString { it.{{write}}(this) }
+}

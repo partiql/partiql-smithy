@@ -1,0 +1,98 @@
+// boxed primitives
+type box_bool bool;
+type box_int int;
+type box_float float;
+type box_decimal decimal;
+type box_str string;
+type box_blob blob;
+type box_clob clob;
+
+// box primitives with parameters
+type decimal_a decimal(1, 2);
+type decimal_b decimal(1, _);
+type decimal_c decimal(_, 2);
+type blob_a blob(1);
+type clob_b clob(1);
+
+// arrays
+type arr_a bool[];
+type arr_b bool[10];
+type arr_c box_bool[];
+type arr_d box_bool[10];
+type arr_nested bool[][];
+
+// enums
+type enum_a enum { HELLO_WORLD, GOODNIGHT_MOON };
+
+// unit
+type nil unit;
+
+// structs
+type struct_a struct {
+    x: bool,
+    y: int,
+    z: string,
+};
+
+type struct_alias struct_a;
+
+type struct_b struct {
+    x: bool[],
+    y: int[],
+    z: string[],
+};
+
+type struct_c struct {
+    x: decimal(1,2),
+    y: blob(10),
+    z: clob(10),
+};
+
+type struct_d struct {
+    a: struct_a,
+    b: struct_b,
+};
+
+// Unions
+
+type union_a union {
+    a: bool,
+    b: int,
+    c: string,
+};
+
+type union_b union {
+    a: struct {
+        x: bool,
+        y: int,
+        z: string,
+    },
+    b: struct {
+        x: bool[],
+        y: int[],
+        z: string[],
+    },
+    c: struct {
+        x: decimal(1,2),
+        y: blob(10),
+        z: clob(10),
+    },
+};
+
+type union_c union {
+    a: union {
+        a: bool,
+        b: int,
+        c: string,
+    },
+    b: union {
+        a: bool[],
+        b: int[],
+        c: string[],
+    },
+};
+
+type union_d union {
+    a: struct_a,
+    b: struct_b,
+};

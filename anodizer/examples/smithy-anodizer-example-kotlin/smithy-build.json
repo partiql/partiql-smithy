@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "sources": [
+    "model/"
+  ],
+  "plugins": {
+    "kotlin-codegen": {
+      "service": "amzn.paste#Paste",
+      "package": {
+        "name": "io.github.amzn.paste",
+        "version": "0.0.1"
+      },
+      "build": {
+        "rootProject": false
+      }
+    }
+  }
+}

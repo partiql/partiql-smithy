@@ -1,0 +1,34 @@
+pub struct {{domain}}Factory {
+    bump: Bump,
+}
+
+impl {{domain}}Factory {
+
+    pub fn new() -> {{domain}}Factory {
+        {{domain}}Factory {
+            bump: Bump::new(),
+        }
+    }
+}
+
+impl {{domain}}Factory {
+
+    pub fn decimal(&self, coefficient: i64, exponent: i64) -> &mut Decimal {
+        self.bump.alloc(Decimal::new(coefficient, exponent))
+    }
+
+    pub fn blob(&self, bytes: Vec<u8>) -> &mut Blob {
+        self.bump.alloc(Blob(Bytes::from(bytes)))
+    }
+
+    pub fn clob(&self, bytes: Vec<u8>) -> &mut Clob {
+        self.bump.alloc(Clob(Bytes::from(bytes)))
+    }
+
+    {{#methods}}
+    pub fn {{method}}(&self, {{args}}) -> &mut {{type}} {
+        self.bump.alloc({{constructor}})
+    }
+
+    {{/methods}}
+}

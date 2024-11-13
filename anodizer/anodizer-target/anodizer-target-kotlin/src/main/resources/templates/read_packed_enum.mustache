@@ -1,0 +1,7 @@
+assertType(IonType.SYMBOL)
+return try {
+    {{type}}.valueOf(reader.symbolValue().text)
+} catch (ex: IllegalArgumentException) {
+    // TODO error messaging
+    throw ex
+}

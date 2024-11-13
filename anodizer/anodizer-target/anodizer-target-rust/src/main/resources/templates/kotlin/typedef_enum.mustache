@@ -1,0 +1,8 @@
+public enum class {{name}}{{#parent}}: {{.}}{{/parent}} {
+    {{#values}}
+    {{.}},
+    {{/values}}
+    ;
+
+    override fun toString(): String = toString { it.{{write}}(this) }
+}

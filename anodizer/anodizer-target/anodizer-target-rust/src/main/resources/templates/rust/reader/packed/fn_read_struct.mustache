@@ -1,0 +1,6 @@
+self.writer.step_in(IonType::SExp)?;
+{{#fields}}
+self.writer.set_field_name("{{key}}");
+{{write}}?;
+{{/fields}}
+self.writer.step_out()

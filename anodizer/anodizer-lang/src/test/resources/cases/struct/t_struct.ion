@@ -1,0 +1,15 @@
+{
+  type: 't_struct',
+  assert: success,
+  value: (0 1),
+}
+{
+  type: 't_struct',
+  assert: failure,
+  value: (0 1 2),
+}
+{
+  type: 't_struct',
+  assert: failure,
+  value: (0),
+}

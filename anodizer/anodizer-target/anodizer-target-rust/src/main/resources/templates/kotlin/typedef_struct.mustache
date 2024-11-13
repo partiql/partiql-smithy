@@ -1,0 +1,23 @@
+/**
+ * Definition:
+ *
+ *      {{definition}}
+ *
+ * Ion Text Encoding:
+ *
+ *      'tag'::{
+ *         ...
+ *       }
+ *
+ * Ion Packed Encoding:
+ *
+ *      (...)
+ */
+public data class {{name}}(
+{{#fields}}
+    @JvmField var {{name}}: {{type}},
+{{/fields}}
+){{#parent}}: {{.}}{{/parent}} {
+
+    override fun toString(): String = toString { it.{{write}}(this) }
+}

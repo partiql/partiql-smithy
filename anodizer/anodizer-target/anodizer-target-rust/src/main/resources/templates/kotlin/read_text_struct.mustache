@@ -1,0 +1,8 @@
+assertType(IonType.STRUCT, "{{tag}}")
+reader.stepIn()
+{{#fields}}
+assertField("{{key}}"); reader.next()
+val {{arg}} = {{read}}
+{{/fields}}
+reader.stepOut()
+return {{type}}({{#fields}}{{arg}}, {{/fields}})

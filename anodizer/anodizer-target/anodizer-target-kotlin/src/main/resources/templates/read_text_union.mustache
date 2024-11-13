@@ -1,0 +1,7 @@
+val tag = reader.typeAnnotations[0]
+return when (tag) {
+    {{#variants}}
+    "{{tag}}" -> {{read}}()
+    {{/variants}}
+    else -> error("Unexpected union tag `$tag` for union `{{tag}}`")
+}

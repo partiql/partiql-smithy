@@ -1,0 +1,42 @@
+public abstract class {{domain}}Reader(reader: IonReader) : RidlReader(reader) {
+
+    {{#reads}}
+    public abstract fun {{read}}() : {{type}}
+
+    {{/reads}}
+
+    public companion object {
+
+        @JvmStatic
+        public fun text(input: InputStream): {{domain}}Reader = Text(IonReaderBuilder.standard().build(input))
+
+        @JvmStatic
+        public fun text(reader: IonReader): {{domain}}Reader = Text(reader)
+
+        @JvmStatic
+        public fun packed(input: InputStream): {{domain}}Reader = Packed(IonReaderBuilder.standard().build(input))
+
+        @JvmStatic
+        public fun packed(reader: IonReader): {{domain}}Reader = Packed(reader)
+    }
+
+    private class Text(reader: IonReader) : {{domain}}Reader(reader) {
+
+        {{#reads}}
+        override fun {{read}}(): {{type}} {
+            {{{text}}}
+        }
+
+        {{/reads}}
+    }
+
+    private class Packed(reader: IonReader) : {{domain}}Reader(reader) {
+
+        {{#reads}}
+        override fun {{read}}(): {{type}} {
+            {{{packed}}}
+        }
+
+        {{/reads}}
+    }
+}

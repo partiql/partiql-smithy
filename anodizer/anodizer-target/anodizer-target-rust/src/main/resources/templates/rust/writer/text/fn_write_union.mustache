@@ -1,0 +1,5 @@
+match value {
+{{#variants}}
+    {{union}}::{{name}}(v) => self.{{write}}(v),
+{{/variants}}
+}

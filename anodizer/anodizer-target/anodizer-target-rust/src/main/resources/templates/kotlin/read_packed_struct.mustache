@@ -1,0 +1,8 @@
+assertType(IonType.SEXP)
+reader.stepIn()
+{{#fields}}
+reader.next()
+val {{arg}} = {{read}}
+{{/fields}}
+reader.stepOut()
+return {{type}}({{#fields}}{{arg}}, {{/fields}})

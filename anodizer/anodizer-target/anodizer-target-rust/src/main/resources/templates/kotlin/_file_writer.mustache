@@ -1,0 +1,42 @@
+public abstract class {{domain}}Writer(writer: IonWriter) : RidlWriter(writer) {
+
+    {{#writes}}
+    public abstract fun {{write}}(value: {{type}})
+
+    {{/writes}}
+
+    public companion object {
+
+        @JvmStatic
+        public fun text(output: Appendable): {{domain}}Writer = Text(IonTextWriterBuilder.standard().build(output))
+
+        @JvmStatic
+        public fun text(writer: IonWriter): {{domain}}Writer = Text(writer)
+
+        @JvmStatic
+        public fun packed(output: OutputStream): {{domain}}Writer = Packed(IonBinaryWriterBuilder.standard().build(output))
+
+        @JvmStatic
+        public fun packed(writer: IonWriter): {{domain}}Writer = Packed(writer)
+    }
+
+    private class Text(writer: IonWriter) : {{domain}}Writer(writer) {
+
+        {{#writes}}
+        override fun {{write}}(value: {{type}}) {
+            {{{text}}}
+        }
+
+        {{/writes}}
+    }
+
+    private class Packed(writer: IonWriter) : {{domain}}Writer(writer) {
+
+        {{#writes}}
+        override fun {{write}}(value: {{type}}) {
+            {{{packed}}}
+        }
+
+        {{/writes}}
+    }
+}

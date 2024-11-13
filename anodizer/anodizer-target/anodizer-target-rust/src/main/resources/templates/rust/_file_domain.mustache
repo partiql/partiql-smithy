@@ -1,0 +1,17 @@
+#![allow(dead_code)]
+#![allow(non_snake_case)]
+#![allow(unused_imports)]
+use derive_new::new;
+use ion_rs::data_source::ToIonDataSource;
+use ion_rs::element::*;
+use ion_rs::types::Coefficient;
+use ion_rs::*;
+use std::fmt;
+use std::io::Write;
+use crate::arena::Arena;
+use crate::reader::RidlReader;
+use crate::result::RidlResult;
+use crate::writer::RidlWriter;
+use bumpalo::Bump;
+
+{{{definitions}}}

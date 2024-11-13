@@ -1,0 +1,7 @@
+self.writer.set_tag("{{tag}}");
+self.writer.step_in(IonType::Struct)?;
+{{#fields}}
+self.writer.set_field_name("{{key}}");
+{{write}}?;
+{{/fields}}
+self.writer.step_out()

@@ -1,0 +1,57 @@
+pub trait {{domain}}Reader<'a> {
+    {{#reads}}
+    fn {{read}}(&mut self) -> RidlResult<&'a {{type}}>;
+    {{/reads}}
+}
+
+pub struct {{domain}}ReaderBuilder {}
+
+impl {{domain}}ReaderBuilder {
+
+    pub fn text<'a, I: 'a + ToIonDataSource>(arena: &'a Arena, input: I) -> {{domain}}ReaderText {
+        let reader = ReaderBuilder::default().build(input).expect("Failed to instantiate IonReader.");
+        {{domain}}ReaderText {
+            arena,
+            reader: RidlReader::new(reader),
+        }
+    }
+
+    pub fn packed<'a, I: 'a + ToIonDataSource>(arena: &'a Arena, input: I) -> {{domain}}ReaderPacked {
+        let reader = ReaderBuilder::default().build(input).expect("Failed to instantiate IonReader.");
+        {{domain}}ReaderPacked {
+            arena,
+            reader: RidlReader::new(reader),
+        }
+    }
+
+}
+
+pub struct {{domain}}ReaderText<'a> {
+    arena: &'a Arena,
+    reader: RidlReader<'a>,
+}
+
+impl<'a> {{domain}}Reader<'a> for {{domain}}ReaderText<'a> {
+
+    {{#reads}}
+    fn {{read}}(&mut self) -> RidlResult<&'a {{type}}> {
+        {{text}}
+    }
+
+    {{/reads}}
+}
+
+pub struct {{domain}}ReaderPacked<'a> {
+    arena: &'a Arena,
+    reader: RidlReader<'a>,
+}
+
+impl<'a> {{domain}}Reader<'a> for {{domain}}ReaderPacked<'a> {
+
+    {{#reads}}
+    fn {{read}}(&mut self) -> RidlResult<&'a {{type}}> {
+        {{packed}}
+    }
+
+    {{/reads}}
+}

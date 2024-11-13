@@ -1,0 +1,6 @@
+writer.setTypeAnnotations("{{tag}}")
+writer.stepIn(IonType.STRUCT)
+{{#fields}}
+writer.setFieldName("{{key}}"); {{write}}
+{{/fields}}
+writer.stepOut()

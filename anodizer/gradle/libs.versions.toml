@@ -1,0 +1,24 @@
+[versions]
+junit-version = "5.10.5"
+kotlin-version = "2.0.21"
+kotlin-gradle-plugin = "2.0.21"
+smithy-version = "1.51.0"
+
+[libraries]
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-gradle-plugin" }
+
+# codegen
+smithy-aws-traits = { module = "software.amazon.smithy:smithy-aws-traits", version.ref = "smithy-version" }
+smithy-cli = { module = "software.amazon.smithy:smithy-cli", version.ref = "smithy-version" }
+smithy-codegen-core = { module = "software.amazon.smithy:smithy-codegen-core", version.ref = "smithy-version" }
+smithy-model = { module = "software.amazon.smithy:smithy-model", version.ref = "smithy-version" }
+smithy-protocol-traits = { module = "software.amazon.smithy:smithy-protocol-traits", version.ref = "smithy-version" }
+smithy--traits = { module = "software.amazon.smithy:smithy-aws-traits", version.ref = "smithy-version" }
+
+# testing
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-version" }
+junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit-version" }
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin-version" }
+
+[plugins]
+kotlin-jvm = {id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }

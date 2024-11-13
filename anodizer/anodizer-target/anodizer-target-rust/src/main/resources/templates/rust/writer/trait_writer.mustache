@@ -1,0 +1,84 @@
+pub trait {{domain}}Writer {
+    {{#writes}}
+    fn {{write}}<'a>(&mut self, value: &'a {{type}}) -> RidlResult<()>;
+    {{/writes}}
+}
+
+pub struct {{domain}}WriterBuilder {}
+
+impl {{domain}}WriterBuilder {
+
+    pub fn text<W: Write>(sink: W) -> impl {{domain}}Writer {
+        let writer = TextWriterBuilder::default()
+            .build(sink)
+            .expect("Failed to instantiate IonWriter.");
+        {{domain}}WriterText { writer: RidlWriter::new(writer) }
+    }
+
+    pub fn packed<W: Write>(sink: W) -> impl {{domain}}Writer {
+        let writer = BinaryWriterBuilder::default()
+            .build(sink)
+            .expect("Failed to instantiate IonWriter.");
+        {{domain}}WriterText { writer: RidlWriter::new(writer) }
+    }
+}
+
+pub struct {{domain}}WriterText<W, I>
+where
+    I: IonWriter<Output = W>
+{
+    writer: RidlWriter<W, I>,
+}
+
+impl<W, I> {{domain}}WriterText<W, I>
+where
+    I: IonWriter<Output = W>,
+{
+
+    pub fn from(writer: I) -> {{domain}}WriterText<W, I> {
+        {{domain}}WriterText { writer: RidlWriter::new(writer) }
+    }
+}
+
+impl<W, I> {{domain}}Writer for {{domain}}WriterText<W, I>
+where
+    I: IonWriter<Output = W>
+{
+
+    {{#writes}}
+    fn {{write}}<'a>(&mut self, value: &'a {{type}}) -> RidlResult<()> {
+        {{text}}
+    }
+
+    {{/writes}}
+}
+
+pub struct {{domain}}WriterPacked<W, I>
+where
+    I: IonWriter<Output = W>,
+{
+    writer: RidlWriter<W, I>,
+}
+
+impl<W, I> {{domain}}WriterPacked<W, I>
+where
+    I: IonWriter<Output = W>,
+{
+
+    pub fn from(writer: I) -> {{domain}}WriterPacked<W, I> {
+        {{domain}}WriterPacked { writer: RidlWriter::new(writer) }
+    }
+}
+
+impl<W, I> {{domain}}Writer for {{domain}}WriterPacked<W, I>
+where
+    I: IonWriter<Output = W>,
+{
+
+    {{#writes}}
+    fn {{write}}<'a>(&mut self, value: &'a {{type}}) -> RidlResult<()> {
+        {{packed}}
+    }
+
+    {{/writes}}
+}

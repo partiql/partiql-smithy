@@ -1,0 +1,10 @@
+self.writer.step_in(IonType::SExp)?;
+match value {
+{{#variants}}
+    {{union}}::{{name}}(v) => {
+      self.writer.write_int({{index}})?;
+      self.{{write}}(v)?;
+    },
+{{/variants}}
+}
+self.writer.step_out()

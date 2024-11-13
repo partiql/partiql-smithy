@@ -1,0 +1,4 @@
+public class {{name}}(value: {{type}}) : {{constructor}}{{#parent}}, {{.}}{{/parent}} {
+
+    override fun toString(): String = toString { it.{{write}}(this) }
+}

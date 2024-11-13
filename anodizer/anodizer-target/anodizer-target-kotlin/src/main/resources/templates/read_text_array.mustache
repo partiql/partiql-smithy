@@ -1,0 +1,8 @@
+assertType(IonType.LIST, "{{tag}}")
+{{#size}}
+    val values = readArray({{.}}) { {{lambda}} }
+{{/size}}
+{{^size}}
+    val values = readArray { {{lambda}} }
+{{/size}}
+return {{type}}(values)

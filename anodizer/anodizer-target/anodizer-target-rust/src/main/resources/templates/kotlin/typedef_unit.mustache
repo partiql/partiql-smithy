@@ -1,0 +1,4 @@
+public object {{name}}{{#parent}} : {{.}}{{/parent}} {
+
+    override fun toString(): String = toString { it.{{write}}(this) }
+}
