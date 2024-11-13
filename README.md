@@ -1,11 +1,22 @@
-## My Project
+# PartiQL Smithy
 
-TODO: Fill this README out!
+```
+ ____________________ 
+< under construction >
+ -------------------- 
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+```
 
-Be sure to:
+## Development
 
-* Change the title in this README
-* Edit your repository description on GitHub
+```
+smithy format model/
+smithy validate model/
+```
 
 ## Security
 
