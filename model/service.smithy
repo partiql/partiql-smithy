@@ -3,12 +3,12 @@ $version: "2"
 metadata validators = []
 metadata suppressions = []
 
-namespace org.partiql.beam.pdbs
+namespace org.partiql.sdk
 
-use org.partiql.beam.core#Catalog
-use org.partiql.beam.core#Catalogs
-use org.partiql.beam.core#Name
-use org.partiql.beam.core#Properties
+use org.partiql.sdk.core#Catalog
+use org.partiql.sdk.core#Catalogs
+use org.partiql.sdk.core#Name
+use org.partiql.sdk.core#Properties
 
 /// ---------------------------------------------
 /// PartiQL Database Service (PDBS)

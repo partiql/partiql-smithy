@@ -3,7 +3,7 @@ $version: "2"
 metadata validators = []
 metadata suppressions = []
 
-namespace org.partiql.beam.core
+namespace org.partiql.sdk.core
 
 string Catalog
 
