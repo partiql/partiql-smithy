@@ -5,9 +5,9 @@ package io.github.amzn.anodizer.target.kotlin
 import io.github.amzn.anodizer.AnodizerModel
 import io.github.amzn.anodizer.AnodizerOptions
 import io.github.amzn.anodizer.AnodizerTarget
-import io.github.amzn.anodizer.codegen.Context
-import io.github.amzn.anodizer.codegen.Contextualize
 import io.github.amzn.anodizer.codegen.Templates
+import io.github.amzn.anodizer.codegen.context.Ctx
+import io.github.amzn.anodizer.codegen.context.CtxModel
 import io.github.amzn.anodizer.core.File
 
 /**
@@ -22,7 +22,7 @@ public class KotlinTarget : AnodizerTarget {
     override fun getName(): String = name
 
     override fun generate(model: AnodizerModel, options: AnodizerOptions): File {
-        val context = Contextualize.contextualize(model)
+        val context = Ctx.build(model)
         val options = KotlinOptions.load(options)
         val dir = File.dir(name)
         val src = dir.mkdir("src").mkdir("main").mkdir("kotlin").mkdirp(options.pkg)
@@ -33,19 +33,19 @@ public class KotlinTarget : AnodizerTarget {
         return dir
     }
 
-    private fun generateDomain(context: Context.Domain, options: KotlinOptions): File {
+    private fun generateDomain(context: CtxModel, options: KotlinOptions): File {
         return KotlinDomain(context, options, templates).generate()
     }
 
-    private fun generateReader(context: Context.Domain, options: KotlinOptions): File {
+    private fun generateReader(context: CtxModel, options: KotlinOptions): File {
         return KotlinReader(context, options, templates).generate()
     }
 
-    private fun generateWriter(context: Context.Domain, options: KotlinOptions): File {
+    private fun generateWriter(context: CtxModel, options: KotlinOptions): File {
         return KotlinWriter(context, options, templates).generate()
     }
 
-    private fun primitives(context: Context.Domain, options: KotlinOptions): File {
+    private fun primitives(context: CtxModel, options: KotlinOptions): File {
         val file = File.file("IonPrimitive.kt")
         val content = templates.apply("ion_primitives", object {
             val `package` = options.pkg.joinToString(".")
@@ -69,14 +69,14 @@ public class KotlinTarget : AnodizerTarget {
 
         @JvmStatic
         public fun reader(model: AnodizerModel, options: KotlinOptions): File {
-            val context = Contextualize.contextualize(model)
+            val context = Ctx.build(model)
             val templates = Templates()
             return KotlinReader(context, options, templates).generate()
         }
 
         @JvmStatic
         public fun writer(model: AnodizerModel, options: KotlinOptions): File {
-            val context = Contextualize.contextualize(model)
+            val context = Ctx.build(model)
             val templates = Templates()
             return KotlinWriter(context, options, templates).generate()
         }

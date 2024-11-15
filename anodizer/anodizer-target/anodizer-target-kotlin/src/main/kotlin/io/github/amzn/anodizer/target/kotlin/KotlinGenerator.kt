@@ -1,38 +1,40 @@
 package io.github.amzn.anodizer.target.kotlin
 
-import io.github.amzn.anodizer.codegen.Context
 import io.github.amzn.anodizer.codegen.Generator
 import io.github.amzn.anodizer.codegen.Templates
+import io.github.amzn.anodizer.codegen.context.CtxArray
+import io.github.amzn.anodizer.codegen.context.CtxModel
+import io.github.amzn.anodizer.codegen.context.CtxNamed
+import io.github.amzn.anodizer.codegen.context.CtxPrimitive
+import io.github.amzn.anodizer.codegen.context.CtxSymbol
+import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.Ion
 import io.github.amzn.anodizer.core.Type
 
-internal abstract class KotlinGenerator(
-    context: Context.Domain,
-    templates: Templates,
-) : Generator.Base(context, templates) {
+internal abstract class KotlinGenerator(model: CtxModel, templates: Templates) : Generator.Base(model, templates) {
 
-    override fun method(symbol: Context.Symbol, prefix: String?, suffix: String?): String {
+    override fun method(symbol: CtxSymbol, prefix: String?, suffix: String?): String {
         var method = symbol.path.camel
         if (prefix != null) method = prefix + symbol.path.pascal
         if (suffix != null) method += suffix
         return method
     }
 
-    override fun pathTo(symbol: Context.Symbol): String {
-        val root = context.name.pascal
+    override fun pathTo(symbol: CtxSymbol): String {
+        val root = model.domain.pascal
         val path = symbol.path.pascal(".")
         return "$root.$path"
     }
 
-    override fun typeOfArray(array: Context.Array): String {
+    override fun typeOfArray(array: CtxArray): String {
         return "Collection<${typeOf(array.item)}>"
     }
 
-    override fun typeOfNamed(named: Context.Named): String {
+    override fun typeOfNamed(named: CtxNamed): String {
         return pathTo(named.symbol)
     }
 
-    override fun typeOfPrimitive(primitive: Context.Primitive): String {
+    override fun typeOfPrimitive(primitive: CtxPrimitive): String {
         return when (primitive.ion) {
             Ion.BOOL -> "Boolean"
             Ion.INT -> "Long"
@@ -45,33 +47,31 @@ internal abstract class KotlinGenerator(
         }
     }
 
-    override fun typeOfUnit(unit: Context.Unit): String {
-        return "RidlUnit"
-    }
+    override fun typeOfUnit(unit: CtxUnit): String = "IonUnit"
 
     /**
      * Keep??
      */
-    internal fun Context.Primitive.constructor(): String {
+    internal fun CtxPrimitive.constructor(): String {
         val args: MutableList<String> = mutableListOf("value")
         val constructor = when (val type = type) {
             is Type.Primitive.Void -> TODO("void type not supported")
-            is Type.Primitive.Bool -> "RidlBool"
-            is Type.Primitive.Int -> "RidlInt"
+            is Type.Primitive.Bool -> "IonBool"
+            is Type.Primitive.Int -> "IonInt"
             is Type.Primitive.Decimal -> {
                 if (type.precision != null) args.add(type.precision.toString())
                 if (type.exponent != null) args.add(type.exponent.toString())
-                "RidlDecimal"
+                "IonDecimal"
             }
-            is Type.Primitive.Float -> "RidlFloat"
-            is Type.Primitive.String -> "RidlString"
+            is Type.Primitive.Float -> "IonFloat"
+            is Type.Primitive.String -> "IonString"
             is Type.Primitive.Blob -> {
                 if (type.size != null) args.add(type.size.toString())
-                "RidlBlob"
+                "IonBlob"
             }
             is Type.Primitive.Clob -> {
                 if (type.size != null) args.add(type.size.toString())
-                "RidlClob"
+                "IonClob"
             }
         }
         return "${constructor}(${args.joinToString()})"
