@@ -29,7 +29,7 @@ public class KotlinTarget : AnodizerTarget {
         src.add(generateDomain(context, options))
         src.add(generateReader(context, options))
         src.add(generateWriter(context, options))
-        src.add(primitives(context, options))
+        src.add(runtime())
         return dir
     }
 
@@ -45,26 +45,6 @@ public class KotlinTarget : AnodizerTarget {
         return KotlinWriter(context, options, templates).generate()
     }
 
-    private fun primitives(context: Context.Domain, options: KotlinOptions): File {
-        val file = File.file("IonPrimitive.kt")
-        val content = templates.apply("ion_primitives", object {
-            val `package` = options.pkg.joinToString(".")
-        })
-        file.write(content)
-        return file
-    }
-
-    /**
-     * TODO this should be factored such to reduce duplication.
-     *
-     * The primary difference between instance and static methods here
-     * is where the models are coming from - ie anodizer or smithy.
-     *
-     * I think the model should distinguish if this is an internal or external model
-     * so that codegen can be simplified and we don't need the duplication.
-     *
-     * This will also be necessary when "anodizing" the smithy generated structures.
-     */
     public companion object {
 
         @JvmStatic
@@ -82,14 +62,8 @@ public class KotlinTarget : AnodizerTarget {
         }
 
         @JvmStatic
-        public fun primitives(model: AnodizerModel, options: KotlinOptions): File {
-            val templates = Templates()
-            val file = File.file("IonPrimitive.kt")
-            val content = templates.apply("ion_primitives", object {
-                val `package` = options.pkg.joinToString(".")
-            })
-            file.write(content)
-            return file
+        public fun runtime(): File {
+            return File.resource(KotlinTarget::class.java, "/runtime")
         }
     }
 }
