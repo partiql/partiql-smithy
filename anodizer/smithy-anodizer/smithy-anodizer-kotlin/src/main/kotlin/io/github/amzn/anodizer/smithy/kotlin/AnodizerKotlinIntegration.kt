@@ -13,7 +13,7 @@ import java.util.stream.Stream
 /**
  * TODO
  */
-public class AnodizerIntegration : KotlinIntegration {
+public class AnodizerKotlinIntegration : KotlinIntegration {
 
     override val order: Byte = 0
 
@@ -21,20 +21,20 @@ public class AnodizerIntegration : KotlinIntegration {
 
         // load shapes
         val namespace = ctx.settings.service.namespace
-        val pkg = ctx.settings.pkg.name.split(".")
         val shapes = load(namespace, ctx)
 
         // transform to anodizer model
+        val pkg = ctx.settings.pkg.name.split(".") + listOf("serde")
         val domain = domain(namespace)
         val options = KotlinOptions(pkg)
         val model = AnodizerUtil.transform(domain, shapes)
 
         // generate reader/writer
         val src = File.dir("src")
-        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(options.pkg).mkdir("serde")
+        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(pkg)
         dir.add(KotlinTarget.reader(model, options))
         dir.add(KotlinTarget.writer(model, options))
-        dir.add(KotlinTarget.runtime())
+        dir.add(KotlinTarget.primitives(model, options))
         AnodizerUtil.write(src, delegator.fileManifest)
     }
 
