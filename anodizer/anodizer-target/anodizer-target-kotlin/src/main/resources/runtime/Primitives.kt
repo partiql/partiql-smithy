@@ -5,26 +5,26 @@ import com.amazon.ion.Decimal
 /**
  * Primitive is for named types like, `type a bool`;
  */
-public sealed interface Primitive
+public sealed interface IonPrimitive
 
-public open class IonBool(@JvmField public val value: Boolean) : Primitive
+public open class IonBool(@JvmField public val value: Boolean) : IonPrimitive
 
-public open class IonInt(@JvmField public val value: Long) : Primitive
+public open class IonInt(@JvmField public val value: Long) : IonPrimitive
 
-public open class IonFloat(@JvmField public val value: Double) : Primitive
+public open class IonFloat(@JvmField public val value: Double) : IonPrimitive
 
 public open class IonDecimal(
     @JvmField public val value: Decimal,
     @JvmField public val precision: Int? = null,
     @JvmField public val exponent: Int? = null,
-) : Primitive
+) : IonPrimitive
 
-public open class IonString(@JvmField public val value: String) : Primitive
+public open class IonString(@JvmField public val value: String) : IonPrimitive
 
 public open class IonBlob(
     @JvmField public val value: ByteArray,
     @JvmField public val size: Int? = null,
-) : Primitive {
+) : IonPrimitive {
 
     init {
         if (size != null && value.size != size) {
@@ -36,7 +36,7 @@ public open class IonBlob(
 public open class IonClob(
     @JvmField public val value: ByteArray,
     @JvmField public val size: Int? = null,
-) : Primitive {
+) : IonPrimitive {
 
     init {
         if (size != null && value.size != size) {

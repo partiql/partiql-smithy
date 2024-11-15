@@ -39,6 +39,7 @@ internal class KotlinReader(
             generateDefinition(definition, buffer())
         }
         val hash = object {
+            val `package` = options.pkg.joinToString(".")
             val domain = _this.domain
             val reads = _this.reads
         }
