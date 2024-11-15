@@ -4,12 +4,19 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.PrintStream
+import java.util.jar.JarFile
 
 /**
  * Rudimentary filesystem backed by ByteArrayInputStream and ByteArrayOutputStream.
  *
  * Q: Why?
  * A: A generator produces a file tree which callers consume.
+ *
+ * Q: More why?
+ * A: We can re-create a file hierarchy from the resources in a JAR.
+ *
+ * Q: What is wrong with this?
+ * A: For starters, there are no assertions on duplicate entities.
  *
  * TODO tree pretty-print helper.
  */
@@ -35,11 +42,91 @@ public class File private constructor(
 
     public companion object {
 
+        /**
+         * Create a file.
+         *
+         * @param name
+         * @return
+         */
         @JvmStatic
         public fun file(name: String): File = File(name, false)
 
+        /**
+         * Create a directory.
+         *
+         * @param name
+         * @return
+         */
         @JvmStatic
         public fun dir(name: String): File = File(name, true)
+
+        /**
+         * Create a file (or tree) from a resource; the path is always taken from the root.
+         *
+         * @param clazz
+         * @param path
+         */
+        @JvmStatic
+        public fun resource(clazz: Class<*>, path: String): File {
+
+            // load resource
+            val url = clazz.getResource(path) ?: throw IllegalArgumentException("Resource not found: $path")
+
+            // convert a java.io.File tree
+            if (url.protocol == "file") {
+                return java.io.File(url.toURI()).toFile()
+            }
+
+            // create a tree from the jar (making this recursive would be nice but not necessary now and tricky)
+            if (url.protocol == "jar") {
+
+                // extract <file> from url.path with from "file:" <file> "!/<path>"
+                val file = url.path.substring(5, url.path.indexOf("!"))
+                val jar = JarFile(file)
+
+                // a trie would be nice, but perf not important.
+                val relative = if (path.startsWith("/")) path.drop(1) else path
+                val entries = jar.entries().asSequence()
+                    .filter { it.name.startsWith(relative) }
+                    .map { it.name.substring(relative.length) to it}
+                    .toList()
+
+                // top-level only unzip
+                val dir = dir(relative)
+                for ((p, e) in entries) {
+                    if (p.endsWith("/")) {
+                        continue // skip directories
+                    }
+                    val n = p.split("/").last()
+                    val f = File(n, false)
+                    val b = jar.getInputStream(e).readBytes()
+                    f.buffer!!.write(b)
+                    dir.add(f)
+                }
+                return dir
+            }
+
+            throw IllegalArgumentException("Unrecognized protocol, expected `file` or `jar`, found ${url.protocol}")
+        }
+
+        /**
+         * Convert java.io.File to this abstraction.
+         */
+        private fun java.io.File.toFile(): File = if (isFile) {
+            val bytes = readBytes()
+            val file = File(name, false)
+            file.buffer!!.write(bytes) // write directly to the buffer.
+            file
+        } else {
+            val dir = File(name, true)
+            val files = listFiles()
+            if (files != null) {
+                for (file in files) {
+                    dir.add(file.toFile())
+                }
+            }
+            dir
+        }
     }
 
     /**
@@ -61,6 +148,11 @@ public class File private constructor(
      * Return all file children.
      */
     public fun getChildren(): List<File> = children
+
+    /**
+     * Return true if file has children.
+     */
+    public fun isNotEmpty(): Boolean = children.isNotEmpty()
 
     /**
      * Add a file to this directory, returning it.
@@ -137,6 +229,19 @@ public class File private constructor(
             throw IllegalStateException("Cannot add a file to a file")
         }
         children.addAll(files)
+    }
+
+    /**
+     * Include a resource from the classpath.
+     *
+     * @param clazz
+     * @param resource
+     */
+    public fun include(clazz: Class<*>, resource: String) {
+        if (!isDir) {
+            throw IllegalStateException("Cannot add a resource to a file")
+        }
+        children.add(File.resource(clazz, resource))
     }
 
     /**

@@ -35,5 +35,5 @@ tasks.register<GradleBuild>("install") {
 
 application {
     applicationName = "anodizer"
-    mainClass.set("io.github.amzn.anodizer.MainKt")
+    mainClass.set("io.github.amzn.anodizer.cli.MainKt")
 }

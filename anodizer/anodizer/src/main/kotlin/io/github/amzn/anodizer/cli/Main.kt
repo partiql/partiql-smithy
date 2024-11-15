@@ -13,9 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package io.github.amzn.anodizer
+package io.github.amzn.anodizer.cli
 
-import io.github.amzn.anodizer.commands.IslCommand
+import io.github.amzn.anodizer.cli.commands.IslCommand
+import io.github.amzn.anodizer.cli.commands.KotlinCommand
 import picocli.CommandLine
 import kotlin.system.exitProcess
 
@@ -38,7 +39,7 @@ public class Anodizer : Runnable {
     mixinStandardHelpOptions = true,
     subcommands = [
         IslCommand::class,
-        // KotlinCommand::class,
+        KotlinCommand::class,
         // RustCommand::class,
     ],
 )

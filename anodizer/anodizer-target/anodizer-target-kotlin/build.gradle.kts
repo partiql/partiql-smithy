@@ -10,7 +10,7 @@ java {
 
 dependencies {
     implementation(project(":anodizer-core"))
-    implementation(project(":anodizer-target-util"))
+    implementation(project(":anodizer-target-codegen"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
     // test
     testImplementation(libs.junit.jupiter)

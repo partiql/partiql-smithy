@@ -3,8 +3,6 @@
 Anodizer is a toolkit to generate data structures with Ion bindings; it supports a human-readable Ion text encoding, and an efficient packed binary Ion encoding.
 It can be used for Ion message serde (like protobuf), as well as a Smithy SDK Protocol (like gRPC + protobuf).
 
-## About
-
 ### What?
 
 Anodizer is a toolkit to generate data structures with Ion bindings; it supports a human-readable Ion text encoding, and an efficient packed binary Ion encoding.
@@ -61,7 +59,7 @@ Wow so many packages! This is confusing ... what is going on??
   * anodizer-target-isl
   * anodizer-target-kotlin (+runtime)
   * anodizer-target-rust (+runtime)
-* anodizer-target-util (codegen)
+* anodizer-target-codegen (codegen)
 
 ### Smithy Integration
 
