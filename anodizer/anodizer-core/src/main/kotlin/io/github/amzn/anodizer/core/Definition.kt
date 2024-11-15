@@ -8,20 +8,20 @@ public sealed interface Definition {
     /**
      * Namespace definition holds several definitions.
      */
-    public data class Namespace(
+    public class Namespace(
         @JvmField public val name: Name,
         @JvmField public val definitions: List<Definition>,
     ) : Definition
 
     /**
-     * Marker interface for type definitions.
+     * Sealed interface for type definitions.
      */
     public sealed interface Typedef : Definition
 
     /**
      * Alias type definition; type is the aliased type.
      */
-    public data class Alias(
+    public class Alias(
         @JvmField public val name: Name,
         @JvmField public val type: Type,
     ) : Typedef {
@@ -32,7 +32,7 @@ public sealed interface Definition {
     /**
      * Enumeration type definition; values are of the form `[A-Z][A-Z_]+`.
      */
-    public data class Enum(
+    public class Enum(
         @JvmField public val name: Name,
         @JvmField public val values: List<String>,
     ) : Typedef {
@@ -43,12 +43,12 @@ public sealed interface Definition {
     /**
      * Struct type definition.
      */
-    public data class Struct(
+    public class Struct(
         @JvmField public val name: Name,
         @JvmField public val fields: List<Field>,
     ) : Typedef {
 
-        public data class Field(
+        public class Field(
             @JvmField public val name: String,
             @JvmField public val type: Type,
         )

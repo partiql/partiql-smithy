@@ -3,7 +3,7 @@ package io.github.amzn.anodizer
 import io.github.amzn.anodizer.core.Definition
 
 /**
- * Top-level model of a RIDL model.
+ * Top-level model of an anodizer type domain.
  *
  * @property domain         The top-level namespace name.
  * @property definitions    The top-level definitions.

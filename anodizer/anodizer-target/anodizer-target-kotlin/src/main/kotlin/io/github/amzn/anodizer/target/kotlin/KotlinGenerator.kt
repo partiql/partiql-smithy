@@ -46,7 +46,7 @@ internal abstract class KotlinGenerator(
     }
 
     override fun typeOfUnit(unit: Context.Unit): String {
-        return "RidlUnit"
+        return "IonUnit"
     }
 
     /**
@@ -56,22 +56,22 @@ internal abstract class KotlinGenerator(
         val args: MutableList<String> = mutableListOf("value")
         val constructor = when (val type = type) {
             is Type.Primitive.Void -> TODO("void type not supported")
-            is Type.Primitive.Bool -> "RidlBool"
-            is Type.Primitive.Int -> "RidlInt"
+            is Type.Primitive.Bool -> "IonBool"
+            is Type.Primitive.Int -> "IonInt"
             is Type.Primitive.Decimal -> {
                 if (type.precision != null) args.add(type.precision.toString())
                 if (type.exponent != null) args.add(type.exponent.toString())
-                "RidlDecimal"
+                "IonDecimal"
             }
-            is Type.Primitive.Float -> "RidlFloat"
-            is Type.Primitive.String -> "RidlString"
+            is Type.Primitive.Float -> "IonFloat"
+            is Type.Primitive.String -> "IonString"
             is Type.Primitive.Blob -> {
                 if (type.size != null) args.add(type.size.toString())
-                "RidlBlob"
+                "IonBlob"
             }
             is Type.Primitive.Clob -> {
                 if (type.size != null) args.add(type.size.toString())
-                "RidlClob"
+                "IonClob"
             }
         }
         return "${constructor}(${args.joinToString()})"

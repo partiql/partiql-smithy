@@ -6,7 +6,7 @@ import io.github.amzn.anodizer.AnodizerModel
 import io.github.amzn.anodizer.AnodizerOptions
 import io.github.amzn.anodizer.AnodizerTarget
 import io.github.amzn.anodizer.codegen.Context
-import io.github.amzn.anodizer.codegen.Contextualize
+import io.github.amzn.anodizer.codegen.context.Contextualize
 import io.github.amzn.anodizer.codegen.Templates
 import io.github.amzn.anodizer.core.File
 
