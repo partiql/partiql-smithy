@@ -19,7 +19,7 @@ internal abstract class KotlinGenerator(
     }
 
     override fun pathTo(symbol: Context.Symbol): String {
-        val root = context.name.pascal
+        val root = model.name.pascal
         val path = symbol.path.pascal(".")
         return "$root.$path"
     }

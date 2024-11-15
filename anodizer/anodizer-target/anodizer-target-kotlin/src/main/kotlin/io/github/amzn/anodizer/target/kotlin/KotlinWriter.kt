@@ -35,7 +35,7 @@ internal class KotlinWriter(
     fun generate(): File {
         writes.clear()
         val file = File.file("${domain}Writer.kt")
-        for (definition in context.definitions) {
+        for (definition in domain.definitions) {
             generateDefinition(definition, buffer())
         }
         val hash = object {

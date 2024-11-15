@@ -35,7 +35,7 @@ internal class KotlinReader(
     fun generate(): File {
         reads.clear()
         val file = File.file("${domain}Reader.kt")
-        for (definition in context.definitions) {
+        for (definition in domain.definitions) {
             generateDefinition(definition, buffer())
         }
         val hash = object {

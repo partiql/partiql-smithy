@@ -27,7 +27,7 @@ internal class KotlinDomain(
             val `package` = options.pkg.joinToString(".")
             val domain = _this.domain
             val definitions = buffer {
-                for (definition in context.definitions) {
+                for (definition in domain.definitions) {
                     generateDefinition(definition, this)
                     appendLine()
                 }
@@ -86,7 +86,7 @@ internal class KotlinDomain(
         val hash = object {
             val namespace = namespace.symbol.name.pascal
             val definitions = buffer {
-                for (definition in context.definitions) {
+                for (definition in domain.definitions) {
                     generateDefinition(definition, buffer)
                     appendLine()
                 }
