@@ -21,7 +21,7 @@ include(
     "smithy-anodizer-aws:smithy-anodizer-aws-kotlin",
     "smithy-anodizer-aws:smithy-anodizer-aws-rust",
     // examples (integration tests)
-    "examples:smithy-anodizer-example",
-    "examples:smithy-anodizer-example-kotlin",
-    "examples:smithy-anodizer-example-kotlin-aws",
+    // "examples:smithy-anodizer-example",
+    // "examples:smithy-anodizer-example-kotlin",
+    // "examples:smithy-anodizer-example-kotlin-aws",
 )

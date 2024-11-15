@@ -48,7 +48,7 @@ tasks.compileKotlin {
 }
 
 tasks.compileTestKotlin {
-    dependsOn(tasks.generateGrammarSource)
+    dependsOn(tasks.generateTestGrammarSource)
 }
 
 tasks.javadoc {
