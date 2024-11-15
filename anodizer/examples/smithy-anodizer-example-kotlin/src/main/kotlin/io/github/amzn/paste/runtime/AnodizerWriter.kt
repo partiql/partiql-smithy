@@ -6,6 +6,14 @@ import com.amazon.ion.IonWriter
 
 public abstract class AnodizerWriter(@JvmField public val writer: IonWriter) {
 
+    public fun flush() {
+        writer.flush()
+    }
+
+    public fun finish() {
+        writer.finish()
+    }
+
     public fun writeDecimal(value: Decimal, precision: Int?, exponent: Int?) {
         if (precision != null && value.precision() > precision) {
             error("Expected decimal with precision <= $precision, got ${value.precision()}")

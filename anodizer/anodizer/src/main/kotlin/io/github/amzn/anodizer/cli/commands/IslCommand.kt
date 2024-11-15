@@ -1,13 +1,12 @@
-package io.github.amzn.anodizer.commands
+package io.github.amzn.anodizer.cli.commands
 
 import io.github.amzn.anodizer.AnodizerOptions
+import io.github.amzn.anodizer.cli.util.dump
 import io.github.amzn.anodizer.core.Encoding
-import io.github.amzn.anodizer.core.File as AnodizerFile
 import io.github.amzn.anodizer.lang.AnodizerParser
 import io.github.amzn.anodizer.target.isl.IslTarget
 import picocli.CommandLine
 import java.io.File
-import java.util.Stack
 import java.util.concurrent.Callable
 
 @CommandLine.Command(
@@ -57,21 +56,4 @@ internal class IslCommand : Callable<Int> {
     }
 
     private fun options(): AnodizerOptions = AnodizerOptions.empty()
-
-    /**
-     * TODO perhaps add as a utility
-     */
-    private fun dump(file: AnodizerFile) {
-        val stack = Stack<AnodizerFile>().apply { push(file) }
-        while (stack.isNotEmpty()) {
-            val f = stack.pop()
-            if (f.isFile()) {
-                println()
-                println("=== ${f.getName()} ===")
-                println()
-                System.out.write(f.toByteArray())
-            }
-            f.getChildren().forEach { stack.push(it) }
-        }
-    }
 }

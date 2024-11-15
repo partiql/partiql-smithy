@@ -30,10 +30,12 @@ public class AnodizerIntegration : KotlinIntegration {
         val model = AnodizerUtil.transform(domain, shapes)
 
         // generate reader/writer
-        val dir = File.dir("serde")
+        val src = File.dir("src")
+        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(options.pkg).mkdir("serde")
         dir.add(KotlinTarget.reader(model, options))
         dir.add(KotlinTarget.writer(model, options))
-        AnodizerUtil.write(dir, delegator.fileManifest)
+        dir.add(KotlinTarget.runtime())
+        AnodizerUtil.write(src, delegator.fileManifest)
     }
 
     /**

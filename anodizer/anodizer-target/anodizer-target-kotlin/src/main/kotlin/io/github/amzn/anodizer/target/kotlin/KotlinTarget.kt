@@ -29,6 +29,7 @@ public class KotlinTarget : AnodizerTarget {
         src.add(generateDomain(context, options))
         src.add(generateReader(context, options))
         src.add(generateWriter(context, options))
+        src.add(runtime())
         return dir
     }
 
@@ -58,6 +59,11 @@ public class KotlinTarget : AnodizerTarget {
             val context = Contextualize.contextualize(model)
             val templates = Templates()
             return KotlinWriter(context, options, templates).generate()
+        }
+
+        @JvmStatic
+        public fun runtime(): File {
+            return File.resource(KotlinTarget::class.java, "/runtime")
         }
     }
 }

@@ -61,7 +61,7 @@ Wow so many packages! This is confusing ... what is going on??
   * anodizer-target-isl
   * anodizer-target-kotlin (+runtime)
   * anodizer-target-rust (+runtime)
-* anodizer-target-util (codegen)
+* anodizer-target-codegen (codegen)
 
 ### Smithy Integration
 

@@ -1,6 +1,9 @@
-package io.github.amzn.anodizer.commands
+package io.github.amzn.anodizer.cli.commands
 
+import io.github.amzn.anodizer.AnodizerOptions
+import io.github.amzn.anodizer.cli.util.dump
 import io.github.amzn.anodizer.lang.AnodizerParser
+import io.github.amzn.anodizer.target.kotlin.KotlinTarget
 import picocli.CommandLine
 import java.io.File
 import java.nio.file.Path
@@ -38,10 +41,32 @@ internal class KotlinCommand : Callable<Int> {
     var include: Path? = null
 
     override fun call(): Int {
-        val domain = domain ?: file.nameWithoutExtension
+
+        // arguments
         val input = file.readText()
+        val domain = domain ?: file.nameWithoutExtension
+
+        // prepare
         val model = AnodizerParser.parse(input, domain, include)
-        TODO("kotlin command")
+        val target = KotlinTarget()
+        val options = options()
+
+        // generate
+        val dir = target.generate(model, options)
+
+        // dump to stdout
+        dump(dir)
+
         return 0
+    }
+
+    // kind of weird shoving the strings through but ehh works fine.
+    private fun options(): AnodizerOptions {
+        val options = buildString {
+            appendLine("{")
+            appendLine("  package: \"$pkg\",")
+            appendLine("}")
+        }
+        return AnodizerOptions.load(options)
     }
 }

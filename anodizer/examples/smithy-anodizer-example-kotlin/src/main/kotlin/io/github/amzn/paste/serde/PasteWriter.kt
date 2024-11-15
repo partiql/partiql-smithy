@@ -15,7 +15,6 @@ import java.io.OutputStream
  * Modifications
  *  - changed input/output to request/response
  *  - non-null assertions on the nullable fields.
- *  - added flush+finish
  */
 public abstract class PasteWriter(writer: IonWriter) : AnodizerWriter(writer) {
 
@@ -26,10 +25,6 @@ public abstract class PasteWriter(writer: IonWriter) : AnodizerWriter(writer) {
     public abstract fun writeGetPasteResponse(value: GetPasteResponse)
 
     public abstract fun writeGetPasteRequest(value: GetPasteRequest)
-
-    public abstract fun flush()
-
-    public abstract fun finish()
 
     public companion object {
 
@@ -77,14 +72,6 @@ public abstract class PasteWriter(writer: IonWriter) : AnodizerWriter(writer) {
             writer.setFieldName("id"); writer.writeInt(value.id!!)
             writer.stepOut()
         }
-
-        override fun flush() {
-            writer.flush()
-        }
-
-        override fun finish() {
-            writer.finish()
-        }
     }
 
     private class Packed(writer: IonWriter) : PasteWriter(writer) {
@@ -113,14 +100,6 @@ public abstract class PasteWriter(writer: IonWriter) : AnodizerWriter(writer) {
             writer.stepIn(IonType.SEXP)
             writer.writeInt(value.id!!)
             writer.stepOut()
-        }
-
-        override fun flush() {
-            writer.flush()
-        }
-
-        override fun finish() {
-            writer.finish()
         }
     }
 }

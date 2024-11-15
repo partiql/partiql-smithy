@@ -40,7 +40,6 @@ val copyGeneratedSources = tasks.register("copyGenerateSources") {
         val src = smithy.outputDirectory.dir("source").get()
         copy {
             from(src.dir("kotlin-codegen/src/main/kotlin"))
-            from(src.dir("anodizer/kotlin/src/main/kotlin"))
             into(generatedSrc)
         }
     }
