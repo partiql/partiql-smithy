@@ -1,7 +1,7 @@
 package io.github.amzn.anodizer.codegen.context
 
 /**
- * TODO
+ * A contextualized model with a location (symbol root).
  *
  * @property domain
  * @property definitions

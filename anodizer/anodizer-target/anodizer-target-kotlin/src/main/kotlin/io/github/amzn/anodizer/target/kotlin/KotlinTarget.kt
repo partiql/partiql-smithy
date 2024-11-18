@@ -17,73 +17,60 @@ public class KotlinTarget : AnodizerTarget {
 
     private val name: String = "kotlin"
 
-    private val templates: Templates = Templates()
+    public companion object {
+
+        @JvmStatic
+        public fun faceted(): Facets {
+            TODO()
+        }
+    }
 
     override fun getName(): String = name
 
     override fun generate(model: AnodizerModel, options: AnodizerOptions): File {
         val context = Ctx.build(model)
+        val facets = Facets(context, KotlinOptions.load(options))
         val options = KotlinOptions.load(options)
         val dir = File.dir(name)
         val src = dir.mkdir("src").mkdir("main").mkdir("kotlin").mkdirp(options.pkg)
-        src.add(generateDomain(context, options))
-        src.add(generateReader(context, options))
-        src.add(generateWriter(context, options))
-        src.add(primitives(context, options))
+        for (file in facets.all()) {
+            src.add(file)
+        }
         return dir
     }
 
-    private fun generateDomain(context: CtxModel, options: KotlinOptions): File {
-        return KotlinDomain(context, options, templates).generate()
-    }
-
-    private fun generateReader(context: CtxModel, options: KotlinOptions): File {
-        return KotlinReader(context, options, templates).generate()
-    }
-
-    private fun generateWriter(context: CtxModel, options: KotlinOptions): File {
-        return KotlinWriter(context, options, templates).generate()
-    }
-
-    private fun primitives(context: CtxModel, options: KotlinOptions): File {
-        val file = File.file("IonPrimitive.kt")
-        val content = templates.apply("ion_primitives", object {
-            val `package` = options.pkg.joinToString(".")
-        })
-        file.write(content)
-        return file
-    }
-
     /**
-     * TODO this should be factored such to reduce duplication.
+     * The [KotlinTarget] requires a zero-argument constructor, the facets provide access to the individual
      *
-     * The primary difference between instance and static methods here
-     * is where the models are coming from - ie anodizer or smithy.
-     *
-     * I think the model should distinguish if this is an internal or external model
-     * so that codegen can be simplified and we don't need the duplication.
-     *
-     * This will also be necessary when "anodizing" the smithy generated structures.
+     * Q:
      */
-    public companion object {
+    public class Facets internal constructor(
+        private val context: CtxModel,
+        private val options: KotlinOptions,
+    ) {
 
-        @JvmStatic
-        public fun reader(model: AnodizerModel, options: KotlinOptions): File {
-            val context = Ctx.build(model)
-            val templates = Templates()
+        private val templates: Templates = Templates()
+
+        public fun all(): List<File> = listOf(
+            types(),
+            reader(),
+            writer(),
+            primitives(),
+        )
+
+        public fun types(): File {
+            return KotlinDomain(context, options, templates).generate()
+        }
+
+        public fun reader(): File {
             return KotlinReader(context, options, templates).generate()
         }
 
-        @JvmStatic
-        public fun writer(model: AnodizerModel, options: KotlinOptions): File {
-            val context = Ctx.build(model)
-            val templates = Templates()
+        public fun writer(): File {
             return KotlinWriter(context, options, templates).generate()
         }
 
-        @JvmStatic
-        public fun primitives(model: AnodizerModel, options: KotlinOptions): File {
-            val templates = Templates()
+        private fun primitives(): File {
             val file = File.file("IonPrimitive.kt")
             val content = templates.apply("ion_primitives", object {
                 val `package` = options.pkg.joinToString(".")

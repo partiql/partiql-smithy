@@ -24,14 +24,17 @@ public class AnodizerKotlinIntegration : KotlinIntegration {
         val shapes = load(namespace, ctx)
 
         // transform to anodizer model
-        val pkg = ctx.settings.pkg.name.split(".") + listOf("serde")
+        val pkg = ctx.settings.pkg.name.split(".")
+        val pkgSerde = pkg + listOf("serde")
+        val pkgModel = pkg + listOf("model")
+
         val domain = domain(namespace)
-        val options = KotlinOptions(pkg)
+        val options = KotlinOptions(pkgSerde)
         val model = AnodizerUtil.transform(domain, shapes)
 
         // generate reader/writer
         val src = File.dir("src")
-        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(pkg)
+        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(pkgSerde)
         dir.add(KotlinTarget.reader(model, options))
         dir.add(KotlinTarget.writer(model, options))
         dir.add(KotlinTarget.primitives(model, options))
