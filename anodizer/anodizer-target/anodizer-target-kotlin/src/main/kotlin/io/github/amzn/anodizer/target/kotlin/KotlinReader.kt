@@ -16,6 +16,7 @@ import io.github.amzn.anodizer.codegen.context.CtxType
 import io.github.amzn.anodizer.codegen.context.CtxUnion
 import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.core.Type
 
 private typealias Reads = MutableList<KotlinReader.Read>
@@ -25,7 +26,7 @@ private typealias Reads = MutableList<KotlinReader.Read>
  */
 internal class KotlinReader(
     model: CtxModel,
-    options: KotlinOptions,
+    options: Options,
     templates: Templates,
 ) : KotlinGenerator(model, templates) {
 
@@ -48,7 +49,7 @@ internal class KotlinReader(
             generateDefinition(definition, buffer())
         }
         val hash = object {
-            val `package` = options.pkg.joinToString(".")
+            val `package` = options.getString("package")!!
             val domain = _this.domain
             val reads = _this.reads
         }

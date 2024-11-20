@@ -16,6 +16,7 @@ import io.github.amzn.anodizer.codegen.context.CtxType
 import io.github.amzn.anodizer.codegen.context.CtxUnion
 import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.core.Type
 
 private typealias Writes = MutableList<KotlinWriter.Write>
@@ -23,11 +24,8 @@ private typealias Writes = MutableList<KotlinWriter.Write>
 /**
  * Generator for _file_writer.mustache; this is stateful.
  */
-internal class KotlinWriter(
-    model: CtxModel,
-    options: KotlinOptions,
-    templates: Templates,
-) : KotlinGenerator(model, templates) {
+internal class KotlinWriter(model: CtxModel, options: Options, templates: Templates) :
+    KotlinGenerator(model, templates) {
 
     private val _this = this
     private val domain = model.domain.pascal
@@ -48,7 +46,7 @@ internal class KotlinWriter(
             generateDefinition(definition, buffer())
         }
         val hash = object {
-            val `package` = options.pkg.joinToString(".")
+            val `package` = options.getString("package")!!
             val domain = _this.domain
             val writes = _this.writes
         }

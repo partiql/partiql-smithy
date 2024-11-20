@@ -9,10 +9,10 @@ include(
     // anodizer
     "anodizer",
     "anodizer-lang",
+    "anodizer-codegen",
     "anodizer-core",
     "anodizer-target:anodizer-target-isl",
     "anodizer-target:anodizer-target-kotlin",
-    "anodizer-target-codegen",
     // smithy
     "smithy-anodizer:smithy-anodizer",
     "smithy-anodizer:smithy-anodizer-isl",

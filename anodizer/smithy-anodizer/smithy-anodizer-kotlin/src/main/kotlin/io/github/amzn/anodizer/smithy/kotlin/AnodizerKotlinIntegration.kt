@@ -1,8 +1,9 @@
 package io.github.amzn.anodizer.smithy.kotlin
 
+import io.github.amzn.anodizer.codegen.Templates
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.smithy.AnodizerUtil
-import io.github.amzn.anodizer.target.kotlin.KotlinOptions
 import io.github.amzn.anodizer.target.kotlin.KotlinTarget
 import software.amazon.smithy.kotlin.codegen.core.CodegenContext
 import software.amazon.smithy.kotlin.codegen.core.KotlinDelegator
@@ -24,20 +25,21 @@ public class AnodizerKotlinIntegration : KotlinIntegration {
         val shapes = load(namespace, ctx)
 
         // transform to anodizer model
-        val pkg = ctx.settings.pkg.name.split(".")
-        val pkgSerde = pkg + listOf("serde")
-        val pkgModel = pkg + listOf("model")
-
         val domain = domain(namespace)
-        val options = KotlinOptions(pkgSerde)
         val model = AnodizerUtil.transform(domain, shapes)
+        val pkg = ctx.settings.pkg.name.split(".")
 
-        // generate reader/writer
+        // generate serde using the smithy overrides and smithy templates
+        val options = Options.load("{ package: \"${ctx.settings.pkg.name}.serde\" }".trimIndent())
+        val templates = Templates.loader(this::class.java)
+        val features = KotlinTarget.features(model, options)
+
+        // generate serde feature with overrides
         val src = File.dir("src")
-        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(pkgSerde)
-        dir.add(KotlinTarget.reader(model, options))
-        dir.add(KotlinTarget.writer(model, options))
-        dir.add(KotlinTarget.primitives(model, options))
+        val dir = src.mkdir("main").mkdir("kotlin").mkdirp(pkg).mkdir("serde")
+        dir.addAll(features.serde(templates = templates))
+
+        // write via smithy manifest
         AnodizerUtil.write(src, delegator.fileManifest)
     }
 

@@ -1,6 +1,6 @@
 package io.github.amzn.anodizer.cli.commands
 
-import io.github.amzn.anodizer.AnodizerOptions
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.cli.util.dump
 import io.github.amzn.anodizer.core.Encoding
 import io.github.amzn.anodizer.lang.AnodizerParser
@@ -55,5 +55,5 @@ internal class IslCommand : Callable<Int> {
         return 0
     }
 
-    private fun options(): AnodizerOptions = AnodizerOptions.empty()
+    private fun options(): Options = Options.empty()
 }

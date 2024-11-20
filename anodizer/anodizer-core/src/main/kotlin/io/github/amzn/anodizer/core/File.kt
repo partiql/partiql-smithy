@@ -220,11 +220,23 @@ public class File private constructor(
     }
 
     /**
-     * Add files to this directory.
+     * Add all files to this directory.
      *
      * @param files
      */
     public fun add(vararg files: File) {
+        if (!isDir) {
+            throw IllegalStateException("Cannot add a file to a file")
+        }
+        children.addAll(files)
+    }
+
+    /**
+     * Add all files to this directory.
+     *
+     * @param files
+     */
+    public fun addAll(files: List<File>) {
         if (!isDir) {
             throw IllegalStateException("Cannot add a file to a file")
         }

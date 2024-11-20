@@ -15,13 +15,14 @@ import io.github.amzn.anodizer.codegen.context.CtxStruct
 import io.github.amzn.anodizer.codegen.context.CtxUnion
 import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 
 /**
  * Generator for _file_domain.mustache.
  */
-internal class KotlinDomain(
+internal class KotlinModel(
     model: CtxModel,
-    options: KotlinOptions,
+    options: Options,
     templates: Templates,
 ) : KotlinGenerator(model, templates) {
 
@@ -32,7 +33,7 @@ internal class KotlinDomain(
     fun generate(): File {
         val file = File.file("$domain.kt")
         val hash = object {
-            val `package` = options.pkg.joinToString(".")
+            val `package` = options.getString("package")!!
             val domain = _this.domain
             val definitions = buffer {
                 for (definition in model.definitions) {

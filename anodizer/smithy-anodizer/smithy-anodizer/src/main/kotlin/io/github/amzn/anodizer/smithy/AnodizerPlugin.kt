@@ -1,6 +1,6 @@
 package io.github.amzn.anodizer.smithy
 
-import io.github.amzn.anodizer.AnodizerOptions
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.AnodizerTarget
 import io.github.amzn.anodizer.lang.AnodizerParser
 import software.amazon.smithy.build.PluginContext
@@ -66,7 +66,7 @@ public class AnodizerPlugin : SmithyBuildPlugin {
         val settings = context.settings.getObjectMember("targets").get().stringMap
         for ((t, o) in settings) {
             val target = targets[t] ?: throw IllegalArgumentException("Could not find target `$t` on the classpath")
-            val options = AnodizerOptions.load(Node.printJson(o))
+            val options = Options.load(Node.printJson(o))
             tasks.add(Task(target, options))
         }
         return tasks
@@ -87,6 +87,6 @@ public class AnodizerPlugin : SmithyBuildPlugin {
      */
     private class Task(
         @JvmField val target: AnodizerTarget,
-        @JvmField val options: AnodizerOptions,
+        @JvmField val options: Options,
     )
 }

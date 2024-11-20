@@ -11,6 +11,14 @@ import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.Ion
 import io.github.amzn.anodizer.core.Type
 
+/**
+ * TODO this could use a better name and some functionality should be split.
+ *
+ * This might be a "facet" (feature set) which has some "KotlinSymbols" which replaces generate things.
+ *
+ * @param model
+ * @param templates
+ */
 internal abstract class KotlinGenerator(model: CtxModel, templates: Templates) : Generator.Base(model, templates) {
 
     override fun method(symbol: CtxSymbol, prefix: String?, suffix: String?): String {

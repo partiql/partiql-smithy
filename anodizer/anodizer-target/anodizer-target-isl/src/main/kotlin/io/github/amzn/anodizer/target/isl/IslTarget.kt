@@ -1,7 +1,7 @@
 package io.github.amzn.anodizer.target.isl
 
 import io.github.amzn.anodizer.core.File
-import io.github.amzn.anodizer.AnodizerOptions
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.AnodizerTarget
 import io.github.amzn.anodizer.AnodizerModel
 
@@ -11,7 +11,7 @@ public class IslTarget : AnodizerTarget {
 
     override fun getName(): String = name
 
-    override fun generate(model: AnodizerModel, options: AnodizerOptions): File {
+    override fun generate(model: AnodizerModel, options: Options): File {
         val dir = File.dir(name)
         val ft = generateText(model)
         val fp = generatePacked(model)

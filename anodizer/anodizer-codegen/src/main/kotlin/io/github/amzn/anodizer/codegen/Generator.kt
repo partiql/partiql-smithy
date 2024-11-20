@@ -16,6 +16,8 @@ import io.github.amzn.anodizer.codegen.context.CtxUnion
 import io.github.amzn.anodizer.codegen.context.CtxUnit
 
 /**
+ * TODO this needs a better factoring and name (Symbols?) but I don't want to deal with it right now.
+ *
  * Shared logic for template based generators.
  *
  * @property model
@@ -94,6 +96,8 @@ public abstract class Generator(
     public abstract fun typeOfUnit(unit: CtxUnit): String
 
     /**
+     * TODO unnest this and probably make it a facet.
+     *
      * Base generator that has (likely) all the methods you need, otherwise use the Generator directly.
      */
     public abstract class Base(model: CtxModel, templates: Templates) : Generator(model, templates) {

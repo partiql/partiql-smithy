@@ -3,80 +3,58 @@
 package io.github.amzn.anodizer.target.kotlin
 
 import io.github.amzn.anodizer.AnodizerModel
-import io.github.amzn.anodizer.AnodizerOptions
 import io.github.amzn.anodizer.AnodizerTarget
-import io.github.amzn.anodizer.codegen.Templates
 import io.github.amzn.anodizer.codegen.context.Ctx
-import io.github.amzn.anodizer.codegen.context.CtxModel
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 
 /**
- * An [AnodizerTarget] for the Kotlin language.
+ * An [AnodizerTarget] for the Kotlin language, templates can be overridden using [KotlinFeatures].
  */
 public class KotlinTarget : AnodizerTarget {
 
     private val name: String = "kotlin"
 
-    public companion object {
-
-        @JvmStatic
-        public fun faceted(): Facets {
-            TODO()
-        }
-    }
-
+    /**
+     * A key for this service.
+     */
     override fun getName(): String = name
 
-    override fun generate(model: AnodizerModel, options: AnodizerOptions): File {
-        val context = Ctx.build(model)
-        val facets = Facets(context, KotlinOptions.load(options))
-        val options = KotlinOptions.load(options)
-        val dir = File.dir(name)
-        val src = dir.mkdir("src").mkdir("main").mkdir("kotlin").mkdirp(options.pkg)
-        for (file in facets.all()) {
-            src.add(file)
-        }
-        return dir
+    /**
+     * Generate all sources for this target.
+     *
+     * @param model
+     * @param options
+     * @return
+     */
+    override fun generate(model: AnodizerModel, options: Options): File {
+
+        // prepare model
+        val model = Ctx.build(model)
+        val features = KotlinFeatures(model, options)
+
+        // generate all features with defaults
+        val pkg = options.getString("package")!!.split(".")
+        val src = File.dir(name)
+        val dir = src.mkdir("src").mkdir("main").mkdir("kotlin").mkdirp(pkg)
+        dir.addAll(features.model())
+        dir.addAll(features.serde())
+
+        return src
     }
 
-    /**
-     * The [KotlinTarget] requires a zero-argument constructor, the facets provide access to the individual
-     *
-     * Q:
-     */
-    public class Facets internal constructor(
-        private val context: CtxModel,
-        private val options: KotlinOptions,
-    ) {
+    public companion object {
 
-        private val templates: Templates = Templates()
-
-        public fun all(): List<File> = listOf(
-            types(),
-            reader(),
-            writer(),
-            primitives(),
-        )
-
-        public fun types(): File {
-            return KotlinDomain(context, options, templates).generate()
-        }
-
-        public fun reader(): File {
-            return KotlinReader(context, options, templates).generate()
-        }
-
-        public fun writer(): File {
-            return KotlinWriter(context, options, templates).generate()
-        }
-
-        private fun primitives(): File {
-            val file = File.file("IonPrimitive.kt")
-            val content = templates.apply("ion_primitives", object {
-                val `package` = options.pkg.joinToString(".")
-            })
-            file.write(content)
-            return file
+        /**
+         * Create a [KotlinFeatures] instance for the given [model].
+         *
+         * @param model
+         * @return
+         */
+        @JvmStatic
+        public fun features(model: AnodizerModel, options: Options): KotlinFeatures {
+            val model = Ctx.build(model)
+            return KotlinFeatures(model, options)
         }
     }
 }

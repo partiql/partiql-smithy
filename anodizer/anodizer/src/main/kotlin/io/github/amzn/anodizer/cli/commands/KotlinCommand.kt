@@ -1,6 +1,6 @@
 package io.github.amzn.anodizer.cli.commands
 
-import io.github.amzn.anodizer.AnodizerOptions
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.cli.util.dump
 import io.github.amzn.anodizer.lang.AnodizerParser
 import io.github.amzn.anodizer.target.kotlin.KotlinTarget
@@ -61,12 +61,12 @@ internal class KotlinCommand : Callable<Int> {
     }
 
     // kind of weird shoving the strings through but ehh works fine.
-    private fun options(): AnodizerOptions {
+    private fun options(): Options {
         val options = buildString {
             appendLine("{")
             appendLine("  package: \"$pkg\",")
             appendLine("}")
         }
-        return AnodizerOptions.load(options)
+        return Options.load(options)
     }
 }

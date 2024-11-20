@@ -12,6 +12,9 @@ import java.io.PrintStream
 import java.nio.file.Path
 import java.util.stream.Stream
 
+/**
+ * Utility methods for interacting with the Smithy abstractions.
+ */
 public object AnodizerUtil {
 
     /**
