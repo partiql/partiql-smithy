@@ -3,93 +3,41 @@
 package io.github.amzn.anodizer.target.kotlin
 
 import io.github.amzn.anodizer.AnodizerModel
-import io.github.amzn.anodizer.AnodizerOptions
 import io.github.amzn.anodizer.AnodizerTarget
-import io.github.amzn.anodizer.codegen.Templates
-import io.github.amzn.anodizer.codegen.context.Ctx
-import io.github.amzn.anodizer.codegen.context.CtxModel
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 
 /**
- * An [AnodizerTarget] for the Kotlin language.
+ * An [AnodizerTarget] for the Kotlin language, templates can be overridden using [KotlinFeatures].
  */
 public class KotlinTarget : AnodizerTarget {
 
     private val name: String = "kotlin"
 
-    private val templates: Templates = Templates()
-
+    /**
+     * A key for this service.
+     */
     override fun getName(): String = name
 
-    override fun generate(model: AnodizerModel, options: AnodizerOptions): File {
-        val context = Ctx.build(model)
-        val options = KotlinOptions.load(options)
-        val dir = File.dir(name)
-        val src = dir.mkdir("src").mkdir("main").mkdir("kotlin").mkdirp(options.pkg)
-        src.add(generateDomain(context, options))
-        src.add(generateReader(context, options))
-        src.add(generateWriter(context, options))
-        src.add(primitives(context, options))
-        return dir
-    }
-
-    private fun generateDomain(context: CtxModel, options: KotlinOptions): File {
-        return KotlinDomain(context, options, templates).generate()
-    }
-
-    private fun generateReader(context: CtxModel, options: KotlinOptions): File {
-        return KotlinReader(context, options, templates).generate()
-    }
-
-    private fun generateWriter(context: CtxModel, options: KotlinOptions): File {
-        return KotlinWriter(context, options, templates).generate()
-    }
-
-    private fun primitives(context: CtxModel, options: KotlinOptions): File {
-        val file = File.file("IonPrimitive.kt")
-        val content = templates.apply("ion_primitives", object {
-            val `package` = options.pkg.joinToString(".")
-        })
-        file.write(content)
-        return file
-    }
-
     /**
-     * TODO this should be factored such to reduce duplication.
+     * Generate all sources for this target.
      *
-     * The primary difference between instance and static methods here
-     * is where the models are coming from - ie anodizer or smithy.
-     *
-     * I think the model should distinguish if this is an internal or external model
-     * so that codegen can be simplified and we don't need the duplication.
-     *
-     * This will also be necessary when "anodizing" the smithy generated structures.
+     * @param model
+     * @param options
+     * @return
      */
-    public companion object {
+    override fun generate(model: AnodizerModel, options: Options): File {
 
-        @JvmStatic
-        public fun reader(model: AnodizerModel, options: KotlinOptions): File {
-            val context = Ctx.build(model)
-            val templates = Templates()
-            return KotlinReader(context, options, templates).generate()
-        }
+        // prepare model
+        val features = KotlinFeatures.standard(model)
 
-        @JvmStatic
-        public fun writer(model: AnodizerModel, options: KotlinOptions): File {
-            val context = Ctx.build(model)
-            val templates = Templates()
-            return KotlinWriter(context, options, templates).generate()
-        }
+        // generate all features with defaults
+        val pkg = options.getString("package")!!.split(".")
+        val src = File.dir(name)
+        val dir = src.mkdir("src").mkdir("main").mkdir("kotlin").mkdirp(pkg)
+        dir.addAll(features.model(options))
+        dir.addAll(features.serde(options))
 
-        @JvmStatic
-        public fun primitives(model: AnodizerModel, options: KotlinOptions): File {
-            val templates = Templates()
-            val file = File.file("IonPrimitive.kt")
-            val content = templates.apply("ion_primitives", object {
-                val `package` = options.pkg.joinToString(".")
-            })
-            file.write(content)
-            return file
-        }
+        return src
     }
 }

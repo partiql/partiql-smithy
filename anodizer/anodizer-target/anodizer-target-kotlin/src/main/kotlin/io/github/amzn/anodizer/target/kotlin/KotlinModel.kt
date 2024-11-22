@@ -3,39 +3,41 @@
 package io.github.amzn.anodizer.target.kotlin
 
 import io.github.amzn.anodizer.codegen.Buffer
+import io.github.amzn.anodizer.codegen.Generator
 import io.github.amzn.anodizer.codegen.Templates
 import io.github.amzn.anodizer.codegen.buffer
 import io.github.amzn.anodizer.codegen.context.CtxAlias
 import io.github.amzn.anodizer.codegen.context.CtxArray
 import io.github.amzn.anodizer.codegen.context.CtxEnum
-import io.github.amzn.anodizer.codegen.context.CtxModel
 import io.github.amzn.anodizer.codegen.context.CtxNamespace
 import io.github.amzn.anodizer.codegen.context.CtxPrimitive
 import io.github.amzn.anodizer.codegen.context.CtxStruct
 import io.github.amzn.anodizer.codegen.context.CtxUnion
 import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
+import io.github.amzn.anodizer.core.Type
 
 /**
  * Generator for _file_domain.mustache.
  */
-internal class KotlinDomain(
-    model: CtxModel,
-    options: KotlinOptions,
+internal class KotlinModel(
+    symbols: KotlinSymbols,
+    options: Options,
     templates: Templates,
-) : KotlinGenerator(model, templates) {
+) : Generator(symbols, templates) {
 
     private val _this = this
-    private val domain = model.domain.pascal
+    private val domain = symbols.model.domain.pascal
     private val options = options
 
     fun generate(): File {
         val file = File.file("$domain.kt")
         val hash = object {
-            val `package` = options.pkg.joinToString(".")
+            val `package` = options.getString("package")!!
             val domain = _this.domain
             val definitions = buffer {
-                for (definition in model.definitions) {
+                for (definition in symbols.model.definitions) {
                     generateDefinition(definition, this)
                     appendLine()
                 }
@@ -49,10 +51,10 @@ internal class KotlinDomain(
         val hash = object {
             val name = alias.symbol.name.pascal
             val domain = _this.domain
-            val parent = pathToOrNull(alias.parent)
-            val type = typeOfPrimitive(primitive)
+            val parent = symbols.pathToOrNull(alias.parent)
+            val type = symbols.typeOfPrimitive(primitive)
             val constructor = primitive.constructor()
-            val write = method(alias.symbol, prefix = "write")
+            val write = symbols.method(alias.symbol, prefix = "write")
         }
         buffer.appendTemplate("typedef_primitive", hash)
     }
@@ -61,10 +63,10 @@ internal class KotlinDomain(
         val hash = object {
             val name = alias.symbol.name.pascal
             val domain = _this.domain
-            val parent = pathToOrNull(alias.parent)
+            val parent = symbols.pathToOrNull(alias.parent)
             val size = array.size
-            val type = typeOf(array.item)
-            val write = method(alias.symbol, prefix = "write")
+            val type = symbols.typeOf(array.item)
+            val write = symbols.method(alias.symbol, prefix = "write")
         }
         buffer.appendTemplate("typedef_array", hash)
     }
@@ -73,8 +75,8 @@ internal class KotlinDomain(
         val hash = object {
             val name = alias.symbol.name.pascal
             val domain = _this.domain
-            val parent = pathToOrNull(alias.parent)
-            val write = method(alias.symbol, prefix = "write")
+            val parent = symbols.pathToOrNull(alias.parent)
+            val write = symbols.method(alias.symbol, prefix = "write")
         }
         buffer.appendTemplate("typedef_unit", hash)
     }
@@ -83,9 +85,9 @@ internal class KotlinDomain(
         val hash = object {
             val name = enum.symbol.name.pascal
             val domain = _this.domain
-            val parent = pathToOrNull(enum.parent)
+            val parent = symbols.pathToOrNull(enum.parent)
             val values = enum.values.map { it.upper }
-            val write = method(enum.symbol, prefix = "write")
+            val write = symbols.method(enum.symbol, prefix = "write")
         }
         buffer.appendTemplate("typedef_enum", hash)
     }
@@ -108,12 +110,12 @@ internal class KotlinDomain(
             val definition = struct.definition
             val name = struct.symbol.name.pascal
             val domain = _this.domain
-            val parent = pathToOrNull(struct.parent)
-            val write = method(struct.symbol, prefix = "write")
+            val parent = symbols.pathToOrNull(struct.parent)
+            val write = symbols.method(struct.symbol, prefix = "write")
             val fields = struct.fields.map {
                 object {
                     val name = it.name.camel
-                    val type = typeOf(it.type)
+                    val type = symbols.typeOf(it.type)
                 }
             }
         }
@@ -124,8 +126,8 @@ internal class KotlinDomain(
         val hash = object {
             val name = union.symbol.name.pascal
             val domain = _this.domain
-            val parent = pathToOrNull(union.parent)
-            val write = method(union.symbol, prefix = "write")
+            val parent = symbols.pathToOrNull(union.parent)
+            val write = symbols.method(union.symbol, prefix = "write")
             val variants = buffer {
                 for (variant in union.variants) {
                     generateDefinition(variant, buffer)
@@ -134,5 +136,31 @@ internal class KotlinDomain(
             }
         }
         buffer.appendTemplate("typedef_union", hash)
+    }
+
+    // could be added to KotlinSymbols.
+    internal fun CtxPrimitive.constructor(): String {
+        val args: MutableList<String> = mutableListOf("value")
+        val constructor = when (val type = type) {
+            is Type.Primitive.Void -> TODO("void type not supported")
+            is Type.Primitive.Bool -> "IonBool"
+            is Type.Primitive.Int -> "IonInt"
+            is Type.Primitive.Decimal -> {
+                if (type.precision != null) args.add(type.precision.toString())
+                if (type.exponent != null) args.add(type.exponent.toString())
+                "IonDecimal"
+            }
+            is Type.Primitive.Float -> "IonFloat"
+            is Type.Primitive.String -> "IonString"
+            is Type.Primitive.Blob -> {
+                if (type.size != null) args.add(type.size.toString())
+                "IonBlob"
+            }
+            is Type.Primitive.Clob -> {
+                if (type.size != null) args.add(type.size.toString())
+                "IonClob"
+            }
+        }
+        return "${constructor}(${args.joinToString()})"
     }
 }

@@ -11,29 +11,37 @@ service Paste {
 }
 
 operation PutPaste {
-    input: PutPasteInput
-    output: PutPasteOutput
+    input: PutPasteRequest
+    output: PutPasteResponse
 }
 
-structure PutPasteInput {
+structure PutPasteRequest {
+    @required
     contentType: String
+
+    @required
     content: Blob
 }
 
-structure PutPasteOutput {
+structure PutPasteResponse {
+    @required
     id: Long
 }
 
 operation GetPaste {
-    input: GetPasteInput
-    output: GetPasteOutput
+    input: GetPasteRequest
+    output: GetPasteResponse
 }
 
-structure GetPasteInput {
+structure GetPasteRequest {
+    @required
     id: Long
 }
 
-structure GetPasteOutput {
+structure GetPasteResponse {
+    @required
     contentType: String
+
+    @required
     content: Blob
 }

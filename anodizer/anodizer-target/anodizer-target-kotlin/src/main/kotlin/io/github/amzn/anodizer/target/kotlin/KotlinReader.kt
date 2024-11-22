@@ -3,12 +3,12 @@
 package io.github.amzn.anodizer.target.kotlin
 
 import io.github.amzn.anodizer.codegen.Buffer
+import io.github.amzn.anodizer.codegen.Generator
 import io.github.amzn.anodizer.codegen.Templates
 import io.github.amzn.anodizer.codegen.buffer
 import io.github.amzn.anodizer.codegen.context.CtxAlias
 import io.github.amzn.anodizer.codegen.context.CtxArray
 import io.github.amzn.anodizer.codegen.context.CtxEnum
-import io.github.amzn.anodizer.codegen.context.CtxModel
 import io.github.amzn.anodizer.codegen.context.CtxNamed
 import io.github.amzn.anodizer.codegen.context.CtxPrimitive
 import io.github.amzn.anodizer.codegen.context.CtxStruct
@@ -16,6 +16,7 @@ import io.github.amzn.anodizer.codegen.context.CtxType
 import io.github.amzn.anodizer.codegen.context.CtxUnion
 import io.github.amzn.anodizer.codegen.context.CtxUnit
 import io.github.amzn.anodizer.core.File
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.core.Type
 
 private typealias Reads = MutableList<KotlinReader.Read>
@@ -24,13 +25,13 @@ private typealias Reads = MutableList<KotlinReader.Read>
  * Generator for _file_reader.mustache; this is stateful.
  */
 internal class KotlinReader(
-    model: CtxModel,
-    options: KotlinOptions,
+    symbols: KotlinSymbols,
+    options: Options,
     templates: Templates,
-) : KotlinGenerator(model, templates) {
+) : Generator(symbols, templates) {
 
     private val _this = this
-    private val domain = model.domain.pascal
+    private val domain = symbols.model.domain.pascal
     private val options = options
     private val reads = mutableListOf<Read>()
 
@@ -44,11 +45,11 @@ internal class KotlinReader(
     fun generate(): File {
         reads.clear()
         val file = File.file("${domain}Reader.kt")
-        for (definition in model.definitions) {
+        for (definition in symbols.model.definitions) {
             generateDefinition(definition, buffer())
         }
         val hash = object {
-            val `package` = options.pkg.joinToString(".")
+            val `package` = options.getString("package")!!
             val domain = _this.domain
             val reads = _this.reads
         }
@@ -60,11 +61,11 @@ internal class KotlinReader(
         val hash = object {
             val tag = alias.symbol.tag
             val ion = primitive.ion.name
-            val type = typeOf(alias)
+            val type = symbols.typeOf(alias)
             val read = primitive.read()
         }
         val read = Read(
-            read = method(alias.symbol, prefix = "read"),
+            read = symbols.method(alias.symbol, prefix = "read"),
             type = hash.type,
             text = hash.toString("read_text_primitive"),
             packed = hash.toString("read_packed_primitive"),
@@ -75,12 +76,12 @@ internal class KotlinReader(
     override fun generateAliasArray(alias: CtxAlias, array: CtxArray, buffer: Buffer) {
         val hash = object {
             val tag = alias.symbol.tag
-            val type = typeOf(alias)
+            val type = symbols.typeOf(alias)
             val size = array.size
             val lambda = array.item.read()
         }
         val read = Read(
-            read = method(alias.symbol, prefix = "read"),
+            read = symbols.method(alias.symbol, prefix = "read"),
             type = hash.type,
             text = hash.toString("read_text_array"),
             packed = hash.toString("read_packed_array"),
@@ -91,10 +92,10 @@ internal class KotlinReader(
     override fun generateAliasUnit(alias: CtxAlias, unit: CtxUnit, buffer: Buffer) {
         val hash = object {
             val tag = alias.symbol.tag
-            val type = typeOf(alias)
+            val type = symbols.typeOf(alias)
         }
         val read = Read(
-            read = method(alias.symbol, prefix = "read"),
+            read = symbols.method(alias.symbol, prefix = "read"),
             type = hash.type,
             text = hash.toString("read_text_unit"),
             packed = hash.toString("read_packed_unit"),
@@ -105,10 +106,10 @@ internal class KotlinReader(
     override fun generateEnum(enum: CtxEnum, buffer: Buffer) {
         val hash = object {
             val tag = enum.symbol.tag
-            val type = typeOf(enum)
+            val type = symbols.typeOf(enum)
         }
         val read = Read(
-            read = method(enum.symbol, prefix = "read"),
+            read = symbols.method(enum.symbol, prefix = "read"),
             type = hash.type,
             text = hash.toString("read_text_enum"),
             packed = hash.toString("read_packed_enum"),
@@ -119,7 +120,7 @@ internal class KotlinReader(
     override fun generateStruct(struct: CtxStruct, buffer: Buffer) {
         val hash = object {
             val tag = struct.symbol.tag
-            val type = typeOf(struct)
+            val type = symbols.typeOf(struct)
             val fields = struct.fields.map {
                 object {
                     val arg = it.name.camel
@@ -129,7 +130,7 @@ internal class KotlinReader(
             }
         }
         val read = Read(
-            read = method(struct.symbol, prefix = "read"),
+            read = symbols.method(struct.symbol, prefix = "read"),
             type = hash.type,
             text = hash.toString("read_text_struct"),
             packed = hash.toString("read_packed_struct"),
@@ -139,20 +140,20 @@ internal class KotlinReader(
 
     override fun generateUnion(union: CtxUnion, buffer: Buffer) {
         val hash = object {
-            val type = typeOf(union)
+            val type = symbols.typeOf(union)
             val tag = union.symbol.tag
             val max = union.variants.size - 1
             val variants = union.variants.mapIndexed { i, variant ->
                 object {
-                    val type = typeOf(variant)
+                    val type = symbols.typeOf(variant)
                     val tag = variant.symbol().tag
                     val index = i
-                    val read = method(variant.symbol(), prefix = "read")
+                    val read = symbols.method(variant.symbol(), prefix = "read")
                 }
             }
         }
         val read = Read(
-            read = method(union.symbol, prefix = "read"),
+            read = symbols.method(union.symbol, prefix = "read"),
             type = hash.type,
             text = hash.toString("read_text_union"),
             packed = hash.toString("read_packed_union"),
@@ -173,7 +174,7 @@ internal class KotlinReader(
                 val lambda = this.item.read()
                 return "$call { $lambda }"
             }
-            is CtxNamed -> method(symbol, prefix = "read")
+            is CtxNamed -> symbols.method(symbol, prefix = "read")
             is CtxPrimitive -> when (val t = type) {
                 is Type.Primitive.Void -> "reader.nullValue"
                 is Type.Primitive.Bool -> "reader.booleanValue"

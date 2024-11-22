@@ -9,10 +9,10 @@ include(
     // anodizer
     "anodizer",
     "anodizer-lang",
+    "anodizer-codegen",
     "anodizer-core",
     "anodizer-target:anodizer-target-isl",
     "anodizer-target:anodizer-target-kotlin",
-    "anodizer-target-codegen",
     // smithy
     "smithy-anodizer:smithy-anodizer",
     "smithy-anodizer:smithy-anodizer-isl",
@@ -22,6 +22,6 @@ include(
     "smithy-anodizer-aws:smithy-anodizer-aws-rust",
     // examples (integration tests)
     // "examples:smithy-anodizer-example",
-    // "examples:smithy-anodizer-example-kotlin",
+    "examples:smithy-anodizer-example-kotlin",
     // "examples:smithy-anodizer-example-kotlin-aws",
 )

@@ -1,5 +1,6 @@
 package io.github.amzn.anodizer
 
+import io.github.amzn.anodizer.core.Options
 import io.github.amzn.anodizer.core.File
 
 /**
@@ -9,5 +10,5 @@ public interface AnodizerTarget {
 
     public fun getName(): String
 
-    public fun generate(model: AnodizerModel, options: AnodizerOptions): File
+    public fun generate(model: AnodizerModel, options: Options): File
 }

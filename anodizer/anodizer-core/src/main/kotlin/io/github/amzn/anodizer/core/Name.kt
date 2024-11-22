@@ -1,6 +1,13 @@
 package io.github.amzn.anodizer.core
 
-public data class Name(
+/**
+ * Name refers to a definition and includes its location relative to the domain root.
+ *
+ * @property name
+ * @property path
+ * @property parameters
+ */
+public class Name(
     @JvmField public val name: String,
     @JvmField public val path: Array<String>,
     @JvmField public val parameters: Array<String> = emptyArray(),
