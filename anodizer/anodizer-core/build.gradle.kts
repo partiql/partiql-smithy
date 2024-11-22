@@ -9,8 +9,8 @@ java {
 }
 
 dependencies {
+    api("com.amazon.ion:ion-element:1.2.0") // api for Options, but could be removed.
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
-    implementation("com.amazon.ion:ion-element:1.2.0")
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotlin.test.junit5)
 }

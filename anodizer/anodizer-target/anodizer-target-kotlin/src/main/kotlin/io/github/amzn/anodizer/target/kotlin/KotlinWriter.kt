@@ -3,12 +3,12 @@
 package io.github.amzn.anodizer.target.kotlin
 
 import io.github.amzn.anodizer.codegen.Buffer
+import io.github.amzn.anodizer.codegen.Generator
 import io.github.amzn.anodizer.codegen.Templates
 import io.github.amzn.anodizer.codegen.buffer
 import io.github.amzn.anodizer.codegen.context.CtxAlias
 import io.github.amzn.anodizer.codegen.context.CtxArray
 import io.github.amzn.anodizer.codegen.context.CtxEnum
-import io.github.amzn.anodizer.codegen.context.CtxModel
 import io.github.amzn.anodizer.codegen.context.CtxNamed
 import io.github.amzn.anodizer.codegen.context.CtxPrimitive
 import io.github.amzn.anodizer.codegen.context.CtxStruct
@@ -24,11 +24,14 @@ private typealias Writes = MutableList<KotlinWriter.Write>
 /**
  * Generator for _file_writer.mustache; this is stateful.
  */
-internal class KotlinWriter(model: CtxModel, options: Options, templates: Templates) :
-    KotlinGenerator(model, templates) {
+internal class KotlinWriter(
+    symbols: KotlinSymbols,
+    options: Options,
+    templates: Templates,
+) : Generator(symbols, templates) {
 
     private val _this = this
-    private val domain = model.domain.pascal
+    private val domain = symbols.model.domain.pascal
     private val options = options
     private val writes = mutableListOf<Write>()
 
@@ -42,11 +45,12 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
     fun generate(): File {
         writes.clear()
         val file = File.file("${domain}Writer.kt")
-        for (definition in model.definitions) {
+        for (definition in symbols.model.definitions) {
             generateDefinition(definition, buffer())
         }
         val hash = object {
             val `package` = options.getString("package")!!
+            val imports = options.getList("imports") { it.textValue }
             val domain = _this.domain
             val writes = _this.writes
         }
@@ -60,8 +64,8 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
             val write = primitive.write("value.value")
         }
         val write = Write(
-            write = method(alias.symbol, prefix = "write"),
-            type = typeOf(alias),
+            write = symbols.method(alias.symbol, prefix = "write"),
+            type = symbols.typeOf(alias),
             text = hash.toString("write_text_primitive"),
             packed = hash.toString("write_packed_primitive"),
         )
@@ -75,8 +79,8 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
             val lambda = array.item.write("it")
         }
         val write = Write(
-            write = method(alias.symbol, prefix = "write"),
-            type = typeOf(alias),
+            write = symbols.method(alias.symbol, prefix = "write"),
+            type = symbols.typeOf(alias),
             text = hash.toString("write_text_array"),
             packed = hash.toString("write_packed_array"),
         )
@@ -88,8 +92,8 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
             val tag = alias.symbol.tag
         }
         val write = Write(
-            write = method(alias.symbol, prefix = "write"),
-            type = typeOf(alias),
+            write = symbols.method(alias.symbol, prefix = "write"),
+            type = symbols.typeOf(alias),
             text = hash.toString("write_text_unit"),
             packed = hash.toString("write_packed_unit"),
         )
@@ -101,8 +105,8 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
             val tag = enum.symbol.tag
         }
         val write = Write(
-            write = method(enum.symbol, prefix = "write"),
-            type = typeOf(enum),
+            write = symbols.method(enum.symbol, prefix = "write"),
+            type = symbols.typeOf(enum),
             text = hash.toString("write_text_enum"),
             packed = hash.toString("write_packed_enum"),
         )
@@ -121,8 +125,8 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
             }
         }
         val write = Write(
-            write = method(struct.symbol, prefix = "write"),
-            type = typeOf(struct),
+            write = symbols.method(struct.symbol, prefix = "write"),
+            type = symbols.typeOf(struct),
             text = hash.toString("write_text_struct"),
             packed = hash.toString("write_packed_struct"),
         )
@@ -133,15 +137,15 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
         val hash = object {
             val variants = union.variants.mapIndexed { i, variant ->
                 object {
-                    val type = typeOf(variant)
+                    val type = symbols.typeOf(variant)
                     val index = i
-                    val write = method(variant.symbol(), prefix = "write")
+                    val write = symbols.method(variant.symbol(), prefix = "write")
                 }
             }
         }
         val write = Write(
-            write = method(union.symbol, prefix = "write"),
-            type = typeOf(union),
+            write = symbols.method(union.symbol, prefix = "write"),
+            type = symbols.typeOf(union),
             text = hash.toString("write_text_union"),
             packed = hash.toString("write_packed_union"),
         )
@@ -161,7 +165,7 @@ internal class KotlinWriter(model: CtxModel, options: Options, templates: Templa
                 val lambda = this.item.write("it")
                 return "$call { $lambda }"
             }
-            is CtxNamed -> method(symbol, prefix = "write")
+            is CtxNamed -> symbols.method(symbol, prefix = "write")
             is CtxPrimitive -> when (val type = type) {
                 is Type.Primitive.Void -> "writer.writeNull"
                 is Type.Primitive.Bool -> "writer.writeBool"

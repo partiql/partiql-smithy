@@ -108,7 +108,7 @@ public class Options private constructor(
     public companion object {
 
         /**
-         * Load an options class from an Ion string; must be a struct.
+         * Load an options class from an Ion string; must be an Ion/JSON struct.
          *
          *
          * @param str
@@ -118,6 +118,12 @@ public class Options private constructor(
         public fun load(str: String): Options {
             return Options(loadSingleElement(str).asStruct())
         }
+
+        /**
+         * Load an options class from an Ion element.
+         */
+        @JvmStatic
+        public fun load(element: StructElement): Options = Options(element)
 
         /**
          * Create an empty options class.
