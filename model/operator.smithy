@@ -102,7 +102,7 @@ structure RelIntersect {
 /// The relational operator for an ordered scan with an index.
 structure RelIterate {
     @required
-    input: Rex
+    rex: Rex
 }
 
 /// The relational operator for joining two relations.
@@ -136,7 +136,7 @@ structure RelOffset {
 /// The relational operator for projecting a value into a relation.
 structure RelScan {
     @required
-    input: Rex
+    rex: Rex
 }
 
 structure RelSort {
@@ -159,7 +159,7 @@ structure RelUnion {
 /// The relational operator to produce key-value pair rows from a value.
 structure RelUnpivot {
     @required
-    input: Rex
+    rex: Rex
 }
 
 /// A Rex is an operator which returns a value.
@@ -193,10 +193,12 @@ structure RexBag {
     values: RexList
 }
 
-/// An expression (value operator) for function calls.
-union RexCall {
-    static: RexCallStatic
-    dynamic: RexCallDynamic
+/// An expression (value operator) for a scalar function call.
+structure RexCall {
+    @required
+    name: Name
+    @required
+    args: RexList
 }
 
 /// An expression (value operator) for a CASE-WHEN.
@@ -215,6 +217,12 @@ structure RexCast {
 
 /// An expression (value operator) for COALESCE(args...)
 structure RexCoalesce {
+    @required
+    args: RexList
+}
+
+/// An expression (value operator) for a dynamic dispatch call.
+structure RexDispatch {
     @required
     args: RexList
 }
