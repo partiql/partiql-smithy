@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
+<title>PartiQL Logical Plan Serialization: Version (1)</title>
+<style>
+/* AsciiDoctor Default */
+@import "https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css";
+
+/* https://fonts.google.com/specimen/Raleway */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,600;1,300;1,400;1,500&display=swap');
+
+/* LaTeX like serif font, but it doesn't read as nice as Plex Serif on a screen. */
+/* https://fonts.google.com/specimen/Old+Standard+TT */
+/* @import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap'); */
+
+/* https://fonts.google.com/specimen/IBM+Plex+Serif */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+
+/* https://fonts.google.com/specimen/Fira+Code */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+  --color-eerie: #1a1e23;
+  --color-charged: #2156a5;
+}
+
+#header>h1:first-child {
+  color: var(--color-charged);
+}
+
+/* Headers */
+h1,
+h2,
+h3,
+#toctitle,
+.sidebarblock>.content>.title,
+h4,
+h5,
+h6 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  color: var(--color-charged);
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+/* Code Blocks */
+.literalblock pre,
+.listingblock>.content>pre {
+  font-size: 0.9em;
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+}
+
+#toc ul {
+  font-family: 'IBM Plex Serif', serif;
+  list-style-type: none;
+}
+
+.subheader,
+.admonitionblock td.content>.title,
+.audioblock>.title,
+.exampleblock>.title,
+.imageblock>.title,
+.listingblock>.title,
+.literalblock>.title,
+.stemblock>.title,
+.openblock>.title,
+.paragraph>.title,
+.quoteblock>.title,
+table.tableblock>.title,
+.verseblock>.title,
+.videoblock>.title,
+.dlist>.title,
+.olist>.title,
+.ulist>.title,
+.qlist>.title,
+.hdlist>.title {
+  line-height: 1.45;
+  color: darkslategrey;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: .25em;
+}
+
+.admonitionblock>table td.icon .title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.exampleblock>.content {
+  background: none;
+  box-shadow: none;
+}
+
+@media (min-width: 1500px) {
+
+  body {
+    margin-left: 400px;
+  }
+
+  /* Fixed TOC when wide */
+  #toc {
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 !important;
+    padding: 20px 40px;
+    height: 100vh;
+    width: 400px;
+    border-top: none !important;
+    border-right: 1px solid #e7e7e9;
+  }
+
+}
+
+#header .details {
+  border: none;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+}
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+  text-decoration: none
+}
+
+#content h1>a.link:hover,
+h2>a.link:hover,
+h3>a.link:hover,
+#toctitle>a.link:hover,
+.sidebarblock>.content>.title>a.link:hover,
+h4>a.link:hover,
+h5>a.link:hover,
+h6>a.link:hover {
+  color: var(--color-charged);
+}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>PartiQL Logical Plan Serialization: Version (1)</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Page Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_navigation">Navigation</a></li>
+<li><a href="#_about">About</a>
+<ul class="sectlevel2">
+<li><a href="#_notation">Notation</a></li>
+</ul>
+</li>
+<li><a href="#_document_top_level">Document (Top-Level)</a>
+<ul class="sectlevel2">
+<li><a href="#_catalog">Catalog</a></li>
+<li><a href="#_statement">Statement</a></li>
+</ul>
+</li>
+<li><a href="#_types">Types</a>
+<ul class="sectlevel2">
+<li><a href="#_values">Values</a></li>
+<li><a href="#_expressions">Expressions</a></li>
+</ul>
+</li>
+<li><a href="#_relations">Relations</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_navigation"><a class="link" href="#_navigation">Navigation</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong><a href="types.html">PartiQL Types</a></strong></p>
+</li>
+<li>
+<p><strong><a href="model.html">PartiQL Algebra</a></strong></p>
+</li>
+<li>
+<p><strong><a href="interface.html">PartiQL Logical Plan Interface (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="#">PartiQL Logical Plan Serialization (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="IDL.html">Interface Definition Language</a></strong></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_about"><a class="link" href="#_about">About</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document defines the Ion serialization of <a href="model.html">PartiQL&#8217;s V1 Logical Plan</a> representation. PartiQL&#8217;s serialized logical plans are backwards-compatible i.e. an older version of compiled plans can be retargeted to a newer version without changing the query&#8217;s semantics.
+This means that an a PartiQL implementation is expected to support all previous versions.</p>
+</div>
+<div class="sect2">
+<h3 id="_notation"><a class="link" href="#_notation">Notation</a></h3>
+<div class="paragraph">
+<p>This document defines the Ion serialization of PartiQL Logical Plans using <a href="https://amazon-ion.github.io/ion-schema/docs/isl-2-0/spec">Ion Schema</a>. Additionally, this document defines the types using a simple <a href="IDL.html">Interface Definition Language</a> which are trivially mapped to type definitions in C, C++, Go, Rust, and Java.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_document_top_level"><a class="link" href="#_document_top_level">Document (Top-Level)</a></h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">Document</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type document struct {
+    version: int32,
+    catalogs: catalog[],
+    statement: statement,
+};</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_catalog"><a class="link" href="#_catalog">Catalog</a></h3>
+<div class="listingblock">
+<div class="title">Catalog</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type catalog struct {
+    name: string,
+    items: catalog_item,
+};</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Catalog Item</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type catalog_item union {
+
+    type value struct {
+        path: string[],
+        type: ptype,
+    };
+
+    type fn struct {
+        path: string[],
+        specific: string,
+    };
+
+    type agg struct {
+        path: string[],
+        specific: string,
+    };
+};</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Catalog Reference</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type catalog_ref {
+    catalog: int32,
+    symbol: int32,
+};</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_statement"><a class="link" href="#_statement">Statement</a></h3>
+<div class="listingblock">
+<div class="title">Statement</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type statement union {
+
+    statement_query struct {
+        root: rex,
+    };
+
+    // others statements are out of scope
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_types"><a class="link" href="#_types">Types</a></h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+Below is one way to define <strong>PartiQL Types</strong>, but this specification does not exist at the moment. If the PartiQL Types are defined in IonSchema, then we can include the names.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Type</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type p_type union {
+
+    // Bool type
+    t_bool unit;
+
+    // Integral types
+    t_int8 unit;
+    t_int16 unit;
+    t_int32 unit;
+    t_int64 unit;
+    t_int unit;
+
+    // Exact-numeric types
+    t_numeric unit;
+    t_numeric_fixed struct {
+        precision: int32,
+        scale: int32,
+    }
+
+    // Approximate-numeric types
+    t_float32 unit;
+    t_float64 unit;
+
+    // Character String Types
+    t_char_fixed::{
+        length: int32,
+    };
+    t_char_varying::{
+        length: int32,
+    };
+    t_string unit;
+    t_symbol unit;
+    t_clob unit;
+
+    // Bit String Types
+    t_bit_fixed struct {
+        length: int32,
+    };
+    t_bit_varying struct {
+        length: int32,
+    };
+
+    // Byte String Types
+    t_binary unit;
+    t_byte_fixed struct {
+        length: int32,
+    };
+    t_byte_varying struct {
+        length: int32,
+    };
+    t_blob unit;
+
+    // Date/Time Types
+    t_date unit;
+    t_time struct {
+        precision: int,
+    };
+    t_time_tz struct {
+        precision: int,
+        offset_hour: int,
+        offset_minute: int,
+    };
+    t_timestamp struct {
+        precision: int,
+    };
+    t_timestamp_tz struct {
+        precision: int,
+        offset_hour: int,
+        offset_minute: int,
+    };
+
+    // Collection Types
+    t_bag struct {
+        items: p_type,
+    };
+    t_list struct {
+        items: p_type,
+    };
+    t_sexp struct {
+        items: p_type,
+    };
+
+    // Struct Type
+    t_struct struct {
+        fields: struct {
+            k: string,
+            v: p_type,
+        }[],
+        constraints: enum {
+            OPEN,
+            ORDERED_KEY,
+            UNIQUE_KEYS,
+        }[],
+    };
+
+    // Absent Types
+    t_null unit;
+    t_missing unit;
+
+    // Union Type
+    t_union struct {
+        types: p_type[],
+    };
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_values"><a class="link" href="#_values">Values</a></h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+Below is one way to define <strong>PartiQL Values</strong>, but this specification does not exist at the moment. If the PartiQL Values are defined in IonSchema, then we can include the names. This is based on partiql-lang-kotlin <a href="https://github.com/partiql/partiql-lang-kotlin/blob/main/partiql-types/src/main/kotlin/org/partiql/value/PartiQLValue.kt">PartiQLValue</a> classes.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Tagged union over raw byte body; the actual encoding is yet to be defined.</p>
+</div>
+<div class="listingblock">
+<div class="title">Value</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type p_value struct {
+    type: p_type,
+    data: bytes,
+};</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_expressions"><a class="link" href="#_expressions">Expressions</a></h3>
+<div class="listingblock">
+<div class="title">Rex</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type rex union {
+
+    literal struct {
+        value: p_value,
+    };
+
+    variable struct {
+        ref: int,
+        depth: int,
+    };
+
+    global struct {
+        ref: catalog_ref,
+    };
+
+    path_index struct {
+        root: rex,
+        key: rex,
+    };
+
+    path_key struct {
+        root: rex,
+        key: rex,
+    };
+
+    path_symbol struct {
+        root: rex,
+        key: string,
+    };
+
+    cast struct {
+        type: p_type,
+        arg: rex,
+    };
+
+    call_static struct {
+        fn: catalog_ref,
+        args: rex[],
+    };
+
+    call_dynamic struct {
+        args: rex[],
+        candidates: struct {
+            fn: catalog_ref,
+            coercions: p_type[],
+        }[],
+    };
+
+    switch struct {
+        branches: struct {
+            condition: rex,
+            value: rex,
+        }[],
+        default: rex,
+    };
+
+    collection struct {
+        values: rex[],
+    };
+
+    tuple struct {
+        fields: struct {
+            k: rex,
+            v: rex,
+        }[],
+    };
+
+    pivot struct {
+        input: rel,
+        key: rex,
+        value: rex,
+    };
+
+    subquery struct {
+        input: rel,
+        constructor: rex,
+        coercion: enum { ROW, SCALAR },
+    };
+
+    select struct {
+        input: rel,
+        constructor: rex,
+    };
+
+    tuple_union struct {
+        args: rex[],
+    };
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_relations"><a class="link" href="#_relations">Relations</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<div class="title">Relation Variants</div>
+<ul>
+<li>
+<p><a href="#rel-scan">Scan</a></p>
+</li>
+<li>
+<p><a href="#rel-scan-indexed">Scan Indexed</a></p>
+</li>
+<li>
+<p><a href="#rel-unpivot">Unpivot</a></p>
+</li>
+<li>
+<p><a href="#rel-filter">Filter</a></p>
+</li>
+<li>
+<p><a href="#rel-project">Project</a></p>
+</li>
+<li>
+<p><a href="#rel-join">Join</a></p>
+</li>
+<li>
+<p><a href="#rel-aggregate">Aggregate</a></p>
+</li>
+<li>
+<p><a href="#rel-sort">Sort</a></p>
+</li>
+<li>
+<p><a href="#rel-union">Union</a></p>
+</li>
+<li>
+<p><a href="#rel-intersect">Intersect</a></p>
+</li>
+<li>
+<p><a href="#rel-except">Except</a></p>
+</li>
+<li>
+<p><a href="#rel-limit">Limit</a></p>
+</li>
+<li>
+<p><a href="#rel-offset">Offset</a></p>
+</li>
+<li>
+<p><a href="#rel-distinct">Distinct</a></p>
+</li>
+<li>
+<p><a href="#rel-exclude">Exclude</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Rel</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type rel union {
+
+    scan struct {
+        input: rex,
+    };
+
+    scan_indexed struct {
+        input: rex,
+    };
+
+    unpivot struct {
+        input: rex,
+    };
+
+    filter struct {
+        input: rel,
+        condition: rex,
+    };
+
+    project struct {
+        input: rel,
+        projections: rex[],
+    };
+
+    join struct {
+        lhs: rel,
+        rhs: rel,
+        condition: rex,
+        type: enum { INNER, LEFT, RIGHT, FULL },
+    };
+
+    aggregate struct {
+        input: rel,
+        strategy: enum { FULL, PARTIAL },
+        calls: call_agg[],
+        groups: rex[],
+    };
+
+    sort struct {
+        input: rel,
+        specs: struct {
+            rex: rex,
+            order: enum {
+                ASC_NULLS_LAST,
+                ASC_NULLS_FIRST,
+                DESC_NULLS_LAST,
+                DESC_NULLS_FIRST,
+            }
+        }[]
+    };
+
+    union struct {
+        lhs: rel,
+        rhs: rel,
+        quantifier: enum { ALL, DISTINCT },
+    };
+
+    intersect struct {
+        lhs: rel,
+        rhs: rel,
+        quantifier: enum { ALL, DISTINCT },
+    };
+
+    except struct {
+        lhs: rel,
+        rhs: rel,
+        quantifier: enum { ALL, DISTINCT },
+    };
+
+    limit struct {
+        input: rel,
+        limit: int64,
+    };
+
+    offset struct {
+        input: rel,
+        offset: int64,
+    };
+
+    distinct struct {
+        input: rel,
+    };
+
+    exclude struct {
+        input: rel,
+        paths: exclusion_path[],
+    };
+};
+
+type call_agg struct {
+    fn: ref,
+    quantifier: enum { ALL, DISTINCT },
+};
+
+type exclusion_path struct {
+    root: rex::variable,
+    steps: exclusion_step[],
+};
+
+type exclusion_step struct {
+    exclusion: exclusion,
+    steps: exclusion_step[],
+};
+
+type exclusion union {
+
+    symbol struct {
+        symbol: string,
+    };
+
+    key struct {
+        key: string,
+    };
+
+    index struct {
+        index: int,
+    };
+
+    struct_wildcard unit;
+
+    sequence_wildcard unit;
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2024-03-07 14:01:12 -0800
+</div>
+</div>
+</body>
+</html>

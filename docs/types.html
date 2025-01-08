@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
+<title>PartiQL Types</title>
+<style>
+/* AsciiDoctor Default */
+@import "https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css";
+
+/* https://fonts.google.com/specimen/Raleway */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,600;1,300;1,400;1,500&display=swap');
+
+/* LaTeX like serif font, but it doesn't read as nice as Plex Serif on a screen. */
+/* https://fonts.google.com/specimen/Old+Standard+TT */
+/* @import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap'); */
+
+/* https://fonts.google.com/specimen/IBM+Plex+Serif */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+
+/* https://fonts.google.com/specimen/Fira+Code */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+  --color-eerie: #1a1e23;
+  --color-charged: #2156a5;
+}
+
+#header>h1:first-child {
+  color: var(--color-charged);
+}
+
+/* Headers */
+h1,
+h2,
+h3,
+#toctitle,
+.sidebarblock>.content>.title,
+h4,
+h5,
+h6 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  color: var(--color-charged);
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+/* Code Blocks */
+.literalblock pre,
+.listingblock>.content>pre {
+  font-size: 0.9em;
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+}
+
+#toc ul {
+  font-family: 'IBM Plex Serif', serif;
+  list-style-type: none;
+}
+
+.subheader,
+.admonitionblock td.content>.title,
+.audioblock>.title,
+.exampleblock>.title,
+.imageblock>.title,
+.listingblock>.title,
+.literalblock>.title,
+.stemblock>.title,
+.openblock>.title,
+.paragraph>.title,
+.quoteblock>.title,
+table.tableblock>.title,
+.verseblock>.title,
+.videoblock>.title,
+.dlist>.title,
+.olist>.title,
+.ulist>.title,
+.qlist>.title,
+.hdlist>.title {
+  line-height: 1.45;
+  color: darkslategrey;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: .25em;
+}
+
+.admonitionblock>table td.icon .title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.exampleblock>.content {
+  background: none;
+  box-shadow: none;
+}
+
+@media (min-width: 1500px) {
+
+  body {
+    margin-left: 400px;
+  }
+
+  /* Fixed TOC when wide */
+  #toc {
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 !important;
+    padding: 20px 40px;
+    height: 100vh;
+    width: 400px;
+    border-top: none !important;
+    border-right: 1px solid #e7e7e9;
+  }
+
+}
+
+#header .details {
+  border: none;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+}
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+  text-decoration: none
+}
+
+#content h1>a.link:hover,
+h2>a.link:hover,
+h3>a.link:hover,
+#toctitle>a.link:hover,
+.sidebarblock>.content>.title>a.link:hover,
+h4>a.link:hover,
+h5>a.link:hover,
+h6>a.link:hover {
+  color: var(--color-charged);
+}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>PartiQL Types</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_navigation">Navigation</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong><a href="#">PartiQL Types</a></strong></p>
+</li>
+<li>
+<p><strong><a href="model.html">PartiQL Algebra</a></strong></p>
+</li>
+<li>
+<p><strong><a href="interface.html">PartiQL Logical Plan Interface (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="serialization.html">PartiQL Logical Plan Serialization (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="IDL.html">Interface Definition Language</a></strong></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_types">Types</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 1. Boolean Type</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 50%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-right valign-top">Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bool</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Boolean value</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock"><code>TRUE</code> or <code>FALSE</code></p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 2. Numeric Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 50%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-right valign-top">Range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int8</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Signed integer that can be stored in one byte</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>-128 to +127</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int16</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Signed integer that can be stored in two bytes</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>-32768 to +32767</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int32</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Signed integer that can be stored in four bytes</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>-2147483648 to +2147483647</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int64</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Signed integer that can be stored in eight bytes</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>-9223372036854775808 to +9223372036854775807</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Signed integer of arbitrary size</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>&#8230;&#8203;</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>numeric(p,s)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exact numeric with fixed precision <em>p</em> and scale <em>s</em></p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>&#8230;&#8203;</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>numeric</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exact numeric type with arbitrary precision</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>&#8230;&#8203;</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>float32</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Single-precision, binary floating point (IEEE 754 32-bit)</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>&#8230;&#8203;</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>float64</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Double-precision, binary floating point (IEEE 754 64-bit)</p></td>
+<td class="tableblock halign-right valign-top"><div class="content"><div class="paragraph">
+<p>&#8230;&#8203;</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 3. Character String Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>char_fixed(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode codepoint sequence of fixed length <em>n</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>char_varying(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode codepoint sequence of variable length up to <em>n</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>string</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode codepoint sequence of arbitrary length</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>symbol</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode codepoint sequences of arbitrary length. The primary difference is the intended semantics: symbols represent case-sensitive identifiers as opposed to textual literal values.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 4. Bit String Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bit_fixed(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bit string of fixed length <em>n</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bit_varying(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bit string of variable length up to <em>n</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>binary</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bit string of arbitrary length</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 5. Byte String Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>byte_fixed(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Octet string of fixed length <em>n</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>byte_variable(n)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Octet string of variable length up to <em>n</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>blob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Octet string of arbitrary length</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>clob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unicode codepoint sequence of arbitrary length</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 6. Date/Time Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>date</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A date with no <em>time</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time(p)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A <em>date</em>-less time with seconds precision <em>p</em> and no time zone offset</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>time_tz(p,z)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A <em>date</em>-less time with seconds precision <em>p</em> and time zone offset <em>z</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp(p)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A <em>date</em> and <em>time</em> with seconds precision <em>p</em> and no time zone offset</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timestamp_tz(p,z)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A <em>date</em> and <em>time</em> with seconds precision <em>p</em> and time zone offset <em>z</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>interval(p)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A time interval with seconds precision <em>p</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" colspan="2"><div class="content"><div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+A time zone offset <em>z</em> is an hour/minute pair of integers
+</td>
+</tr>
+</table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 7. Collection Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bag</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unordered collection of values</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ordered collection of values</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sexp</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ordered collection of values with user-defined semantics</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 8. Struct Type</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>struct</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unordered collection of unconstrained fields</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" colspan="2"><div class="content"><div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Fields are name-value pairs where names are strings
+</td>
+</tr>
+</table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 9. Absent Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 50%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+<th class="tableblock halign-right valign-top">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>null</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type of the null value</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock"><code>NULL</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>missing</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type of the missing value</p></td>
+<td class="tableblock halign-right valign-top"><p class="tableblock"><code>MISSING</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>unknown</code></p></td>
+<td class="tableblock halign-left valign-top" colspan="2"><p class="tableblock">The empty type</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 10. Graph Type</caption>
+<colgroup>
+<col style="width: 100%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Placeholder — <a href="https://github.com/partiql/partiql-docs/blob/main/RFCs/0025-graph-data-model.md" class="bare">https://github.com/partiql/partiql-docs/blob/main/RFCs/0025-graph-data-model.md</a></p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Table 11. Union Types</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" colspan="2"><div class="content"><div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Let <code>(t<sub>0</sub>|&#8230;&#8203;|t<sub>n</sub>)</code> represent the union of types t<sub>0</sub>,&#8230;&#8203;,t<sub>n</sub>
+</td>
+</tr>
+</table>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>any</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The union of all types</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>lob</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(blob|clob)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>number</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(exact|approximate)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>exact</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(int8|int16|int32|int64|int|decimal)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>approximate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(float32|float64)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>text</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(char|string|symbol)</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2024-03-07 10:41:39 -0800
+</div>
+</div>
+</body>
+</html>
