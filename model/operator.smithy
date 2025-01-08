@@ -26,7 +26,7 @@ union Rel {
     exclude: RelExclude
     filter: RelFilter
     intersect: RelIntersect
-    iterate: RelIterate
+    enumerate: RelEnumerate
     join: RelJoin
     limit: RelLimit
     offset: RelOffset
@@ -100,7 +100,7 @@ structure RelIntersect {
 }
 
 /// The relational operator for an ordered scan with an index.
-structure RelIterate {
+structure RelEnumerate {
     @required
     input: Rex
 }

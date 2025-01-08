@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
+<title>The PartiQL Logical Model</title>
+<style>
+/* AsciiDoctor Default */
+@import "https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css";
+
+/* https://fonts.google.com/specimen/Raleway */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,600;1,300;1,400;1,500&display=swap');
+
+/* LaTeX like serif font, but it doesn't read as nice as Plex Serif on a screen. */
+/* https://fonts.google.com/specimen/Old+Standard+TT */
+/* @import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap'); */
+
+/* https://fonts.google.com/specimen/IBM+Plex+Serif */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+
+/* https://fonts.google.com/specimen/Fira+Code */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+  --color-eerie: #1a1e23;
+  --color-charged: #2156a5;
+}
+
+#header>h1:first-child {
+  color: var(--color-charged);
+}
+
+/* Headers */
+h1,
+h2,
+h3,
+#toctitle,
+.sidebarblock>.content>.title,
+h4,
+h5,
+h6 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  color: var(--color-charged);
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+/* Code Blocks */
+.literalblock pre,
+.listingblock>.content>pre {
+  font-size: 0.9em;
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+}
+
+#toc ul {
+  font-family: 'IBM Plex Serif', serif;
+  list-style-type: none;
+}
+
+.subheader,
+.admonitionblock td.content>.title,
+.audioblock>.title,
+.exampleblock>.title,
+.imageblock>.title,
+.listingblock>.title,
+.literalblock>.title,
+.stemblock>.title,
+.openblock>.title,
+.paragraph>.title,
+.quoteblock>.title,
+table.tableblock>.title,
+.verseblock>.title,
+.videoblock>.title,
+.dlist>.title,
+.olist>.title,
+.ulist>.title,
+.qlist>.title,
+.hdlist>.title {
+  line-height: 1.45;
+  color: darkslategrey;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: .25em;
+}
+
+.admonitionblock>table td.icon .title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.exampleblock>.content {
+  background: none;
+  box-shadow: none;
+}
+
+@media (min-width: 1500px) {
+
+  body {
+    margin-left: 400px;
+  }
+
+  /* Fixed TOC when wide */
+  #toc {
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 !important;
+    padding: 20px 40px;
+    height: 100vh;
+    width: 400px;
+    border-top: none !important;
+    border-right: 1px solid #e7e7e9;
+  }
+
+}
+
+#header .details {
+  border: none;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+}
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+  text-decoration: none
+}
+
+#content h1>a.link:hover,
+h2>a.link:hover,
+h3>a.link:hover,
+#toctitle>a.link:hover,
+.sidebarblock>.content>.title>a.link:hover,
+h4>a.link:hover,
+h5>a.link:hover,
+h6>a.link:hover {
+  color: var(--color-charged);
+}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>The PartiQL Logical Model</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Page Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_navigation">Navigation</a></li>
+<li><a href="#partiql-semantics">PartiQL Semantics</a></li>
+<li><a href="#_operators">Operators</a>
+<ul class="sectlevel2">
+<li><a href="#value-expression">Value Expressions — <em>V<sup>N</sup> → V</em></a></li>
+<li><a href="#relation-expressions">Relation Expressions — <em>R<sup>N</sup> → R</em></a></li>
+<li><a href="#_relation_value_projection_r_v">Relation-Value Projection — <em>R → V</em></a></li>
+<li><a href="#single_item_from_clause">Value-Relation Projection — <em>V → R</em></a></li>
+</ul>
+</li>
+<li><a href="#_appendices">Appendices</a>
+<ul class="sectlevel2">
+<li><a href="#_i_basic_syntax">I — Basic Syntax</a></li>
+<li><a href="#_ii_ebnf_dialect">II — EBNF Dialect</a></li>
+<li><a href="#_iii_bindings_tuples_relations">III — Bindings, Tuples, Relations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_navigation"><a class="link" href="#_navigation">Navigation</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong><a href="types.html">PartiQL Types</a></strong></p>
+</li>
+<li>
+<p><strong><a href="#">PartiQL Algebra</a></strong></p>
+</li>
+<li>
+<p><strong><a href="interface.html">PartiQL Logical Plan Interface (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="serialization.html">PartiQL Logical Plan Serialization (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="IDL.html">Interface Definition Language</a></strong></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="partiql-semantics"><a class="link" href="#partiql-semantics">PartiQL Semantics</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A PartiQL query is either a SELECT-FROM-WHERE (SFW) statement or a value expression. Unlike SQL expressions, which are restricted to outputting scalar and null values, PartiQL expressions output arbitrary PartiQL values, i.e. — scalars, absent, and complex values. As a result, PartiQL SFW expressions are fully composable within other SFW expressions as well as value expressions. Indeed, PartiQL allows the top-level query to also be a value expression, not just a SELECT-FROM-WHERE as in SQL.</p>
+</div>
+<div id="basic-syntax" class="listingblock">
+<div class="title">PartiQL Basic Syntax</div>
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">query
+	::= select-from-where
+	  | expression
+
+expression
+	::= '(' select-from-where ')'
+	  | value-expression
+
+select-from-where
+	::= select-clause let-clause? from-clause	// SELECT ... FROM
+		where-clause?							// WHERE
+		group-by-clause?						// GROUP BY
+		having-clause?							// HAVING
+		set-op-clause?							// UNION|INTERSECT|EXCEPT
+		order-by-clause?						// ORDER BY
+		fetch-clause?							// LIMIT ... OFFSET
+
+value-expression
+	::= path-expression							// x.a[0] ...
+	  | call-expression							// uppercase(x) ...
+	  | sql-expression							// SQL expressions and special forms
+	  | value-constructor
+	  | value-literal</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>SELECT-FROM-WHERE and value expression composability is determined by both the position of the SFW expression as well as the SELECT clause projection. The composability rules can be understood by looking at the input and output domains of expressions. Let <em>V</em> be the set of all values, and let <em>R</em> be the set of all relations (collections of binding tuples). PartiQL expressions exist in four categories:</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_operators"><a class="link" href="#_operators">Operators</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Recall that a PartiQL query is either a SELECT-FROM-WHERE statement or a value expression; where SFW expressions are fully composable within other SFW expressions as well as value expressions. Composability is determined by both the position of the SFW expression as well as the SELECT clause&#8217;s projection. In the PartiQL Plan representation, these expressions are transformed to a graph of value transformations and the composability rules can be understood by looking at the input and output domains of each transformation.</p>
+</div>
+<div class="paragraph">
+<p>Recall that <em>V</em> is the set of all values, and let <em>R</em> be the set of all relations (collections of binding tuples). PartiQL Plan transformations can be divided into four function spaces e.g. value expressions, relation operators, and two types of projection transformations. These distinctions are important for <em>compactly</em> representing PartiQL queries as function composition.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 75%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Rex<sub>T</sub> : V<sup>N</sup> → V<sub>T</sub></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value Expressions — input values, output values of type <em>T</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Rel<sub>T</sub> : R<sup>N</sup> → R</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Relation Operators — input and output relations (collections of variable tuples)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Π<sub>V</sub> : R → V</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Relation-Value Projection — a special <em>Rex</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Π<sub>R</sub> : V → Rel</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value-Relation Projection — the <em>scan</em> operator</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p><em>f<sub>0</sub> : V<sup>N</sup> → V</em> — Value Expressions</p>
+</li>
+<li>
+<p><em>f<sub>1</sub> : R<sup>N</sup> → R</em> — Relation Expressions</p>
+</li>
+<li>
+<p><em>f<sub>2</sub> : R → V</em> — Relation-Value Projection</p>
+</li>
+<li>
+<p><em>f<sub>3</sub> : V → R</em> — Value-Relation Projection</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In general, every expression is a value expression, but these distinctions are more precise and enable modeling queries as a data-flow graph of logical operators. The following sections describe each category and its related expressions.</p>
+</div>
+<div class="sect2">
+<h3 id="value-expression"><a class="link" href="#value-expression">Value Expressions — <em>V<sup>N</sup> → V</em></a></h3>
+<div class="paragraph">
+<p>Each expresion inputs arbitrary PartiQL values and outputs a single scalar, absent, or complex value. At the moment, we only give the syntax of the value expressions. Later revisions will contain detailed explanations of expression semantics.</p>
+</div>
+<div id="value-expression-syntax" class="listingblock">
+<div class="title">Value Expression Syntax</div>
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">value-expression
+	::= path-expression
+	  | call-expression
+	  | sql-expression
+	  | value-constructor
+	  | value-literal
+
+expression-list ::= expression (',' expression)*
+
+path-expression ::= expression (path-step)*
+
+path-step
+	::= '.' symbol
+	  | '.' '*'
+	  | '[' expression ']'
+	  | '[' '*' ']'
+
+call-expression ::= symbol '(' expression-list ')'
+
+sql-expression
+	::= predicate-expression							// predicates
+	  | expression ('+'|'-'|'*'|'/'|'%') expression		// arithmetic
+	  | cast-expression									// CAST
+	  | substring-expression							// SUBSTRING(..)
+	  | extract-expression								// EXTRACT(.. FROM ..)
+	  | coalesce-expression								// COALESCE(..)
+	  | aggregate-expression							// SUM(x), COUNT(x), COUNT(*), ..
+	  | trim-expression									// TRIM(.. FROM ..)
+	  | null-if-expression								// NULLIF(..)
+	  | case-expressions								// CASE .. WHEN ..
+
+predicate-expression
+	::= expression ('OR'|'AND') expression							// logical
+	  | 'NOT' expression											// logical
+	  | expression ('&lt;'|'&lt;='|'='|'!='|'&gt;'|'&gt;=') expression			// comparisons
+	  | expression 'IS' 'NOT'? type									// type assertion
+	  | expression 'NOT'? 'IN' expression							// IN
+	  | expression 'NOT'? 'LIKE' expression ('ESCAPE' expression)	// LIKE
+	  | expression 'NOT'? 'BETWEEN' expression 'AND' expression		// BETWEEN ... AND ...
+
+value-constructor
+	::= '{'     field-list	  '}'	// tuple constructor
+	  | '['  expression-list  ']'	// array constructor
+	  | '&lt;&lt;' expression-list '&gt;&gt;'	// bag constructor
+
+field-list ::= field (',' field)*
+
+field ::= expression ':' expression</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="relation-expressions"><a class="link" href="#relation-expressions">Relation Expressions — <em>R<sup>N</sup> → R</em></a></h3>
+<div class="paragraph">
+<p>SFW queries are composed of several relation expressions derived from its clauses.</p>
+</div>
+<div id="sfw-syntax" class="listingblock">
+<div class="title">SELECT-FROM-WHERE Syntax</div>
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">select-from-where
+	::= select-clause let-clause? from-clause	// SELECT ... FROM
+		where-clause?							// WHERE
+		group-by-clause?						// GROUP BY
+		having-clause?							// HAVING
+		set-op-clause?							// UNION|INTERSECT|EXCEPT
+		order-by-clause?						// ORDER BY
+		fetch-clause?							// LIMIT ... OFFSET</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each clause (except for SELECT VALUE and PIVOT) can be understood in isolation from the other clauses because a clause is simply a function (relation expression) that inputs and outputs collections of binding tuples (relations). In a PartiQL Plan, we call these relation expressions <em>operators</em>. Clauses are evaluated in the following order:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-partiql" data-lang="partiql">--  1. WITH
+--  2. FROM
+--  3. LET
+--  4. WHERE
+--  5. GROUP BY
+--  6. HAVING
+--  7. LETTING
+--  8. ORDER BY
+--  9. LIMIT ... OFFSET / FETCH
+-- 10. SELECT / SELECT VALUE<sup>†</sup> / PIVOT<sup>‡</sup></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>† SELECT VALUE outputs a collection of values, not necessarily a collection of binding tuples<br>
+‡ PIVOT outputs a single tuple</p>
+</div>
+<div class="paragraph">
+<p>These operators are not directly composoable with value expressions without a relation-value projection, where the projection is determined by the statement&#8217;s SELECT clause as well as the position of the statement in the outer query if it is a subquery. The following sections describe the semantics of each clause.</p>
+</div>
+<div class="sect3">
+<h4 id="from-clause"><a class="link" href="#from-clause">FROM Clause</a></h4>
+<div class="paragraph">
+<p>The FROM Clause is responsible for producing a collection of binding tuples from either a single collection or multiple collections via joins. The syntax is as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">from-clause ::= 'FROM' collection
+
+collection
+	::= collection ',' collection								// CROSS JOIN
+	  | collection join-type 'CROSS' 'JOIN'	collection			// CROSS JOIN
+	  | collection join-type 'JOIN' collection join-condition	// JOIN ... ON
+	  | collection-non-join
+	  | '(' collection ')'
+
+collection-non-join
+	::= expression symbol					// Foo f
+	  | collection-expression				// Foo AS x AT y
+	  | 'UNPIVOT' collection-expression		// UNPIVOT Foo as v AT k
+
+join-type ::= INNER | LEFT | RIGHT | FULL
+
+join-condition ::= 'ON' expression</code></pre>
+</div>
+</div>
+<div id="single-item-from" class="paragraph">
+<p><strong>Single-Item FROM Clause</strong></p>
+</div>
+<div class="paragraph">
+<p>The single-item FROM clause simply ranges over a value <em>v</em> in <em>V<sub>collection</sub></em> to produce a relation. This clause is covered in more detail in <a href="#single_item_from_clause">Value-Relation Projections</a>.</p>
+</div>
+<div id="multi-item-from" class="paragraph">
+<p><strong>Multi-Item FROM Clause</strong></p>
+</div>
+<div class="paragraph">
+<p>The multi-item FROM clause is responsible for joining the tuples of multiple relations. The join type can be one of CROSS, LEFT, RIGHT, INNER, OR FULL. All joins except for CROSS JOIN can have a join condition.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+All joins are left associative
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Unlike SQL, the expressions of the right-hand-side of a PartiQL CROSS JOIN may use fields of tuples in the left-hand-side. This enables descending into nested data structures and functions like nested loops.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>for each binding tuple b<sub>l</sub> in LHS
+  for each binding tuple b<sub>r</sub> in RHS
+    add (b<sub>l</sub> || b<sub>r</sub>) to the output bag</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To be continued&#8230;&#8203;</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="where_clause"><a class="link" href="#where_clause">WHERE Clause</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">where-clause ::= 'WHERE' expression</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The WHERE clause inputs the bindings that have been produced from the FROM clause and outputs the ones that satisfy its condition.</p>
+</div>
+<div class="paragraph">
+<p>The boolean predicates follow SQL&#8217;s 3-valued logic. PartiQL&#8217;s two absent values NULL and MISSING behave identically. For example, MISSING AND TRUE is equivalent to NULL AND TRUE: they both result into NULL.</p>
+</div>
+<div class="paragraph">
+<p>Alike SQL, when the expression of the WHERE clause expression evaluates to an absent value or a value that is not a Boolean, PartiQL eliminates the corresponding binding.</p>
+</div>
+<div class="paragraph">
+<p>The predicate IS MISSING allows distinguishing between NULL and MISSING: NULL IS MISSING results to false; MISSING IS MISSING results to true.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="group-by-clause"><a class="link" href="#group-by-clause">GROUP BY Clause</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">group-by-clause ::= 'GROUP BY' binding-list ('AS' symbol)?</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The PartiQL GROUP BY clause expands SQL&#8217;s grouping. Unlike SQL, the PartiQL GROUP BY can be thought of as a standalone operator that inputs a collection of binding tuples and outputs a collection of binding tuples. A GROUP BY Clause has a binding list which is list of aggregate expressions <em>e<sub>i</sub></em> and an associate binding name <em>n<sub>i</sub></em>. Additionally, the GROUP BY Clause may contain a grouping variable <em>g</em> known as the <em>group as alias</em>.</p>
+</div>
+<div class="paragraph">
+<p>The GROUP BY clause creates a group for each aggregate expression <em>e<sub>i</sub></em> and binds it to its associated name <em>n<sub>i</sub></em> in the output tuple.</p>
+</div>
+<div class="paragraph">
+<p>To be continued&#8230;&#8203;</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="having-clause"><a class="link" href="#having-clause">HAVING Clause</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">having-clause ::= 'HAVING' expression</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The HAVING Clause is effectively the same as the <a href="#where_clause">WHERE Clause</a>; however, the HAVING Clause is applied to the aggregate values output by a GROUP BY Clauses. SQL allows for aggregate expressions in the HAVING Clause, but that behavior is currently not supported by PartiQL.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="set-op-clause"><a class="link" href="#set-op-clause">UNION / INTERSECT / EXCEPT</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">set-op-clause
+	::= 'UNION' 	'ALL'? select-from-where
+	  | 'INTERSECT' 'ALL'? select-from-where
+	  | 'EXCEPT' 	'ALL'? select-from-where</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Each bag operator has the form <code>LHS Op<sub>bag</sub> RHS</code> where <em>LHS</em> and <em>RHS</em> are SFW queries and <em>Op<sub>bag</sub></em> is the bag (or set) operator. Additionally, the operator may be suffixed with <em>ALL</em> which indicates the output may have duplicate elements. In its absence, <em>DISTINCT</em> is implicit and duplicates are eliminated from the final result.</p>
+</div>
+<div class="paragraph">
+<p>The standard SQL bag operators are defined as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>LHS UNION ALL RHS     = MULTISET_UNION(LHS, RHS)
+LHS INTERSECT ALL RHS = MULTISET_INTERSECT(LHS, RHS)
+LHS EXCEPT ALL RHS    = MULTISET_DIFFERENCE(LHS, RHS)
+
+LHS UNION DISTINCT RHS     = DISTINCT(MULTISET_UNION(LHS, RHS))
+LHS INTERSECT DISTINCT RHS = DISTINCT(MULTISET_INTERSECT(LHS, RHS))
+LHS EXCEPT DISTINCT RHS    = DISTINCT(MULTISET_DIFFERENCE(LHS, RHS))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let <em>V<sub>1</sub></em> and <em>V<sub>2</sub></em> be arbitrary values, and let <em>C</em> be a function which coerces a value to a bag. The <em>OUTER</em> operators are defined as</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>V<sub>1</sub> OUTER UNION ALL V<sub>2</sub>     = MULTISET_UNION(C(V<sub>1</sub>), C(V<sub>2</sub>))
+V<sub>1</sub> OUTER INTERSECT ALL V<sub>2</sub> = MULTISET_INTERSECT(C(V<sub>1</sub>), C(V<sub>2</sub>))
+V<sub>1</sub> OUTER EXCEPT ALL V<sub>2</sub>    = MULTISET_DIFFERENCE(C(V<sub>1</sub>), C(V<sub>2</sub>))
+
+V<sub>1</sub> OUTER UNION DISTINCT V<sub>2</sub>     = DISTINCT(MULTISET_UNION(C(V<sub>1</sub>), C(V<sub>2</sub>)))
+V<sub>1</sub> OUTER INTERSECT DISTINCT V<sub>2</sub> = DISTINCT(MULTISET_INTERSECT(C(V<sub>1</sub>), C(V<sub>2</sub>)))
+V<sub>1</sub> OUTER EXCEPT DISTINCT V<sub>2</sub>    = DISTINCT(MULTISET_DIFFERENCE(C(V<sub>1</sub>), C(V<sub>2</sub>)))</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The coercion function <em>C</em> is defined for all PartiQL Values by:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>C(absent_value) -&gt; &lt;&lt; &gt;&gt;
+C(scalar_value) -&gt; &lt;&lt; scalar_value &gt;&gt; # singleton bag
+C(tuple_value)  -&gt; &lt;&lt; tuple_value &gt;&gt;  # singleton bag, see future extensions
+C(array_value)  -&gt; bag_value          # discard ordering
+C(bag_value)    -&gt; bag_value          # identity</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="order-by-clause"><a class="link" href="#order-by-clause">ORDER BY Clause</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">order-by-clause ::= 'ORDER' 'BY' sort-spec-list
+
+sort-spec-list ::= sort-spec (',' sort-spec)
+
+sort-spec ::= expression ('ASC'|'DESC')? ('NULLS' (FIRST|LAST))?</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The ORDER BY Clause is responsible for turning its input bag into an array. In the following aspects, PartiQL extends the SQL semantics to resolve issues that are not relevant in SQL but emerge when working on Ion data.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>SQL&#8217;s ORDER BY clause orders its input using an expanded version of the less-than function, which we call the order-by less-than and denote by <em>&lt;<sup>o</sup></em>. The PartiQL <em>&lt;<sup>o</sup></em> semantics (The PartiQL order-by less-than function) also specify an order among values of heterogeneous types, including complex values.</p>
+</li>
+<li>
+<p>The interaction of ORDER BY with a UNION (or any other set operator) of SFW queries requires attention since, unlike SQL, in PartiQL there are no binding tuples (or any tuples at all for that matter) after a SELECT VALUE clause. Dependency of semantics on the Presence of Set Operators elaborates on this aspect of PartiQL.</p>
+</li>
+<li>
+<p>Unlike SQL, the input of an PartiQL query may also have order, because it is an array. The user may want to preserve the order of the input into the output. In this case, the AT structure in the FROM clause (recall, <a href="#single-item-from-clause">Single-Item FROM Clause</a>) can capture the input order and the ORDER BY can recreate it. However, this order preservation mechanism is tedious for the user. Thus, ORDER BY also offers an order preservation directive.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>The <code>ORDER BY</code> clause sorts its input using the <em>order-by less-than
+function</em> <em>&lt;<sup>o</sup></em>, which is able to compare values of different
+types (unlike SQL). In particular:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>NULL</code> and <code>MISSING</code> are always first or last and compare equally
+according to <em>&lt;<sup>o</sup></em>. In other words, <em>&lt;<sup>o</sup></em> cannot
+distinguish between <code>NULL</code> and <code>MISSING</code>.</p>
+</li>
+<li>
+<p>The boolean values are coming first among the non-absent values
+(i.e., <em>b &lt;<sup>o</sup> x</em> is always true if <em>b</em> is boolean and
+<em>x</em> is not a <code>NULL</code> or a <code>MISSING</code> or a boolean). <code>false</code> comes
+before <code>true</code>.</p>
+</li>
+<li>
+<p>The numbers come next. The comparisons between number values do not
+depend on precision or specific type. Given two numbers <em>x</em> and
+<em>y</em>, the PartiQL <em>x&lt;<sup>o</sup> y</em> behaves identical to the SQL
+<em>order-by less-than</em> function.  Namely, if <em>x</em> and <em>y</em> are
+not the special values <code>-inf</code>, <code>inf</code>, or <code>nan</code>, then <em>x &lt;<sup>o</sup> y</em> is
+the same with <em>x &lt; y</em>. The special value <code>nan</code> comes before
+<code>-inf</code>, which comes before all normal numeric values, which are
+followed by <code>+inf</code>.</p>
+</li>
+<li>
+<p>Timestamp values follow and are compared by the absolute point of time
+irrespective of precision or local UTC offset.</p>
+</li>
+<li>
+<p>The text types come next ordered by their lexicographical ordering by
+Unicode scalar irrespective of their specific type.</p>
+</li>
+<li>
+<p>The LOB types follow and are ordered by their lexicographical ordering
+by octet.</p>
+</li>
+<li>
+<p>Arrays come next, and their values compare lexicographically based
+on the comparison of their elements, recursively. Notice that given an
+array <em>[e<sub>1</sub> , &#8230;&#8203; , e<sub>m</sub> ]</em> and a longer array <em>[ e<sub>1</sub> , &#8230;&#8203; , e<sub>m</sub>, e<sub>m+1</sub> , &#8230;&#8203; , e<sub>n</sub> ]</em> that has the same first <em>m</em> values,
+the former array comes first.</p>
+</li>
+<li>
+<p>Tuple values follow and compare lexicographically based on the sorted
+attributes (as defined recursively), first by the attribute name, and
+secondly by the attribute values themselves.</p>
+</li>
+<li>
+<p>Bag values come last (except, of course, when <code>NULLS LAST</code> is
+specified) and their values compare by first reducing them to arrays
+by sorting their elements and then comparing the resulting arrays.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="fetch_clauses"><a class="link" href="#fetch_clauses">FETCH Clauses</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">fetch-clause ::= 'LIMIT' expression ('OFFSET' expression)?</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>LIMIT &#8230;&#8203; OFFSET</strong></p>
+</div>
+<div class="paragraph">
+<p>The LIMIT &#8230;&#8203; OFFSET Clause takes the form <em>LIMIT N OFFSET M</em> and returns the first N binding tuples of its input collection, skipping the first <em>M</em> if an OFFSET is specified.</p>
+</div>
+<div class="paragraph">
+<p><strong>FETCH</strong></p>
+</div>
+<div class="paragraph">
+<p>See SQL-99 14.3 for fetch. As of 2023, LIMIT is not in the SQL standard.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="select_clauses"><a class="link" href="#select_clauses">SELECT Clauses</a></h4>
+<div class="paragraph">
+<p>Core PartiQL SFW queries have a SELECT VALUE clause (in lieu of SQL&#8217;s SELECT clause) that can create outputs that are collections of anything — i.e. collections of tuples, collections of scalars, collections of arrays, collections of mixed type elements.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">select-clause
+    ::= 'SELECT' set-quantifier? '*'                // SELECT *
+      | 'SELECT' set-quantifier? binding-list       // SELECT
+      | 'SELECT' set-quantifier? VALUE expression   // SELECT VALUE
+      | 'PIVOT' expression AT expression            // PIVOT
+
+binding-list ::= binding (',' binding)*
+
+binding ::= expression 'AS' symbol</code></pre>
+</div>
+</div>
+<div id="sql_select_clause" class="paragraph">
+<p><strong>SELECT</strong></p>
+</div>
+<div class="paragraph">
+<p>SQL&#8217;s well-known SELECT clause can be described as syntactic sugar over SELECT VALUE. When a SFW query is used as a subquery it is coerced into a scalar or a tuple, in the ways that SQL coerces the results of subqueries.</p>
+</div>
+<div id="select_value_clause" class="paragraph">
+<p><strong>SELECT VALUE</strong></p>
+</div>
+<div class="paragraph">
+<p>The SELECT VALUE clause inputs a bag of binding tuples or an array of binding tuples (from the other clauses of the SQL query) and outputs a bag or an array. For example, if the query only has SELECT VALUE, FROM, and WHERE clauses, then the bindings that are output by the WHERE clause are input by SELECT VALUE the clause. Unlike SQL, the output of a SELECT VALUE clause need not be a bag or array of tuples. It is a bag or array of any kind of PartiQL values. For example, it may be a bag of integers, or a bag of arrays, etc. Indeed, the values may be heterogeneous. For example, the output may even be a bag that has both integers and arrays.</p>
+</div>
+<div class="paragraph">
+<p>To be continued&#8230;&#8203;</p>
+</div>
+<div id="pivot_clause" class="paragraph">
+<p><strong>PIVOT</strong></p>
+</div>
+<div class="paragraph">
+<p>The PIVOT Clause is a special PartiQL SELECT Clause which outputs a single tuple from a collection of bindings. It&#8217;s semantics are covered by the <a href="#scalar_subquery_pivot">PIVOT Relation-Value Projection</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_relation_value_projection_r_v"><a class="link" href="#_relation_value_projection_r_v">Relation-Value Projection — <em>R → V</em></a></h3>
+<div class="paragraph">
+<p>A relation-value projection is determined by a SFW statement&#8217;s SELECT clause as well as the position of the statement in the outer query if it is a subquery. Below we describe the two types of relation-value projections, namely scalar coercion and collection (bag, array) construction.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Let <em>V<sub>T</sub></em> represent the subset of <em>V</em> where each element has type <em>T</em> — scalar, absent, collection, or tuple.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For example,</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>V<sub>complex</sub></em> would be the set of all array, bag, and tuple values</p>
+</li>
+<li>
+<p><em>V<sub>int</sub></em> would be the set of all integers</p>
+</li>
+<li>
+<p><em>V<sub>ion.bool</sub> = { null.boo, true, false }</em></p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_scalar_query_expression"><a class="link" href="#_scalar_query_expression">▶ Scalar Query Expression</a></h4>
+<div class="paragraph">
+<p>In PartiQL, as well as SQL, an expression may contain subqueries (parenthesized SFW statements) in the place of scalar values. The following rules describe how the output of a relation expression (i.e. <em>R</em> — collection of binding tuples) is projected as a scalar.</p>
+</div>
+<div id="scalar_subquery_coercion" class="paragraph">
+<p><strong>Scalar Subquery — <em>R → V<sub>scalar</sub></em></strong></p>
+</div>
+<div class="paragraph">
+<p>A SELECT-FROM-WHERE subquery coerces into a scalar in all cases expect when the subuquery appears in a context where a collection is expected — i.e.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The collection expression of a FROM clause</p>
+</li>
+<li>
+<p>The right-hand-side of the IN predicate</p>
+</li>
+<li>
+<p>Either side of a comparison operator (=, &gt;, etc) where the other side is a collection.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Otherwise, the relation-scalar projection is the function <code>COLL_TO_SCALAR</code>. If the input to <code>COLL_TO_SCALAR</code> is a collection consisting of a single tuple with a single field, the field&#8217;s value is projected; otherwise a cardinality expection is thrown (MISSING in permissive mode).</p>
+</div>
+<div id="scalar_subquery_pivot" class="paragraph">
+<p><strong>PIVOT — <em>R → V<sub>tuple</sub></em></strong></p>
+</div>
+<div class="paragraph">
+<p>The PIVOT clause is a special type of relation-scalar projection; <code>PIVOT value AT key</code> outputs a single tuple T where each tuple of the input relation <em>R</em> is evaluated to a field <code>&lt; key : value &gt;</code> in T.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_collection_query_expression"><a class="link" href="#_collection_query_expression">▶ Collection Query Expression</a></h4>
+<div class="paragraph">
+<p>In some contexts, a subquery may be used where a collection is expected. In this case, no coercion is necessary because a relation expression outputs a collection value.</p>
+</div>
+<div id="collection_subquery_select_value" class="paragraph">
+<p><strong>SELECT VALUE — <em>R → V</em></strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>SELECT VALUE constructor</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The SELECT VALUE clause is a relation-value projection where the projection is directly provided in the query. The projection is called a <em>constructor</em> and it is an expression that is evaluated for each tuple in the input relation. Note that the SQL SELECT clause is a special case of SELECT VALUE where the constructor is a simple tuple constructor. The output values of a SELECT VALUE clause need not be tuples, which means that a subquery with SELECT VALUE is not always composable with relation expressions.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="single_item_from_clause"><a class="link" href="#single_item_from_clause">Value-Relation Projection — <em>V → R</em></a></h3>
+<div class="paragraph">
+<p>PartiQL allows values in the place of table references; the following rules describe the output relations.</p>
+</div>
+<div class="paragraph">
+<p><strong>FROM — <em>V<sub>collection</sub> → R</em></strong></p>
+</div>
+<div class="paragraph">
+<p>The single-item FROM clause ranges over a value <em>v</em> in <em>V<sub>collection</sub></em></p>
+</div>
+<div class="paragraph">
+<p>For example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-partiql" data-lang="partiql">FROM << e<sub>0</sub> , ... , e<sub>n</sub> >> AS k
+
+<<
+  { k: e<sub>0</sub> },
+  ...
+  { k: e<sub>n</sub> },
+>></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If <em>v</em> is an array, we can bind each element&#8217;s index to some key <em>p</em> with <code>AT p</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-partiql" data-lang="partiql">FROM [ e<sub>0</sub> , ... , e<sub>n</sub> ] AS k AT p
+
+<<
+  { k: e<sub>0</sub>, p: 0 },
+  ...
+  { k: e<sub>n</sub>, p: n }
+>></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>UNPIVOT — <em>V<sub>tuple</sub> → R</em></strong></p>
+</div>
+<div class="paragraph">
+<p>The UNPIVOT clause produces a relation by ranging over the fields of a tuple. For example,</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-partiql" data-lang="partiql">FROM UNPIVOT { k<sub>0</sub>: v<sub>0</sub> , ... , k<sub>n</sub>: v<sub>n</sub> } AS v AT k
+
+<<
+  { k: k<sub>0</sub>, v: v<sub>0</sub> },
+  ...
+  { k: k<sub>n</sub>, v: v<sub>n</sub> }
+>></code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendices"><a class="link" href="#_appendices">Appendices</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_i_basic_syntax"><a class="link" href="#_i_basic_syntax">I — Basic Syntax</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">select-from-where
+	::= select-clause let-clause? from-clause	// SELECT ... FROM
+		where-clause?							// WHERE
+		group-by-clause?						// GROUP BY
+		having-clause?							// HAVING
+		set-op-clause?							// UNION|INTERSECT|EXCEPT
+		order-by-clause?						// ORDER BY
+		fetch-clause?							// LIMIT ... OFFSET
+
+binding ::= expression 'AS' symbol
+
+binding-list ::= binding (',' binding)*
+
+select-clause
+    ::= 'SELECT' set-quantifier? '*'				// SELECT *
+	  | 'SELECT' set-quantifier? binding-list   	// SELECT
+      | 'SELECT' set-quantifier? VALUE expression   // SELECT VALUE
+      | 'PIVOT' expression AT expression            // PIVOT
+
+let-clause ::= 'LET' binding-list
+
+from-clause ::= collection
+
+collection
+	::= collection ',' collection								// CORRELATED JOIN
+	  | collection join-type 'CROSS' 'JOIN'	collection			// CROSS JOIN
+	  | collection join-type 'JOIN' collection join-condition	// JOIN ... ON
+	  | collection-non-join
+	  | '(' collection ')'
+
+collection-non-join
+	::= expression symbol					// Foo f
+	  | collection-expression				// Foo AS x AT y BY z
+	  | 'UNPIVOT' collection-expression		// UNPIVOT Foo as x AT y BY z
+
+collection-expression ::= expression ('AS' symbol)? ('AT' symbol)? ('BY' symbol)?
+
+join-condition ::= 'ON' expression
+
+where-clause ::= 'WHERE' expression
+
+group-by-clause ::= 'GROUP BY' binding-list ('AS' symbol)?
+
+having-clause ::= 'HAVING' expression
+
+set-op-clause
+	::= 'UNION' 	'ALL'? select-from-where
+	  | 'INTERSECT' 'ALL'? select-from-where
+	  | 'EXCEPT' 	'ALL'? select-from-where
+
+order-by-clause ::= 'ORDER' 'BY' sort-spec-list
+
+sort-spec-list ::= sort-spec (',' sort-spec)
+
+sort-spec ::= expression ('ASC'|'DESC')? ('NULLS' (FIRST|LAST))?
+
+fetch-clause ::= 'LIMIT' expression ('OFFSET' expression)?</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ii_ebnf_dialect"><a class="link" href="#_ii_ebnf_dialect">II — EBNF Dialect</a></h3>
+<div class="paragraph">
+<p>Extended BNF as defined by ISO/IEC 14977</p>
+</div>
+<div class="sect3">
+<h4 id="_overview"><a class="link" href="#_overview">Overview</a></h4>
+<div class="paragraph">
+<p>The EBNF meta-language is used to describe the syntax PartiQL precisely. The syntax is composed of one or more syntax rules which takes the form</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>meta-identifer = definition-list</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A meta-identifier is the name of the non-terminal symbol being defined and is written as one or more words joined together by hyphens and enclosed in &lt; and &gt;. If a terminal symbol is being defined, its meta-identifier should end with "-symbol".</p>
+</div>
+<div class="paragraph">
+<p>A definition-list consists of an ordered list of one or more definitions separated by the definition-separator-symbol.</p>
+</div>
+<div class="paragraph">
+<p>A definition consists of an ordered list of syntactic-terms separated by the concatenate-symbol.</p>
+</div>
+<div class="paragraph">
+<p>A syntactic term is one of</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Integer</p>
+</li>
+<li>
+<p>optional-sequence</p>
+</li>
+<li>
+<p>repeated-sequence</p>
+</li>
+<li>
+<p>grouped-sequence</p>
+</li>
+<li>
+<p>meta-identifier</p>
+</li>
+<li>
+<p>terminal-string</p>
+</li>
+<li>
+<p>special-sequence</p>
+</li>
+<li>
+<p>empty-sequence</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_symbols"><a class="link" href="#_symbols">Symbols</a></h4>
+<div class="paragraph">
+<p><strong>Operators</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>The operators are ordered by precedence.</p>
+</div>
+</blockquote>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Character</th>
+<th class="tableblock halign-left valign-top">Operation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">*</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">repetition-symbol</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">except-symbol</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">,</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">concatenate-symbol</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">|</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">=</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">defining-symbol</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">;</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>Grouping</strong></p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Normal precedence can be overridden by grouping.</p>
+</div>
+</blockquote>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Characters</th>
+<th class="tableblock halign-left valign-top">Group Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>" "</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quote</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>(* *)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Comment</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>( )</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Group</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[ ]</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Optional</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>{ }</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Repeat</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>? ?</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Special</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p><strong>Terms</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Rules&#8201;&#8212;&#8201;non-terminal symbols</p>
+</li>
+<li>
+<p>Terminal Symbol&#8201;&#8212;&#8201;A symbol that cannot be split into smaller language components</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Reference</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form" class="bare">https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form</a></p>
+</li>
+<li>
+<p><a href="https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf" class="bare">https://www.cl.cam.ac.uk/~mgk25/iso-14977.pdf</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_iii_bindings_tuples_relations"><a class="link" href="#_iii_bindings_tuples_relations">III — Bindings, Tuples, Relations</a></h3>
+<div class="sect3">
+<h4 id="bindings"><a class="link" href="#bindings">Bindings</a></h4>
+<div class="paragraph">
+<p>In PartiQL, the term <em>binding</em> refers to an attribute name/value pair (fields) in a binding tuple. Binding tuples are unordered, and we use the term <em>binding</em> rather than attribute to emphasize that values are explicitly bound to names.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Relational Model</th>
+<th class="tableblock halign-left valign-top">SQL</th>
+<th class="tableblock halign-left valign-top">PartiQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Attribute</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Binding</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="tuples"><a class="link" href="#tuples">Tuples</a></h4>
+<div class="paragraph">
+<p>In math, the term <em>tuple</em> refers to a finite list of ordered elements, but the relational model defines a tuple as an unordered collection of attributes. In SQL databases, the term <em>row</em> is commonly used to refer to such a tuple of a table. Values in a tuple are accessed by name (attribute name) — that is, a value of a row is referenced by its column name rather than ordinal position.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Math</th>
+<th class="tableblock halign-left valign-top">Relation Model</th>
+<th class="tableblock halign-left valign-top">SQL</th>
+<th class="tableblock halign-left valign-top">PartiQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tuple</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tuple</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Row</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Binding Tuple</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In PartiQL, a <em>binding tuple</em> is an unordered collection of bindings — which is semantically equivalent to a row except that a binding tuple may contain duplicate binding names. Binding tuples are represented in PartiQL documents with the following syntax:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ebnf" data-lang="ebnf">binding-tuple ::= '&lt;' binding (',' &lt;binding&gt;)* '&gt;'
+
+binding ::= binding-name ':' value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, <code>&lt; x<sub>0</sub>: v<sub>0</sub>, &#8230;&#8203;, x<sub>n</sub>: v<sub>n</sub> &gt;</code> where each x<sub>i</sub> is a <em>binding name</em> that binds to the PartiQL value v<sub>i</sub>. If you think of the binding names as attribute names, then a PartiQL <em>variable binding tuple</em> is structurally the same as a tuple of the relational model; however, PartiQL provides additional access patterns via path expressions.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Somewhere there needs to be a note that bindings tuples are not structs/tuples in V<sub>tuple</sub>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="relations"><a class="link" href="#relations">Relations</a></h4>
+<div class="paragraph">
+<p>In the context of the relation model, a <em>relation</em> R is defined as a subset of the Cartesian product S<sub>1</sub> x S<sub>2</sub> x &#8230;&#8203; x S<sub>n</sub> — each S being some domain. Elements of a relation are tuples (as described above), and a relation is unordered. SQL generally uses the term <em>table</em> to describe structures which are defined relations of the database environment; however a table is more than just an unordered set of tuples and there exist relations (in the SQL model) which are not defined in the database environment (ex, table value constructor). As of Feb 2023, the PartiQL specification does not define tables and the term <em>binding collection</em> has been used to describe an (un)ordered bag of PartiQL binding tuples.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Math</th>
+<th class="tableblock halign-left valign-top">Relational Model</th>
+<th class="tableblock halign-left valign-top">SQL</th>
+<th class="tableblock halign-left valign-top">PartiQL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set of Tuples</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Relation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Table</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Binding Collection</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In the case of homogenous binding collections, it is my understanding that a PartiQL binding collection is synonymous<sup>*</sup> with a relation, and the remainder of this document will simply use the term <em>relation</em> to refer to a homogenous collection of binding tuples; therefore the sentence "the relation R is a bag of tuples" can be interpreted as "the PartiQL binding collection R is an unordered, homogenous collection of PartiQL binding tuples that may contain duplicates".</p>
+</div>
+<div class="paragraph">
+<p>* There is a distinction to be made about the ordering of tuples given the presence of an <code>ORDER BY</code> clause or <code>CAST(x AS LIST)</code>, but that will be covered later. Also, binding tuples need not be unique in a relation which is a point of contention between the relational model and the SQL data model - the former specifically defining relations as sets and not bags.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2024-03-07 10:38:10 -0800
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
+<title>RIDL — Interface Definition Language</title>
+<style>
+/* AsciiDoctor Default */
+@import "https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css";
+
+/* https://fonts.google.com/specimen/Raleway */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,600;1,300;1,400;1,500&display=swap');
+
+/* LaTeX like serif font, but it doesn't read as nice as Plex Serif on a screen. */
+/* https://fonts.google.com/specimen/Old+Standard+TT */
+/* @import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap'); */
+
+/* https://fonts.google.com/specimen/IBM+Plex+Serif */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+
+/* https://fonts.google.com/specimen/Fira+Code */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+  --color-eerie: #1a1e23;
+  --color-charged: #2156a5;
+}
+
+#header>h1:first-child {
+  color: var(--color-charged);
+}
+
+/* Headers */
+h1,
+h2,
+h3,
+#toctitle,
+.sidebarblock>.content>.title,
+h4,
+h5,
+h6 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  color: var(--color-charged);
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+/* Code Blocks */
+.literalblock pre,
+.listingblock>.content>pre {
+  font-size: 0.9em;
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+}
+
+#toc ul {
+  font-family: 'IBM Plex Serif', serif;
+  list-style-type: none;
+}
+
+.subheader,
+.admonitionblock td.content>.title,
+.audioblock>.title,
+.exampleblock>.title,
+.imageblock>.title,
+.listingblock>.title,
+.literalblock>.title,
+.stemblock>.title,
+.openblock>.title,
+.paragraph>.title,
+.quoteblock>.title,
+table.tableblock>.title,
+.verseblock>.title,
+.videoblock>.title,
+.dlist>.title,
+.olist>.title,
+.ulist>.title,
+.qlist>.title,
+.hdlist>.title {
+  line-height: 1.45;
+  color: darkslategrey;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: .25em;
+}
+
+.admonitionblock>table td.icon .title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.exampleblock>.content {
+  background: none;
+  box-shadow: none;
+}
+
+@media (min-width: 1500px) {
+
+  body {
+    margin-left: 400px;
+  }
+
+  /* Fixed TOC when wide */
+  #toc {
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 !important;
+    padding: 20px 40px;
+    height: 100vh;
+    width: 400px;
+    border-top: none !important;
+    border-right: 1px solid #e7e7e9;
+  }
+
+}
+
+#header .details {
+  border: none;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+}
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+  text-decoration: none
+}
+
+#content h1>a.link:hover,
+h2>a.link:hover,
+h3>a.link:hover,
+#toctitle>a.link:hover,
+.sidebarblock>.content>.title>a.link:hover,
+h4>a.link:hover,
+h5>a.link:hover,
+h6>a.link:hover {
+  color: var(--color-charged);
+}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>RIDL — Interface Definition Language</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Page Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_navigation">Navigation</a></li>
+<li><a href="#_about">About</a>
+<ul class="sectlevel2">
+<li><a href="#_faqs">FAQs</a></li>
+<li><a href="#_prior_art">Prior Art</a></li>
+<li><a href="#_notation">Notation</a></li>
+<li><a href="#_license">License</a></li>
+</ul>
+</li>
+<li><a href="#_interface_definition_language">Interface Definition Language</a>
+<ul class="sectlevel2">
+<li><a href="#_example">Example</a></li>
+<li><a href="#_document">Document</a></li>
+<li><a href="#_primitive">Primitive</a></li>
+<li><a href="#_array">Array</a></li>
+<li><a href="#_struct">Struct</a></li>
+<li><a href="#_union">Union</a></li>
+<li><a href="#_enum">Enum</a></li>
+<li><a href="#_include">Include</a></li>
+<li><a href="#_namespace">Namespace</a></li>
+</ul>
+</li>
+<li><a href="#_amazon_ion">Amazon Ion</a>
+<ul class="sectlevel2">
+<li><a href="#_ion_encoding">Ion Encoding</a></li>
+<li><a href="#_ion_schema">Ion Schema</a></li>
+</ul>
+</li>
+<li><a href="#_appendix">Appendix</a>
+<ul class="sectlevel2">
+<li><a href="#_a1_prior_art_comparisons">A1 — Prior Art Comparisons</a></li>
+<li><a href="#_a2_complete_grammar">A2 — Complete Grammar</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_navigation"><a class="link" href="#_navigation">Navigation</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong><a href="types.html">PartiQL Types</a></strong></p>
+</li>
+<li>
+<p><strong><a href="model.html">PartiQL Algebra</a></strong></p>
+</li>
+<li>
+<p><strong><a href="interface.html">PartiQL Logical Plan Interface (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="serialization.html">PartiQL Logical Plan Serialization (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="#">Interface Definition Language</a></strong></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_about"><a class="link" href="#_about">About</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document defines an interface definition language for types whose values can be serialized as Ion. It is intended to be a simple and high-level modeling language whose definitions trivially map to <a href="https://survey.stackoverflow.co/2023/#most-popular-technologies-language-prof">key languages</a> in the <a href="https://en.wikipedia.org/wiki/List_of_C-family_programming_languages">C-family</a> such as C, C++, Go, Rust, and Java.</p>
+</div>
+<div class="sect2">
+<h3 id="_faqs"><a class="link" href="#_faqs">FAQs</a></h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Why not Ion Schema?</strong> — RIDL is designed for modeling types definitions rather than the Ion encoding itself. The RIDL library defines <em>an</em> Ion encoding which in turn has its own Ion Schema. For example, Smithy and OpenAPI define higher-level types whereas JSON Schema defines the actual JSON values themselves. Likewise, this IDL defines high-level types which have an Ion serialization; that which can be defined in Ion Schema.
+Additionally, reducing the allowable type definitions greatly simplifies building the necessary tooling. You&#8217;ll find the modeling capabilities are far less than that of Ion Schema, but are quite similar to the type modeling of OpenAPI / Swagger, Protobuf, Smithy, and Avro. This is a difficult question to articulate, and I am interested in discussing more. I believe reading this full document and seeing the mapping of RIDL types to Ion values and schema help illustrate the benefits of a higher-level language.</p>
+</li>
+<li>
+<p><strong>Why Ion over BSON?</strong> — Ion is the initial wire format choice, but further testing of different wire formats will inform the backend. The JSON and</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_prior_art"><a class="link" href="#_prior_art">Prior Art</a></h3>
+<div class="paragraph">
+<p>The syntax and primitive types are a distillation of the following languages and IDLs; please see the appendix for detailed comparisons.</p>
+</div>
+<div class="ulist">
+<div class="title">Syntax</div>
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Typedef">C typedef</a></p>
+</li>
+<li>
+<p><a href="https://go.dev/ref/spec#Type_declarations">Go type declarations</a></p>
+</li>
+<li>
+<p><a href="https://doc.rust-lang.org/reference/items/type-aliases.html">Rust type aliases</a></p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">Types</div>
+<ul>
+<li>
+<p><a href="https://avro.apache.org/docs/1.11.1/specification/#primitive-types">Avro Primitives</a></p>
+</li>
+<li>
+<p><a href="https://protobuf.com/docs/language-spec#field-types">Protobuf Scalars</a></p>
+</li>
+<li>
+<p><a href="https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-4.2.1">JSON Scalars</a></p>
+</li>
+<li>
+<p><a href="https://amazon-ion.github.io/ion-docs/docs/spec.html#primitive-types">Ion Primitives</a></p>
+</li>
+<li>
+<p><a href="https://smithy.io/2.0/spec/simple-types.html">Smithy Primitives</a></p>
+</li>
+<li>
+<p><a href="https://swagger.io/specification/#data-types">OpenAPI Types</a></p>
+</li>
+</ul>
+</div>
+<div class="ulist">
+<div class="title">IDLs</div>
+<ul>
+<li>
+<p><a href="https://avro.apache.org/docs/1.11.1/specification/">Avro</a></p>
+</li>
+<li>
+<p><a href="https://protobuf.com/docs/language-spec">Protobuf</a></p>
+</li>
+<li>
+<p><a href="https://swagger.io/specification/">OpenAPI/Swagger</a></p>
+</li>
+<li>
+<p><a href="https://smithy.io/2.0/index.html">Smithy</a></p>
+</li>
+<li>
+<p><a href="https://json-schema.org/draft/2020-12/json-schema-core">JSON Schema</a></p>
+</li>
+<li>
+<p><a href="https://amazon-ion.github.io/ion-schema/docs/isl-2-0/spec">Ion Schema</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notation"><a class="link" href="#_notation">Notation</a></h3>
+<div class="paragraph">
+<p>This document uses the <a href="https://github.com/antlr/antlr4/blob/master/doc/grammars.md">ANTLR grammar notation</a> to define the IDL.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_license"><a class="link" href="#_license">License</a></h3>
+<div class="paragraph">
+<p>This project is licensed under the Apache-2.0 License.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_interface_definition_language"><a class="link" href="#_interface_definition_language">Interface Definition Language</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_example"><a class="link" href="#_example">Example</a></h3>
+<div class="paragraph">
+<p>This short example showcases the interface modeling capabilities.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>PLACEHOLDER</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_document"><a class="link" href="#_document">Document</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr" data-lang="antlr">document
+    : body
+    ;
+
+body
+    : include* definition*
+    ;
+
+include
+    : 'include' string ('as' idenitifier)? ';'
+    ;
+
+definition
+    : 'type' identifier type ';'
+    | 'namespace' identifier '{' body '}'
+    ;
+
+identifier: [a-z][a-z0-9_]*;
+
+type
+    : reference
+    | primitive
+    | array
+    | struct
+    | union
+    | enum
+    | unit
+    ;
+
+reference
+    : '::'? (identifier '::')* identifier
+    ;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_primitive"><a class="link" href="#_primitive">Primitive</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr" data-lang="antlr">primitive
+    : 'void'
+    | 'bool'
+    | 'int32'   // 32-bit signed integer
+    | 'int64'   // 64-bit signed integer
+    | 'float32' // IEEE 754 (32 bit)
+    | 'float64' // IEEE 754 (64 bit)
+    | 'string'  // Character sequence of variable length
+    | 'byte'    // Byte
+    | 'bytes'   // Byte sequence of variable length
+    ;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_array"><a class="link" href="#_array">Array</a></h3>
+<div class="paragraph">
+<p>Arrays represent either fixed-length or variable-length sequences; an array type is variable-length if no size is given.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr" data-lang="antlr">array: type '[' size=int? ']';</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Examples</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type uuid byte[16]; // fixed-length array
+type sha1 byte[20]; // ''
+
+type nums int32[];  // variable-length array</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_struct"><a class="link" href="#_struct">Struct</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr" data-lang="antlr">struct: 'struct' '{' field (',' field)* ','? '}';
+
+field: identitifer ':' type;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type decimal struct {
+    coefficient: int64,
+    exponent: int32,
+};
+
+type coordinates struct {
+    lat: decimal,
+    lon: decimal,
+};</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_union"><a class="link" href="#_union">Union</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr" data-lang="antlr">union
+    : 'union' '{' variant+ '}'
+    ;
+
+variant
+    : identifier type ';'
+    ;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code>type my_union union {
+
+    variant_a struct {
+        x: int32,
+        y: int32,
+    };
+
+    variant_b stuct {
+        u: int32,
+        v: int32,
+    };
+};</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enum"><a class="link" href="#_enum">Enum</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">enum : 'enum' { enumerator (',' enumerator)* '}'
+
+enumerator : [A-Z]+</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type my_enum enum { A, B, C };</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_unit"><a class="link" href="#_unit">Unit</a></h4>
+<div class="paragraph">
+<p>Define a type which is represented by only its name. This is like an empty struct and is represented by an Ion symbol.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr" data-lang="antlr">unit : 'unit';</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code>type my_singleton unit;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_include"><a class="link" href="#_include">Include</a></h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+This section is out of scope for version 1, but was included for discussion.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>An include statement is used to bring all type definitions from another source into the current namespace. It is effectively a pre-processing copy-paste of the included source.</p>
+</div>
+<div class="listingblock">
+<div class="title">Include Example</div>
+<div class="content">
+<pre class="highlight"><code>// file1.ridl
+type a int32[];
+
+// file2.ridl
+include file1.ridl;
+type b enum { X, Y };
+
+// &gt; ridl -I . file2.ridl -o types.ridl
+// &gt; cat types.ridl
+type a int32[];
+type b enum { X, Y };</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_namespace"><a class="link" href="#_namespace">Namespace</a></h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+This section is out of scope for version 1, but was included for discussion.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Namespaces allow grouping of type names to preventing name conflicts. The syntax and behavior match typedef in C++ namespaces and the Type Namespace of Rust. In RIDL, there is only one <em>type</em> of namespace i.e. the <em>names</em> of namespaces and the <em>names</em> types of occupy the same space.</p>
+</div>
+<div class="quoteblock">
+<div class="title">Namespaces in C++ (Typedef Namespace)</div>
+<blockquote>
+<div class="paragraph">
+<p>Namespaces provide a method for preventing name conflicts in large projects.
+Entities declared inside a namespace block are placed in a namespace scope, which prevents them from being mistaken for identically-named entities in other scopes.</p>
+</div>
+<div class="paragraph">
+<p>Entities declared outside all namespace blocks belong to the global namespace. The global namespace belongs to the global scope, and can be referred to explicitly with a leading <code>::</code>. While it has no declaration, the global namespace is not an unnamed namespace.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://en.cppreference.com/w/cpp/language/namespace" class="bare">https://en.cppreference.com/w/cpp/language/namespace</a>
+</div>
+</div>
+<div class="quoteblock">
+<div class="title">Namespaces in Rust (Type Namespace)</div>
+<blockquote>
+<div class="paragraph">
+<p>A namespace is a logical grouping of declared names. Names are segregated into separate namespaces based on the kind of entity the name refers to. Namespaces allow the occurrence of a name in one namespace to not conflict with the same name in another namespace.</p>
+</div>
+<div class="paragraph">
+<p>Within a namespace, names are organized in a hierarchy, where each level of the hierarchy has its own collection of named entities.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://doc.rust-lang.org/reference/names/namespaces.html" class="bare">https://doc.rust-lang.org/reference/names/namespaces.html</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_amazon_ion"><a class="link" href="#_amazon_ion">Amazon Ion</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section defines how type definitions are mapped to Ion values as well as Ion Schema 2.0. For details on Ion, see <a href="https://amazon-ion.github.io/ion-docs/docs/spec.html">Ion Specification</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="_ion_encoding"><a class="link" href="#_ion_encoding">Ion Encoding</a></h3>
+<div class="paragraph">
+<p>This section defines how concrete values of RIDL-defined types are encoded as Ion values.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Ion Reference</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong><a href="https://amazon-ion.github.io/ion-docs/docs/spec.html">Textual</a></strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong><a href="https://amazon-ion.github.io/ion-docs/docs/binary.html">Binary</a></strong></p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_primitives"><a class="link" href="#_primitives">Primitives</a></h4>
+<div class="paragraph">
+<p>Primitive values are encoded via the Ion types shown below.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">RIDL Primitive</th>
+<th class="tableblock halign-left valign-top">Ion Primitive</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bool</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bool</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int32</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int64</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">float32</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">float</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">float64</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">float</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">string</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">byte</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">blob</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bytes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">blob</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_arrays"><a class="link" href="#_arrays">Arrays</a></h4>
+<div class="paragraph">
+<p>Array values are encoded as Ion lists.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_struct_2"><a class="link" href="#_struct_2">Struct</a></h4>
+<div class="paragraph">
+<p>A struct is encoded as an Ion s-expression annotated with its qualified name. Note that a qualified name is delimited with '::' and is always quoted to form a single annotation.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code>// Example type
+type my_struct {
+    a: int32,
+    b: int32,
+};
+
+// Example value for `my_struct`
+// { a: 1, b: 2 }
+
+// Ion Encoding
+'my_struct'::(1,2)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Namespaced Example</div>
+<div class="content">
+<pre class="highlight"><code>// Example type (namespaced)
+namespace foo {
+    type bar struct {
+        x: bool,
+        y: bool,
+    }
+}
+
+// Example value for `foo::bar`
+// { x: true, y: false }
+
+// Ion Encoding
+'foo::bar'::(true,false)</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Related topics which are illustrative here are <a href="https://ziglang.org/documentation/master/#packed-struct">Zig packed structs</a> and <a href="https://en.wikipedia.org/wiki/Product_type">product</a> types vs. <a href="https://en.wikipedia.org/wiki/Record_(computer_science)">record</a> types. The crux here is asking which algebraic type we <em>want</em> struct to represent in RIDL, and will there be a tuple type? This proposal aligns with Zig&#8217;s packed struct which is much like a product type where names are discarded and fields are accessed in the order they are declared. I&#8217;m eager to discuss this, but consider a definitive decision out of scope for version 1.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_union_2"><a class="link" href="#_union_2">Union</a></h4>
+<div class="paragraph">
+<p>A union type is encoded as the encoding of its conrete type.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code>type my_union union {
+
+    foo int32;
+
+    bar struct { x: int32, y: int32 };
+};
+
+// Foo Value, 3
+// Bar Value,  { x: 1, y: 2 }
+
+// Foo Encoding
+'my_union::foo'::3
+
+// Bar Encoding
+'my_union::bar'::(1,2)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_enum_2"><a class="link" href="#_enum_2">Enum</a></h4>
+<div class="paragraph">
+<p>An enum is serialized to Ion with its qualified name annotated on the enumerator value.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code>// Definition
+type my_enum enum { A, B, C };
+
+// Value
+// B
+
+// Ion Encoding
+'my_enum'::B</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_unit_2"><a class="link" href="#_unit_2">Unit</a></h4>
+<div class="paragraph">
+<p>A unit is serialized to Ion with its qualified name annotated on the symbol <code>unit</code>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre class="highlight"><code>// Types
+
+type my_unit unit;
+
+namespace foo {
+    type my_unit unit;
+}
+
+// Ion Encodings
+'my_unit'::unit
+'::foo::my_unit'::unit</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ion_schema"><a class="link" href="#_ion_schema">Ion Schema</a></h3>
+<div class="paragraph">
+<p>This section describes how RIDL type definitions are mapped to Ion Schema. I use <code>&lt;PLACEHOLDER&gt;</code> to represent a placeholder called <code>PLACEHOLDER</code>, and the special placeholder <code>&lt;NAME&gt;</code> and <code>'&lt;..NAME&gt;'</code> to be an unqualified and fully-qualified type name respectively.</p>
+</div>
+<div class="sect3">
+<h4 id="_primitives_2"><a class="link" href="#_primitives_2">Primitives</a></h4>
+<div class="paragraph">
+<p>Primitives are effectively aliases for the Ion primitive types; only <code>int32</code>, <code>float32</code>, and <code>byte</code> require constraints.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: void,
+    type: nothing,
+}
+
+type::{
+    name: '::int32',
+    type: int,
+    valid_values: range::[
+        -2_147_483_648, // -(2^31)
+        +2_147_483_647, // 2^31 - 1
+    ]
+}
+
+type::{
+    name: int64,
+    type: int,
+    valid_values: range::[
+        −9_223_372_036_854_775_808, // -(2^63)
+        +9_223_372_036_854_775_807, // 63^2 - 1
+    ],
+}
+
+type::{
+    name: float32,
+    type: float,
+    valid_values: range::[], // ?
+}
+
+type::{
+    name: float64,
+    type: float,
+}
+
+type::{
+    name: byte,
+    type: blob,
+    byte_length: 1,
+}
+
+type::{
+    name: bytes,
+    type: blob,
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_arrays_2"><a class="link" href="#_arrays_2">Arrays</a></h4>
+<div class="paragraph">
+<p><strong>Fixed Length</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type &lt;NAME&gt; &lt;TYPE&gt;[&lt;SIZE&gt;];</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: '&lt;..NAME&gt;',
+    type: list,
+    container_length: &lt;SIZE&gt;,
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Variable Length</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: '&lt;..NAME&gt;',
+    type: list,
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_struct_3"><a class="link" href="#_struct_3">Struct</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type &lt;NAME&gt; struct {
+    &lt;F_1&gt;: &lt;T_1&gt;,
+    ...
+    &lt;F_N&gt;: &lt;T_N&gt;,
+};</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: '&lt;..NAME&gt;',
+    type: sexp,
+    container_length: &lt;N&gt;,
+    annotations: required::closed::[ '&lt;..NAME&gt;' ],
+    ordered_elements: [
+        &lt;T_1&gt;,
+        ...,
+        &lt;T_N&gt;,
+    ],
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Each <code>&lt;T_i&gt;</code> which is an inline type definition is defined before the outer type with the inline type&#8217;s name <code>'&lt;..NAME&gt;'::&lt;F_i&gt;</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_union_3"><a class="link" href="#_union_3">Union</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type &lt;NAME&gt; union {
+    &lt;V_1&gt; &lt;T_1&gt;;
+    ...
+    &lt;V_N&gt; &lt;T_N&gt;;
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: '&lt;..V_1&gt;',
+    type: &lt;T_1&gt;,
+}
+
+...
+
+type::{
+    name: '&lt;..V_N&gt;',
+    type: &lt;T_N&gt;,
+}
+
+type::{
+    name: '&lt;..NAME&gt;',
+    one_of: [ &lt;T_1&gt;, ..., &lt;T_N&gt; ],
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_enum_3"><a class="link" href="#_enum_3">Enum</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type &lt;NAME&gt; enum { &lt;E_1&gt;, ..., &lt;E_N&gt; };</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: '&lt;..NAME&gt;',
+    type: symbol,
+    valid_values: [ &lt;E_1&gt;, ..., &lt;E_N&gt; ],
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_unit_3"><a class="link" href="#_unit_3">Unit</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ridl" data-lang="ridl">type &lt;NAME&gt; unit;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ion" data-lang="ion">type::{
+    name: '&lt;..NAME&gt;',
+    type: symbol,
+    annotations: required::closed::[ '&lt;..NAME&gt;' ],
+    valid_values: [ unit ]
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix"><a class="link" href="#_appendix">Appendix</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_a1_prior_art_comparisons"><a class="link" href="#_a1_prior_art_comparisons">A1 — Prior Art Comparisons</a></h3>
+<div class="paragraph">
+<p>PLACEHOLDER</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_a2_complete_grammar"><a class="link" href="#_a2_complete_grammar">A2 — Complete Grammar</a></h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-antlr4" data-lang="antlr4">grammar RIDL;
+
+document
+  : body
+  ;
+
+body
+  : include* definition+ EOF
+  ;
+
+include
+  : INCLUDE STRING (AS? NAME)
+  ;
+
+definition
+  : TYPE NAME type SEMICOLON
+  | NAMESPACE NAME L_BRACE body R_BRACE
+  ;
+
+type
+  : typeNamed
+  | typePrimitive
+  | typeArray
+  | typeStruct
+  | typeUnion
+  | typeEnum
+  | typeUnit
+  ;
+
+typeNamed
+  : NAME
+  ;
+
+typePrimitive
+  : T_BOOL
+  | T_INT32
+  | T_INT64
+  | T_FLOAT32
+  | T_FLOAT64
+  | T_STRING
+  | T_BYTE
+  | T_BYTES
+  ;
+
+typeArray
+  : typePrimitive L_BRACKET size=INTEGER? R_BRACKET
+  ;
+
+typeStruct
+  : STRUCT L_BRACE typeStructField (COMMA typeStructField)* COMMA? R_BRACE
+  ;
+
+typeStructField
+  : NAME COLON type
+  ;
+
+typeUnion
+  : UNION L_BRACE typeUnionVariant+ R_BRACE
+  ;
+
+typeUnionVariant
+  : NAME type SEMICOLON
+  ;
+
+typeEnum
+  : ENUM L_BRACE ENUMERATOR (COMMA ENUMERATOR)* R_BRACE
+  ;
+
+typeUnit
+  : UNIT
+  ;
+
+AS: 'as';
+INCLUDE: 'include';
+NAMESPACE: 'namespace';
+TYPE: 'type';
+
+T_BOOL: 'bool';
+T_INT32: 'int32';
+T_INT64: 'int64';
+T_FLOAT32: 'float32';
+T_FLOAT64: 'float64';
+T_STRING: 'string';
+T_BYTE: 'byte';
+T_BYTES: 'bytes';
+
+ARRAY: 'array';
+STRUCT: 'struct';
+UNION: 'union';
+ENUM: 'enum';
+UNIT: 'unit';
+
+COMMA: ',';
+COLON: ':';
+SEMICOLON: ';';
+L_ANGLE: '&lt;';
+R_ANGLE: '&gt;';
+L_PAREN: '(';
+R_PAREN: ')';
+L_BRACE: '{';
+R_BRACE: '}';
+L_BRACKET: '[';
+R_BRACKET: ']';
+
+NAME
+  : [a-z][a-z_]*
+  ;
+
+INTEGER
+  : [0-9]+
+  ;
+
+ENUMERATOR
+  : [A-Z][A-Z_]+
+  ;
+
+STRING
+  : '"' (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* '"'
+  ;
+
+COMMENT_LINE
+  : '//' ~[\r\n]* '\r'? '\n'? -&gt; skip
+  ;
+
+COMMENT_BLOCK
+  : '/*' .*? '*/' -&gt; skip
+  ;
+
+WS
+  : [ \r\n\t]+ -&gt; skip
+  ;
+
+UNRECOGNIZED
+  : .
+  ;</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_reserved_words"><a class="link" href="#_reserved_words">Reserved Words</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>type
+namespace
+include
+
+bool
+int32
+int64
+float32
+float64
+string
+byte
+bytes
+
+array
+struct
+union
+enum
+unit</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2024-03-07 09:21:23 -0800
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,2920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.18">
+<title>PartiQL Logical Plan Definition: Version (1)</title>
+<style>
+/* AsciiDoctor Default */
+@import "https://cdn.jsdelivr.net/gh/asciidoctor/asciidoctor@2.0/data/stylesheets/asciidoctor-default.css";
+
+/* https://fonts.google.com/specimen/Raleway */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,300;0,400;0,600;1,300;1,400;1,500&display=swap');
+
+/* LaTeX like serif font, but it doesn't read as nice as Plex Serif on a screen. */
+/* https://fonts.google.com/specimen/Old+Standard+TT */
+/* @import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap'); */
+
+/* https://fonts.google.com/specimen/IBM+Plex+Serif */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap');
+
+/* https://fonts.google.com/specimen/Fira+Code */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+:root {
+  --color-eerie: #1a1e23;
+  --color-charged: #2156a5;
+}
+
+#header>h1:first-child {
+  color: var(--color-charged);
+}
+
+/* Headers */
+h1,
+h2,
+h3,
+#toctitle,
+.sidebarblock>.content>.title,
+h4,
+h5,
+h6 {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 600;
+  color: var(--color-charged);
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  font-family: 'IBM Plex Serif', serif;
+}
+
+/* Code Blocks */
+.literalblock pre,
+.listingblock>.content>pre {
+  font-size: 0.9em;
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+}
+
+#toc ul {
+  font-family: 'IBM Plex Serif', serif;
+  list-style-type: none;
+}
+
+.subheader,
+.admonitionblock td.content>.title,
+.audioblock>.title,
+.exampleblock>.title,
+.imageblock>.title,
+.listingblock>.title,
+.literalblock>.title,
+.stemblock>.title,
+.openblock>.title,
+.paragraph>.title,
+.quoteblock>.title,
+table.tableblock>.title,
+.verseblock>.title,
+.videoblock>.title,
+.dlist>.title,
+.olist>.title,
+.ulist>.title,
+.qlist>.title,
+.hdlist>.title {
+  line-height: 1.45;
+  color: darkslategrey;
+  font-weight: 400;
+  margin-top: 0;
+  margin-bottom: .25em;
+}
+
+.admonitionblock>table td.icon .title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.exampleblock>.content {
+  background: none;
+  box-shadow: none;
+}
+
+@media (min-width: 1500px) {
+
+  body {
+    margin-left: 400px;
+  }
+
+  /* Fixed TOC when wide */
+  #toc {
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0 !important;
+    padding: 20px 40px;
+    height: 100vh;
+    width: 400px;
+    border-top: none !important;
+    border-right: 1px solid #e7e7e9;
+  }
+
+}
+
+#header .details {
+  border: none;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+}
+
+#content h1>a.link,
+h2>a.link,
+h3>a.link,
+#toctitle>a.link,
+.sidebarblock>.content>.title>a.link,
+h4>a.link,
+h5>a.link,
+h6>a.link {
+  color: var(--color-charged);
+  text-decoration: none
+}
+
+#content h1>a.link:hover,
+h2>a.link:hover,
+h3>a.link:hover,
+#toctitle>a.link:hover,
+.sidebarblock>.content>.title>a.link:hover,
+h4>a.link:hover,
+h5>a.link:hover,
+h6>a.link:hover {
+  color: var(--color-charged);
+}
+</style>
+</head>
+<body class="article">
+<div id="header">
+<h1>PartiQL Logical Plan Definition: Version (1)</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Page Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_about">About</a></li>
+<li><a href="#_navigation">Navigation</a></li>
+<li><a href="#_background">Background</a></li>
+<li><a href="#_document_top_level">Document (Top-Level)</a>
+<ul class="sectlevel2">
+<li><a href="#_version">Version</a></li>
+<li><a href="#_catalogs">Catalogs</a></li>
+<li><a href="#_statement">Statement</a></li>
+</ul>
+</li>
+<li><a href="#_types">Types</a></li>
+<li><a href="#_expressions">Expressions</a>
+<ul class="sectlevel2">
+<li><a href="#Rex-literal">Literal</a></li>
+<li><a href="#Rex-variable">Variable</a></li>
+<li><a href="#Rex-global">Global</a></li>
+<li><a href="#Rex-path-index">Path Index</a></li>
+<li><a href="#Rex-path-key">Path Key</a></li>
+<li><a href="#Rex-path-symbol">Path Symbol</a></li>
+<li><a href="#Rex-cast">Cast</a></li>
+<li><a href="#Rex-call-static">Call Static</a></li>
+<li><a href="#Rex-call-dynamic">Call Dynamic</a></li>
+<li><a href="#Rex-switch">Switch</a></li>
+<li><a href="#Rex-collection">Collection</a></li>
+<li><a href="#Rex-struct">Struct</a></li>
+<li><a href="#Rex-pivot">Pivot</a></li>
+<li><a href="#Rex-subquery">Subquery</a></li>
+<li><a href="#Rex-select">Select</a></li>
+<li><a href="#Rex-tuple-union">Tuple Union</a></li>
+</ul>
+</li>
+<li><a href="#_relations">Relations</a>
+<ul class="sectlevel2">
+<li><a href="#rel-scan">Scan</a></li>
+<li><a href="#rel-scan-indexed">Scan Indexed</a></li>
+<li><a href="#rel-scan-unpivot">Unpivot</a></li>
+<li><a href="#rel-filter">Filter</a></li>
+<li><a href="#rel-project">Project</a></li>
+<li><a href="#rel-join">Join</a></li>
+<li><a href="#rel-aggregate">Aggregate</a></li>
+<li><a href="#rel-sort">Sort</a></li>
+<li><a href="#rel-union">Union</a></li>
+<li><a href="#rel-intersect">Intersect</a></li>
+<li><a href="#rel-except">Except</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_about"><a class="link" href="#_about">About</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document defines the V1 interface for PartiQL&#8217;s <a href="https://en.wikipedia.org/wiki/Query_plan">Plan</a> representation. PartiQL&#8217;s logical plans can be serialized as Ion; see <a href="serialization.html">PartiQL Logical Plan Serialization (V1)</a> for details.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_navigation"><a class="link" href="#_navigation">Navigation</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p><strong><a href="types.html">PartiQL Types</a></strong></p>
+</li>
+<li>
+<p><strong><a href="model.html">PartiQL Algebra</a></strong></p>
+</li>
+<li>
+<p><strong><a href="#">PartiQL Logical Plan Interface (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="serialization.html">PartiQL Logical Plan Serialization (V1)</a></strong></p>
+</li>
+<li>
+<p><strong><a href="IDL.html">Interface Definition Language</a></strong></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_background"><a class="link" href="#_background">Background</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document began in March of 2023 with an initial model of PartiQL&#8217;s relational algebra. Based upon this model, the PartiQL Team implemented a compiler and evaluator. This document relfects the current relational algebra model in the <a href="https://github.com/partiql/partiql-lang-kotlin/blob/partiql-eval/partiql-plan/src/main/resources/partiql_plan.ion">partiql-lang-kotlin 1.0</a> implementation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_document_top_level"><a class="link" href="#_document_top_level">Document (Top-Level)</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Plans are represented by a top-level object we&#8217;ll call "document".</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Document</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Version</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Plan version</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Catalogs</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Catalog&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Catalog metadata</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Statement</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Statement</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compiled PartiQL statement</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect2">
+<h3 id="_version"><a class="link" href="#_version">Version</a></h3>
+<div class="paragraph">
+<p>Version is a simple integer denoting the inteface version.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_catalogs"><a class="link" href="#_catalogs">Catalogs</a></h3>
+<div class="paragraph">
+<p>Catalogs within plans represent entities of the database catalogs that this query was planned against. This includes base tables and functions along with any user-defined metadata.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Catalog</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The catalogs name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Item&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resolved catalog entities during query planning</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Item Variants</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Value</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;String&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path within the catalog</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The catalog value&#8217;s type</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Fn</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;String&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path within the catalog</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specific</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operator specific identifier</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Agg</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;String&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path within the catalog</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specific</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operator specific identifier</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_statement"><a class="link" href="#_statement">Statement</a></h3>
+<div class="paragraph">
+<p>A plan contains a single <em>statement</em> which has many variants.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Statement Variants</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Variant</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Query</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Query expression i.e. SELECT-FROM-WHERE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Insert</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML INSERT</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Insert Value</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML INSERT VALUE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Upsert</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML UPSERT</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Replace</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML REPLACE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Update</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML UPDATE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Remove</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML REMOVE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Delete</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DML DELETE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Create Table</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DDL CREATE TABLE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Create Index</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DDL CREATE INDEX</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Create View</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DDL CREATE VIEW</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Drop Table</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DDL DROP TABLE</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Drop Index</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>DLL DROP INDEX</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" colspan="2"><div class="content"><div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This document&#8217;s scope is limited to <em>query</em> statements.
+</td>
+</tr>
+</table>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_query"><a class="link" href="#_query">Query</a></h4>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Query</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_types"><a class="link" href="#_types">Types</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="types.html">PartiQL Types</a> for type semantics.</p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Type Variants</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bool</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int8</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int16</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int32</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int64</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Decimal</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Precision</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decimal precision</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scale</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Decimal scale</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Numeric</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Float32</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Float64</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Char Fixed</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed length</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Char Varying</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Max length</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Symbol</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bit Fixed</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed length</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bit Varying</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Max length</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Binary</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Byte Fixed</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fixed length</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Byte Variable</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Length</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Max length</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Blob</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Clob</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Date</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Time</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Precision</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seconds precision</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Time TZ</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Precision</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seconds precision</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Offset</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(Int,Int)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Zone offset</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Timestamp</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Precision</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seconds precision</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Timestamp TZ</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Precision</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seconds precision</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Offset</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>(Int,Int)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Zone offset</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Interval</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Precision</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seconds precision</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bag</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items type</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items type</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Sexp</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Items type</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Struct</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fields</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;(String,Type)&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Struct fields</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Open</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bool</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">True if open content struct</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ordered</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bool</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">True if fields are ordered</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Unique</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bool</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">True if field key are unique</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Null</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Missing</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Unit</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Union</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Types</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Type&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Types in the union</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_expressions"><a class="link" href="#_expressions">Expressions</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section defines all expressions.</p>
+</div>
+<div id="rex-summary" class="ulist">
+<div class="title">Expression Variants</div>
+<ul>
+<li>
+<p><a href="#Rex-literal">Literal</a></p>
+</li>
+<li>
+<p><a href="#Rex-variable">Variable</a></p>
+</li>
+<li>
+<p><a href="#Rex-global">Global</a></p>
+</li>
+<li>
+<p><a href="#Rex-path-index">Path Index</a></p>
+</li>
+<li>
+<p><a href="#Rex-path-key">Path Key</a></p>
+</li>
+<li>
+<p><a href="#Rex-path-symbol">Path Symbol</a></p>
+</li>
+<li>
+<p><a href="#Rex-cast">Cast</a></p>
+</li>
+<li>
+<p><a href="#Rex-call-static">Call Static</a></p>
+</li>
+<li>
+<p><a href="#Rex-call-dynamic">Call Dynamic</a></p>
+</li>
+<li>
+<p><a href="#Rex-switch">Switch</a></p>
+</li>
+<li>
+<p><a href="#Rex-collection">Collection</a></p>
+</li>
+<li>
+<p><a href="#Rex-struct">Struct</a></p>
+</li>
+<li>
+<p><a href="#Rex-pivot">Pivot</a></p>
+</li>
+<li>
+<p><a href="#Rex-subquery">Subquery</a></p>
+</li>
+<li>
+<p><a href="#Rex-select">Select</a></p>
+</li>
+<li>
+<p><a href="#Rex-tuple-union">Tuple Union</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="Rex-literal"><a class="link" href="#Rex-literal">Literal</a></h3>
+<div class="paragraph">
+<p>Literal expressions are simply <a href="model.html#values">PartiQL Values</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>∅ → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Literal Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Value</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PartiQL value encoded as Ion</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-variable"><a class="link" href="#Rex-variable">Variable</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Env<sub>var</sub> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Variable Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ref</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0-indexed offset in the variables binding tuple.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Depth</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">0-indexed offset to the scope.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-global"><a class="link" href="#Rex-global">Global</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Env<sub>db</sub> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Global Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ref</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Ref</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Catalog reference</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-path-index"><a class="link" href="#Rex-path-index">Path Index</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sub>sequence</sub> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Path Index Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Root</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path root</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path key integer expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-path-key"><a class="link" href="#Rex-path-key">Path Key</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sub>struct</sub> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Path Key Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Root</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path root</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path key string expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-path-symbol"><a class="link" href="#Rex-path-symbol">Path Symbol</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sub>struct</sub> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Path Symbol Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Root</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path root</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Path key symbol</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-cast"><a class="link" href="#Rex-cast">Cast</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Cast Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cast output type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Arg</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cast argument</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-call-static"><a class="link" href="#Rex-call-static">Call Static</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sup>N</sup> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Call Static Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fn</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Ref</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function catalog reference</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Args</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Rex&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function call arguments</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-call-dynamic"><a class="link" href="#Rex-call-dynamic">Call Dynamic</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sup>N</sup> → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Call Dynamic Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Args</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Rex&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function call arguments</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Candidates</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;candidate&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dynamic call candidates</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Candidate</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fn</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Ref</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Function catalog reference</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Coercions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;type&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Argument coercions</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-switch"><a class="link" href="#Rex-switch">Switch</a></h3>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V → V</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Switch Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Branches</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;branch&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Switch branches</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Default value expression</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Switch Branch</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Condition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Branch match condition</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Branch return expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-collection"><a class="link" href="#Rex-collection">Collection</a></h3>
+<div class="paragraph">
+<p>A collection expression represents a bag, array, or sexp with expression elements.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sup>N</sup> → V<sub>collection</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Collection Definition</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Values</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List&lt;Rex&gt;</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Collection value expressions</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-struct"><a class="link" href="#Rex-struct">Struct</a></h3>
+<div class="paragraph">
+<p>A struct expression represents a tuple whose key-value pairs are expression pairs.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sup>N</sup> → V<sub>struct</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Struct Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fields</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Field&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tuple field expressions</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Field</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>string</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Field name (string-valued) expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Field value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-pivot"><a class="link" href="#Rex-pivot">Pivot</a></h3>
+<div class="paragraph">
+<p>The pivot expression returns a single tuple whose fields are constructed from the input relation; see <a href="#pivot_clause">PIVOT</a> for details.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → V<sub>struct</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Pivot Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-subquery"><a class="link" href="#Rex-subquery">Subquery</a></h3>
+<div class="paragraph">
+<p>A scalar subquery expression is a simple expression that wraps a relation expression. The coercion rules are specified by the <a href="#scalar_subquery">scalar subquery</a> section of PartiQL Query semantics. In short, this projection is the function <code>COLL_TO_SCALAR</code>. If the input to <code>COLL_TO_SCALAR</code> is a collection consisting of a single tuple with a single field, the field&#8217;s value is projected; otherwise a cardinality expection is thrown (MISSING in permissive mode).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → V~</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Subquery Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Constructor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Constructor expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Coercion</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Enum</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">One of ROW or SCALAR enum</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-select"><a class="link" href="#Rex-select">Select</a></h3>
+<div class="paragraph">
+<p>A collection query expression is an expression which wraps a relation expression to produce a collection <em>V<sub>collection</sub></em>. There are no constraints on the number of tuples or fields. A collection subquery expression can be used as the right-hand-side argument of the <code>IN</code> predicate; or as the left (or right) side of a collection comparison function. Note that <em>R ⊊ V<sub>collection</sub></em></p>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Select Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Constructor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Constructor expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="Rex-tuple-union"><a class="link" href="#Rex-tuple-union">Tuple Union</a></h3>
+<div class="paragraph">
+<p>When all of t1, t2, . . . , tn are tuples TUPLEUNION(t1, t2, . . . , tn) outputs a tuple t such that for each attribute
+name/value pair n : v of any ti, the tuple t has a respective n : v. Notice the possibility that the output t has duplicate
+attribute names because either (i) two different inputs ti and tj had the same attribute name, or (ii) because an input
+ti already had a duplicate attribute name.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>V<sub>struct</sub><sup>N</sup> → V<sub>struct</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Tuple Union Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Args</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Rex&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Struct arguments to union</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_relations"><a class="link" href="#_relations">Relations</a></h2>
+<div class="sectionbody">
+<div class="ulist">
+<div class="title">Relation Variants</div>
+<ul>
+<li>
+<p><a href="#rel-scan">Scan</a></p>
+</li>
+<li>
+<p><a href="#rel-scan-indexed">Scan Indexed</a></p>
+</li>
+<li>
+<p><a href="#rel-unpivot">Unpivot</a></p>
+</li>
+<li>
+<p><a href="#rel-filter">Filter</a></p>
+</li>
+<li>
+<p><a href="#rel-project">Project</a></p>
+</li>
+<li>
+<p><a href="#rel-join">Join</a></p>
+</li>
+<li>
+<p><a href="#rel-aggregate">Aggregate</a></p>
+</li>
+<li>
+<p><a href="#rel-sort">Sort</a></p>
+</li>
+<li>
+<p><a href="#rel-union">Union</a></p>
+</li>
+<li>
+<p><a href="#rel-intersect">Intersect</a></p>
+</li>
+<li>
+<p><a href="#rel-except">Except</a></p>
+</li>
+<li>
+<p><a href="#rel-limit">Limit</a></p>
+</li>
+<li>
+<p><a href="#rel-offset">Offset</a></p>
+</li>
+<li>
+<p><a href="#rel-distinct">Distinct</a></p>
+</li>
+<li>
+<p><a href="#rel-exclude">Exclude</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="rel-scan"><a class="link" href="#rel-scan">Scan</a></h3>
+<div class="paragraph">
+<p>The scan relation operator produces a relation of 1-tuple bindings by scanning over each item of the input and assigning each value to element 0 of the output tuple.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Rex → Rel<sub>1</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Scan Definition</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>collection</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A global or literal expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-scan-indexed"><a class="link" href="#rel-scan-indexed">Scan Indexed</a></h3>
+<div class="paragraph">
+<p>The scan indexed relation operator produces a relation of 2-tuple bindings by scanning over each item of the input and assigning each value and its indices to element 0 and element 1 of the output tuple respectively.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Rex → Rel<sub>2</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Scan Indexed Definition</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>collection</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A global or literal expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-scan-unpivot"><a class="link" href="#rel-scan-unpivot">Unpivot</a></h3>
+<div class="paragraph">
+<p>The unpivot relation operator produces a collection of 2-tuple bindings by iterating over a struct&#8217;s fields and assigning each field&#8217;s key and value to element 0 and element 1 of the output tuple respectively.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>Rex<sub>struct</sub> → Rel<sub>2</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Unpivot Definition</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>struct</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A global or literal struct expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-filter"><a class="link" href="#rel-filter">Filter</a></h3>
+<div class="paragraph">
+<p>The filter relation operator produces a new relation by selecting all tuples of its input relation where the <em>condition</em> is TRUE. The filter operator maintains the orderdness of the input relation.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R<sub>n</sub> → R<sub>n</sub></em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Filter Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Relation expression to filter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Condition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>bool</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A boolean value expression</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-project"><a class="link" href="#rel-project">Project</a></h3>
+<div class="paragraph">
+<p>The Relation Projection Operator corresponds to the <a href="#sql_select_clause">SQL SELECT Clause</a>. It produces a new relation by applying each projection expression to the input relation&#8217;s tuples. That is, the Relation Projection Operator creates tuples by evaluating all binding expressions values on the input tuple and adding the results to the corresponding binding expression names in the output tuple.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Project Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Projections</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Rex&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A collection of binding expressions</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-join"><a class="link" href="#rel-join">Join</a></h3>
+<div class="paragraph">
+<p>The join operator represents <a href="https://en.wikipedia.org/wiki/Relational_algebra.html#Joins_and_join-like_operators">Relational Algebra joins</a> and corresponds to the join variants of the <a href="#multi_item_from_clause">multi-item FROM clause</a>. To be continued.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R x R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Join Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The left-hand-side input relation expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The right-hand-side input relation expression</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Condition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>bool</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Join condition</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Join Type</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">INNER, LEFT, RIGHT, FULL</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-aggregate"><a class="link" href="#rel-aggregate">Aggregate</a></h3>
+<div class="paragraph">
+<p>The aggregate relation operator produces a new relation by aggregating the input relation into groups based upon the operator&#8217;s aggregation functions and grouping expressions. Additionally, an aggregation operator can project all values of each group into a specified AS key — for details see the <a href="#group_by_clause">GROUP BY Clause</a>. This operator does not maintain orderedness.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Aggregate Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Relation Expression to aggregate</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Strategy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Strategy</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FULL or PARTIAL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Calls</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Agg&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A list of aggregate calls</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Groups</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Rex&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A list of group by keys; required if aggregations list is empty</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Agg</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Fn</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Ref</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Catalog reference to the aggregation function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quantifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Set Quantifier</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ALL or DISTINCT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Args</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Rex&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Aggregation call arguments</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-sort"><a class="link" href="#rel-sort">Sort</a></h3>
+<div class="paragraph">
+<p>The sort relation operator will sort the input relation expression by the given sort specifications.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Sort Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Relation expression to sort</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Specs</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Sort Spec&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A list of specifications to sort on</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Sort Spec</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rex</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Sort expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Order</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Order</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p>ASC NULLS LAST</p>
+</li>
+<li>
+<p>ASC NULLS FIRST</p>
+</li>
+<li>
+<p>DESC NULLS LAST</p>
+</li>
+<li>
+<p>DESC NULLS FIRST</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-union"><a class="link" href="#rel-union">Union</a></h3>
+<div class="paragraph">
+<p>Multiset or set union of two relations.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R x R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Union Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The left-hand-side input relation expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The right-hand-side input relation expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quantifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Set Quantifier</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>ALL or DISTINCT</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-intersect"><a class="link" href="#rel-intersect">Intersect</a></h3>
+<div class="paragraph">
+<p>Multiset or set intersection of two relations.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R x R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Intersect Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The left-hand-side input relation expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The right-hand-side input relation expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quantifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Set Quantifier</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>ALL or DISTINCT</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="rel-except"><a class="link" href="#rel-except">Except</a></h3>
+<div class="paragraph">
+<p>Multiset or set difference of two relations.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R x R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Except Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The left-hand-side input relation expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RHS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>The right-hand-side input relation expression</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quantifier</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Set Quantifier</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>ALL or DISTINCT</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="rel-limit"><a class="link" href="#rel-limit">Limit</a></h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Limit Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression to limit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Limit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>numeric</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of tuples to return in the output</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="rel-offset"><a class="link" href="#rel-offset">Offset</a></h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Offset Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression to limit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Offset</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rex<sub>numeric</sub></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of tuples to skip</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="rel-distinct"><a class="link" href="#rel-distinct">Distinct</a></h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Distinct Definition</caption>
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 71.4286%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression to limit</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="rel-exclude"><a class="link" href="#rel-exclude">Exclude</a></h4>
+<div class="paragraph">
+<p>See RFC-0051: EXCLUDE.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">signature</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><em>R → R</em></p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Exclude Definition</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Rel</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Input relation expression to limit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusions</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Exclusion Path&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusion paths</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Exclusion Path</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Root</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Variable</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Variable expression to apply exclusion to</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Steps</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Exclusion Step&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusion steps</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Exclusion Step</caption>
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusion</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Exclusion</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The exclusion to apply</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Steps</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>List&lt;Exclusion Step&gt;</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exclusion substeps</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-rows stretch">
+<caption class="title">Exclusion Variants</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Property</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Description</strong></p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Symbol</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Symbol</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Struct field exclusion (case-insensitive)</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Key</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>String</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Struct field exclusion (case-sensitive)</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Index</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><table class="tableblock frame-none grid-rows stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 60%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Index</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Int</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sequence index exclusion</p></td>
+</tr>
+</tbody>
+</table></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Struct Wildcard</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Sequence Wildcard</em></p></td>
+<td class="tableblock halign-left valign-top"><div class="content"></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2024-03-07 15:00:01 -0800
+</div>
+</div>
+</body>
+</html>
